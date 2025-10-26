@@ -235,19 +235,59 @@
 
 ---
 
-## Phase 16: Supabase Edge Functions 🔥
+## Phase 16: Edge Functions Implementation (100% Supabase) 🔥
 
-- [ ] Create Edge Functions
-  - [ ] supabase/functions/submit-prompt/index.ts
-  - [ ] supabase/functions/advance-round/index.ts
-  - [ ] supabase/functions/get-my-rank/index.ts
+### 16.1. Shared Utilities
+- [ ] `supabase/functions/_shared/adminAuth.ts` - Admin 권한 확인 유틸리티
+- [ ] `supabase/functions/_shared/cors.ts` - CORS 헤더 유틸리티
+- [ ] `supabase/functions/_shared/response.ts` - 응답 포맷 유틸리티
 
-- [ ] Deploy Edge Functions
+### 16.2. User Edge Functions
+- [ ] `supabase/functions/submit-prompt/index.ts` - 프롬프트 제출
+- [ ] `supabase/functions/get-my-rank/index.ts` - 내 순위 조회
+- [ ] AI 점수 평가 로직 (OpenAI/Claude/Gemini API 연동)
+
+### 16.3. Admin Round Management Edge Functions
+- [ ] `supabase/functions/admin-rounds-create/index.ts` - 라운드 생성
+- [ ] `supabase/functions/admin-rounds-start/index.ts` - 라운드 시작
+- [ ] `supabase/functions/admin-rounds-end/index.ts` - 라운드 종료
+- [ ] `supabase/functions/admin-rounds-extend/index.ts` - 라운드 연장
+- [ ] `supabase/functions/admin-rounds-cancel/index.ts` - 라운드 취소
+
+### 16.4. Admin Statistics Edge Functions
+- [ ] `supabase/functions/admin-stats/index.ts` - 전체 통계
+- [ ] `supabase/functions/admin-stats-rounds/index.ts` - 라운드별 통계
+- [ ] `supabase/functions/admin-stats-users/index.ts` - 사용자 통계
+
+### 16.5. Admin Prompt Management Edge Functions
+- [ ] `supabase/functions/admin-prompts/index.ts` - 프롬프트 목록 조회
+- [ ] `supabase/functions/admin-prompts-delete/index.ts` - 프롬프트 삭제 (소프트 삭제)
+- [ ] 점수 롤백 로직 구현
+
+### 16.6. Admin User Management Edge Functions
+- [ ] `supabase/functions/admin-users/index.ts` - 사용자 검색
+- [ ] `supabase/functions/admin-users-ban/index.ts` - 사용자 제재
+- [ ] `supabase/functions/admin-users-unban/index.ts` - 사용자 제재 해제
+
+### 16.7. Admin Audit Log Edge Function
+- [ ] `supabase/functions/admin-audit-log/index.ts` - Audit Log 조회
+- [ ] 모든 Admin 행동에 로그 추가
+
+### 16.8. Edge Functions 배포
+- [ ] Supabase Secrets 설정 (AI API 키, 환경 변수 등)
+- [ ] Deploy all Edge Functions
   ```bash
   supabase functions deploy submit-prompt
-  supabase functions deploy advance-round
   supabase functions deploy get-my-rank
+  supabase functions deploy admin-rounds-start
+  supabase functions deploy admin-rounds-end
+  supabase functions deploy admin-stats
+  # ... 나머지 Admin Functions
   ```
+
+### 16.9. Rate Limiting (Edge Functions 내부)
+- [ ] User API Rate Limiting (Deno KV 또는 Upstash Redis)
+- [ ] Admin API Rate Limiting (더 엄격)
 
 ---
 
@@ -284,7 +324,47 @@
 
 ---
 
-## Phase 18: Polish & Optimization ✨
+## Phase 18: Admin Panel UI 👨‍💼
+
+- [ ] Admin authentication pages
+  - [ ] Admin login page
+  - [ ] Admin 권한 확인 가드
+
+- [ ] Admin Dashboard
+  - [ ] 전체 통계 카드 (사용자 수, 프롬프트 수, 라운드 수)
+  - [ ] 현재 라운드 정보 위젯
+  - [ ] 최근 활동 로그
+
+- [ ] Round Management Page
+  - [ ] 라운드 생성 폼
+  - [ ] 예정된 라운드 목록
+  - [ ] 현재 활성 라운드 컨트롤 (시작/종료/연장)
+  - [ ] 과거 라운드 히스토리
+
+- [ ] Prompt Moderation Page
+  - [ ] 프롬프트 목록 (필터링, 검색)
+  - [ ] 프롬프트 삭제 버튼 + 사유 입력
+  - [ ] 점수 롤백 확인 모달
+
+- [ ] User Management Page
+  - [ ] 사용자 검색
+  - [ ] 사용자 상세 정보 (캐릭터, 통계)
+  - [ ] 제재/해제 버튼
+
+- [ ] Statistics Page
+  - [ ] 차트 라이브러리 (recharts, chart.js 등)
+  - [ ] 라운드별 통계 차트
+  - [ ] 사용자 참여율 그래프
+  - [ ] 점수 분포 히스토그램
+
+- [ ] Audit Log Page
+  - [ ] Admin 행동 로그 테이블
+  - [ ] 필터링 (액션, Admin, 날짜)
+  - [ ] 페이지네이션
+
+---
+
+## Phase 19: Polish & Optimization ✨
 
 - [ ] Add animations (Framer Motion)
   - [ ] Page transitions
@@ -305,7 +385,7 @@
 
 ---
 
-## Phase 19: Documentation 📚
+## Phase 20: Documentation 📚
 
 - [ ] Update README.md
 - [ ] Add inline code comments
@@ -314,7 +394,7 @@
 
 ---
 
-## Phase 20: Deployment 🚀
+## Phase 21: Deployment 🚀
 
 - [ ] Setup environment variables for production
 - [ ] Build production bundle
@@ -328,8 +408,10 @@
   - [ ] Set environment variables
   - [ ] Deploy
 
-- [ ] Setup Supabase Cron for round advancement
-  - [ ] Configure hourly job to call advance-round function
+- [ ] Admin Setup
+  - [ ] 초기 super_admin 계정 생성 (DB 직접 INSERT)
+  - [ ] Admin Panel 접근 URL 설정 (예: /admin)
+  - [ ] Admin 권한 테스트
 
 ---
 
@@ -339,11 +421,28 @@
 
 **Next Up**: Phase 2 - Dependencies Installation
 
+**NEW: 100% Supabase Edge Functions 아키텍처** 🆕
+- Admin 기반 라운드 관리 시스템 추가
+- 모든 API를 Supabase Edge Functions (Deno)로 구현
+- Cron Job 제거 → Admin이 수동으로 라운드 제어
+- Admin Panel UI 구현 필요
+
 **To Start Development**:
 1. Run `yarn install`
 2. Setup shadcn/ui with `npx shadcn-ui@latest init`
 3. Create Supabase project and update `.env`
-4. Start implementing types and services
+4. Run database migrations (`supabase db push`)
+5. Create initial super_admin account (직접 DB INSERT)
+6. Implement Edge Functions in `supabase/functions/`
+7. Deploy Edge Functions (`supabase functions deploy`)
+
+**아키텍처 특징:**
+- ✅ 100% Supabase: Auth + Database + Realtime + Edge Functions
+- ✅ 프론트엔드: Client SDK로 읽기 전용 직접 접근 (리더보드 등)
+- ✅ 쓰기 작업: 모든 Edge Functions를 통해서만 수행
+- ✅ Admin 시스템: Edge Functions로 라운드 수동 관리
+- ✅ 배포: `supabase functions deploy` 명령어로 간단 배포
+- ✅ 로그: Supabase Dashboard에서 Edge Functions 로그 실시간 확인
 
 ---
 

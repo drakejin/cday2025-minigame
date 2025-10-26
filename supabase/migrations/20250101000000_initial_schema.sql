@@ -46,15 +46,38 @@ CREATE INDEX idx_characters_total_score ON characters(total_score DESC);
 CREATE INDEX idx_characters_is_active ON characters(is_active) WHERE is_active = true;
 
 -- =============================================================================
--- 3. GAME_ROUNDS TABLE
+-- 3. ADMIN_USERS TABLE
 -- =============================================================================
--- Game round management (1-hour intervals)
+-- Admin user management (separate from regular profiles)
+CREATE TABLE admin_users (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  role VARCHAR(20) DEFAULT 'admin' NOT NULL CHECK (role IN ('super_admin', 'admin', 'moderator')),
+  permissions JSONB DEFAULT '{"rounds": true, "users": true, "stats": true}' NOT NULL,
+  is_active BOOLEAN DEFAULT true NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- Indexes for admin queries
+CREATE INDEX idx_admin_users_profile_id ON admin_users(profile_id);
+CREATE INDEX idx_admin_users_is_active ON admin_users(is_active) WHERE is_active = true;
+
+-- =============================================================================
+-- 4. GAME_ROUNDS TABLE
+-- =============================================================================
+-- Game round management (Admin manually controlled)
 CREATE TABLE game_rounds (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   round_number INTEGER UNIQUE NOT NULL,
   start_time TIMESTAMPTZ NOT NULL,
   end_time TIMESTAMPTZ NOT NULL,
-  is_active BOOLEAN DEFAULT true NOT NULL,
+  actual_end_time TIMESTAMPTZ,
+  is_active BOOLEAN DEFAULT false NOT NULL,
+  status VARCHAR(20) DEFAULT 'scheduled' NOT NULL CHECK (status IN ('scheduled', 'active', 'completed', 'cancelled')),
+  started_by UUID REFERENCES admin_users(id),
+  ended_by UUID REFERENCES admin_users(id),
+  notes TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
 
   -- Only one active round at a time
@@ -63,11 +86,13 @@ CREATE TABLE game_rounds (
 
 -- Indexes for round queries
 CREATE INDEX idx_game_rounds_round_number ON game_rounds(round_number DESC);
+CREATE INDEX idx_game_rounds_status ON game_rounds(status);
 CREATE INDEX idx_game_rounds_is_active ON game_rounds(is_active) WHERE is_active = true;
+CREATE INDEX idx_game_rounds_start_time ON game_rounds(start_time);
 CREATE INDEX idx_game_rounds_end_time ON game_rounds(end_time);
 
 -- =============================================================================
--- 4. PROMPT_HISTORY TABLE
+-- 5. PROMPT_HISTORY TABLE
 -- =============================================================================
 -- Prompt submission history (one per round per character)
 CREATE TABLE prompt_history (
@@ -80,6 +105,10 @@ CREATE TABLE prompt_history (
   charm_gained INTEGER DEFAULT 0 NOT NULL,
   creativity_gained INTEGER DEFAULT 0 NOT NULL,
   total_score_gained INTEGER DEFAULT 0 NOT NULL,
+  is_deleted BOOLEAN DEFAULT false NOT NULL,
+  deleted_by UUID REFERENCES admin_users(id),
+  deleted_at TIMESTAMPTZ,
+  delete_reason TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
 
   -- Prevent duplicate submissions in the same round
@@ -91,9 +120,10 @@ CREATE INDEX idx_prompt_history_character_id ON prompt_history(character_id);
 CREATE INDEX idx_prompt_history_user_id ON prompt_history(user_id);
 CREATE INDEX idx_prompt_history_round_number ON prompt_history(round_number);
 CREATE INDEX idx_prompt_history_created_at ON prompt_history(created_at DESC);
+CREATE INDEX idx_prompt_history_is_deleted ON prompt_history(is_deleted) WHERE is_deleted = false;
 
 -- =============================================================================
--- 5. LEADERBOARD_SNAPSHOTS TABLE
+-- 6. LEADERBOARD_SNAPSHOTS TABLE
 -- =============================================================================
 -- Historical leaderboard snapshots per round
 CREATE TABLE leaderboard_snapshots (
@@ -116,6 +146,28 @@ CREATE INDEX idx_leaderboard_round_rank ON leaderboard_snapshots(round_number, r
 CREATE INDEX idx_leaderboard_character_id ON leaderboard_snapshots(character_id);
 
 -- =============================================================================
+-- 7. ADMIN_AUDIT_LOG TABLE
+-- =============================================================================
+-- Track all admin actions for security and accountability
+CREATE TABLE admin_audit_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  admin_id UUID NOT NULL REFERENCES admin_users(id),
+  action VARCHAR(50) NOT NULL,
+  resource_type VARCHAR(50) NOT NULL,
+  resource_id UUID,
+  changes JSONB,
+  ip_address INET,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- Indexes for audit log queries
+CREATE INDEX idx_audit_log_admin_id ON admin_audit_log(admin_id);
+CREATE INDEX idx_audit_log_action ON admin_audit_log(action);
+CREATE INDEX idx_audit_log_resource ON admin_audit_log(resource_type, resource_id);
+CREATE INDEX idx_audit_log_created_at ON admin_audit_log(created_at DESC);
+
+-- =============================================================================
 -- TRIGGERS FOR AUTO-UPDATE TIMESTAMPS
 -- =============================================================================
 
@@ -135,6 +187,10 @@ CREATE TRIGGER update_profiles_updated_at
 
 CREATE TRIGGER update_characters_updated_at
   BEFORE UPDATE ON characters
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER update_admin_users_updated_at
+  BEFORE UPDATE ON admin_users
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 -- =============================================================================
@@ -225,6 +281,23 @@ CREATE POLICY "Anyone can view leaderboard snapshots"
   ON leaderboard_snapshots FOR SELECT
   USING (true);
 
+-- Admin users: Only super_admin can view
+ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Only authenticated users can view admin list"
+  ON admin_users FOR SELECT
+  USING (auth.role() = 'authenticated');
+
+-- Admin audit log: Only admins can view
+ALTER TABLE admin_audit_log ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Only admins can view audit log"
+  ON admin_audit_log FOR SELECT
+  USING (EXISTS (
+    SELECT 1 FROM admin_users
+    WHERE admin_users.id = auth.uid() AND admin_users.is_active = true
+  ));
+
 -- =============================================================================
 -- REALTIME SUBSCRIPTIONS
 -- =============================================================================
@@ -239,11 +312,9 @@ ALTER PUBLICATION supabase_realtime ADD TABLE game_rounds;
 -- INITIAL DATA
 -- =============================================================================
 
--- Create first game round
-INSERT INTO game_rounds (round_number, start_time, end_time, is_active)
-VALUES (
-  1,
-  NOW(),
-  NOW() + INTERVAL '1 hour',
-  true
-);
+-- Note: Initial game round should be created manually by admin via API
+-- Do NOT auto-create rounds in production
+--
+-- For testing/development only:
+-- INSERT INTO game_rounds (round_number, start_time, end_time, status, is_active)
+-- VALUES (1, NOW(), NOW() + INTERVAL '1 hour', 'scheduled', false);

@@ -501,9 +501,537 @@ Authorization: Bearer <access_token>
 
 ---
 
-## 8. Realtime Subscriptions (Supabase Realtime)
+## 8. Admin APIs (Edge Functions)
 
-### 8.1. 리더보드 실시간 구독
+**인증**: Supabase Auth JWT 토큰 필요
+```
+Authorization: Bearer <access_token>
+```
+
+Admin 여부는 Edge Function 내부에서 `admin_users` 테이블 조회로 확인합니다.
+
+**Base URL**: `/functions/v1/*`
+
+### 8.1. Admin 확인
+Admin API를 호출할 때, Edge Function은 다음과 같이 Admin 권한을 확인합니다:
+
+```typescript
+// Edge Function 내부
+const { data: admin } = await supabase
+  .from('admin_users')
+  .select('*')
+  .eq('id', user.id)
+  .eq('is_active', true)
+  .single()
+
+if (!admin || !admin.permissions.rounds) {
+  return new Response(JSON.stringify({ error: 'Admin permission required' }), { status: 403 })
+}
+```
+
+---
+
+### 8.2. 라운드 관리
+
+#### 8.2.1. 라운드 생성
+```http
+POST /functions/v1/admin-rounds-create
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body**
+```json
+{
+  "round_number": 6,
+  "start_time": "2025-01-15T11:00:00Z",
+  "end_time": "2025-01-15T12:00:00Z"
+}
+```
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "round": {
+    "id": "uuid",
+    "round_number": 6,
+    "status": "scheduled",
+    "start_time": "2025-01-15T11:00:00Z",
+    "end_time": "2025-01-15T12:00:00Z",
+    "is_active": false,
+    "created_at": "2025-01-15T10:00:00Z"
+  }
+}
+```
+
+#### 8.2.2. 라운드 시작
+```http
+POST /functions/v1/admin-rounds-start
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body**
+```json
+{
+  "round_id": "uuid"
+}
+```
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "round": {
+    "id": "uuid",
+    "round_number": 6,
+    "status": "active",
+    "is_active": true,
+    "started_by": "admin-uuid"
+  }
+}
+```
+
+**Error Response (400 Bad Request)**
+```json
+{
+  "success": false,
+  "error": "ALREADY_ACTIVE",
+  "message": "이미 활성화된 라운드가 있습니다."
+}
+```
+
+#### 8.2.3. 라운드 종료
+```http
+POST /functions/v1/admin-rounds-end
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body**
+```json
+{
+  "notes": "정상 종료"
+}
+```
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "round": {
+    "id": "uuid",
+    "status": "completed",
+    "is_active": false,
+    "actual_end_time": "2025-01-15T12:05:00Z",
+    "ended_by": "admin-uuid",
+    "notes": "정상 종료"
+  },
+  "snapshot_created": true,
+  "leaderboard_count": 650
+}
+```
+
+#### 8.2.4. 라운드 연장
+```http
+POST /functions/v1/admin-rounds-extend
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body**
+```json
+{
+  "round_id": "uuid",
+  "extend_minutes": 30
+}
+```
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "round": {
+    "id": "uuid",
+    "end_time": "2025-01-15T12:30:00Z"
+  }
+}
+```
+
+#### 8.2.5. 라운드 취소
+```http
+POST /functions/v1/admin-rounds-cancel
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body**
+```json
+{
+  "reason": "서버 점검"
+}
+```
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "round": {
+    "id": "uuid",
+    "status": "cancelled",
+    "notes": "서버 점검"
+  }
+}
+```
+
+---
+
+### 8.3. 통계 조회
+
+#### 8.3.1. 전체 통계
+```http
+GET /functions/v1/admin-stats
+Authorization: Bearer <access_token>
+```
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "data": {
+    "totalUsers": 1500,
+    "totalCharacters": 1200,
+    "activeCharacters": 1150,
+    "totalPrompts": 5400,
+    "totalRounds": 24,
+    "currentRound": {
+      "round_number": 5,
+      "status": "active",
+      "participants": 450,
+      "submissionRate": 0.75
+    },
+    "recentActivity": {
+      "last1Hour": 120,
+      "last24Hours": 890
+    }
+  }
+}
+```
+
+#### 8.3.2. 라운드별 통계
+```http
+GET /functions/v1/admin-stats-rounds?limit=10
+Authorization: Bearer <access_token>
+```
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "data": {
+    "rounds": [
+      {
+        "round_number": 5,
+        "status": "active",
+        "totalSubmissions": 450,
+        "avgScore": 25.5,
+        "topScore": 85,
+        "duration": "1h",
+        "started_at": "2025-01-15T11:00:00Z"
+      },
+      {
+        "round_number": 4,
+        "status": "completed",
+        "totalSubmissions": 480,
+        "avgScore": 24.2,
+        "topScore": 82,
+        "duration": "1h 5m",
+        "started_at": "2025-01-15T10:00:00Z",
+        "ended_at": "2025-01-15T11:05:00Z"
+      }
+    ]
+  }
+}
+```
+
+#### 8.3.3. 사용자 통계
+```http
+GET /functions/v1/admin-stats-users
+Authorization: Bearer <access_token>
+```
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "data": {
+    "totalUsers": 1500,
+    "activeUsers": 850,
+    "newUsersToday": 45,
+    "newUsersWeek": 320,
+    "topUsers": [
+      {
+        "username": "player1",
+        "display_name": "Player One",
+        "total_score": 520,
+        "participation_rate": 0.95,
+        "total_submissions": 23
+      }
+    ]
+  }
+}
+```
+
+---
+
+### 8.4. 프롬프트 관리
+
+#### 8.4.1. 프롬프트 목록 조회
+```http
+GET /functions/v1/admin-prompts?round=5&page=1&limit=50&sort=recent
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters**
+- `round`: 라운드 번호 (optional)
+- `page`: 페이지 번호 (default: 1)
+- `limit`: 페이지당 항목 수 (default: 50)
+- `sort`: `recent` | `score_desc` | `score_asc`
+- `search`: 사용자명 검색 (optional)
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "data": {
+    "prompts": [
+      {
+        "id": "uuid",
+        "user_id": "uuid",
+        "username": "player1",
+        "display_name": "Player One",
+        "character_name": "Fire Wizard",
+        "prompt": "불꽃을 다루는 마법사",
+        "round_number": 5,
+        "strength_gained": 8,
+        "charm_gained": 5,
+        "creativity_gained": 7,
+        "total_score_gained": 20,
+        "is_deleted": false,
+        "created_at": "2025-01-15T11:15:00Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 50,
+      "total": 450,
+      "totalPages": 9
+    }
+  }
+}
+```
+
+#### 8.4.2. 프롬프트 삭제 (소프트 삭제)
+```http
+POST /functions/v1/admin-prompts-delete
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body**
+```json
+{
+  "prompt_id": "uuid",
+  "reason": "부적절한 언어 사용"
+}
+```
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "data": {
+    "prompt_id": "uuid",
+    "is_deleted": true,
+    "deleted_by": "admin-uuid",
+    "rollbackScore": {
+      "strength": -8,
+      "charm": -5,
+      "creativity": -7,
+      "total": -20
+    }
+  }
+}
+```
+
+---
+
+### 8.5. 사용자 관리
+
+#### 8.5.1. 사용자 검색
+```http
+GET /functions/v1/admin-users?search=player1&page=1&limit=50
+Authorization: Bearer <access_token>
+```
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "data": {
+    "users": [
+      {
+        "id": "uuid",
+        "username": "player1",
+        "email": "player1@example.com",
+        "display_name": "Player One",
+        "created_at": "2025-01-01T00:00:00Z",
+        "character": {
+          "id": "uuid",
+          "name": "Fire Wizard",
+          "total_score": 520,
+          "is_active": true
+        },
+        "stats": {
+          "totalSubmissions": 18,
+          "participationRate": 0.9,
+          "lastActive": "2025-01-15T11:30:00Z"
+        }
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 50,
+      "total": 1
+    }
+  }
+}
+```
+
+#### 8.5.2. 사용자 제재 (캐릭터 비활성화)
+```http
+POST /functions/v1/admin-users-ban
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body**
+```json
+{
+  "user_id": "uuid",
+  "reason": "규정 위반",
+  "duration": "7d"
+}
+```
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "data": {
+    "user_id": "uuid",
+    "character_id": "uuid",
+    "is_active": false,
+    "ban_reason": "규정 위반",
+    "ban_until": "2025-01-22T11:00:00Z"
+  }
+}
+```
+
+#### 8.5.3. 사용자 제재 해제
+```http
+POST /functions/v1/admin-users-unban
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body**
+```json
+{
+  "user_id": "uuid"
+}
+```
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "data": {
+    "user_id": "uuid",
+    "character_id": "uuid",
+    "is_active": true,
+    "unbanned_at": "2025-01-15T12:00:00Z"
+  }
+}
+```
+
+---
+
+### 8.6. Audit Log 조회
+
+```http
+GET /functions/v1/admin-audit-log?page=1&limit=50&action=START_ROUND&admin_id=uuid
+Authorization: Bearer <access_token>
+```
+
+**Query Parameters**
+- `page`: 페이지 번호 (default: 1)
+- `limit`: 페이지당 항목 수 (default: 50)
+- `action`: 필터링할 액션 (optional)
+- `admin_id`: 특정 Admin의 로그만 조회 (optional)
+
+**Response (200 OK)**
+```json
+{
+  "success": true,
+  "data": {
+    "logs": [
+      {
+        "id": "uuid",
+        "admin_id": "admin-uuid",
+        "admin_username": "admin1",
+        "action": "START_ROUND",
+        "resource_type": "game_rounds",
+        "resource_id": "round-uuid",
+        "changes": {
+          "status": "scheduled -> active"
+        },
+        "ip_address": "192.168.1.1",
+        "user_agent": "Mozilla/5.0...",
+        "created_at": "2025-01-15T11:00:00Z"
+      },
+      {
+        "id": "uuid",
+        "admin_id": "admin-uuid",
+        "admin_username": "admin1",
+        "action": "DELETE_PROMPT",
+        "resource_type": "prompt_history",
+        "resource_id": "prompt-uuid",
+        "changes": {
+          "is_deleted": "false -> true",
+          "reason": "부적절한 언어 사용"
+        },
+        "ip_address": "192.168.1.1",
+        "user_agent": "Mozilla/5.0...",
+        "created_at": "2025-01-15T11:10:00Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 50,
+      "total": 234,
+      "totalPages": 5
+    }
+  }
+}
+```
+
+---
+
+## 9. Realtime Subscriptions (Supabase Realtime)
+
+### 9.1. 리더보드 실시간 구독
 ```javascript
 const subscription = supabase
   .channel('leaderboard-changes')
@@ -522,7 +1050,7 @@ const subscription = supabase
   .subscribe()
 ```
 
-### 8.2. 게임 라운드 실시간 구독
+### 9.2. 게임 라운드 실시간 구독
 ```javascript
 const subscription = supabase
   .channel('round-changes')
@@ -543,9 +1071,9 @@ const subscription = supabase
 
 ---
 
-## Edge Functions
+## 10. Edge Functions
 
-### 1. submit-prompt
+### 10.1. submit-prompt
 **위치**: `supabase/functions/submit-prompt/index.ts`
 
 **역할**:
@@ -555,16 +1083,7 @@ const subscription = supabase
 - prompt_history 저장
 - characters 테이블 점수 업데이트
 
-### 2. advance-round
-**위치**: `supabase/functions/advance-round/index.ts`
-
-**역할**:
-- 현재 라운드 종료
-- 리더보드 스냅샷 생성
-- 새 라운드 생성
-- Cron job으로 1시간마다 자동 실행
-
-### 3. get-my-rank
+### 10.2. get-my-rank
 **위치**: `supabase/functions/get-my-rank/index.ts`
 
 **역할**:
@@ -573,7 +1092,7 @@ const subscription = supabase
 
 ---
 
-## Error Codes
+## 11. Error Codes
 
 | Code | HTTP Status | Description |
 |------|-------------|-------------|
@@ -582,38 +1101,52 @@ const subscription = supabase
 | CHARACTER_NOT_FOUND | 404 | 캐릭터를 찾을 수 없음 |
 | UNAUTHORIZED | 401 | 인증되지 않은 요청 |
 | FORBIDDEN | 403 | 권한이 없는 요청 |
+| ADMIN_FORBIDDEN | 403 | Admin 권한 없음 |
 | ROUND_NOT_ACTIVE | 400 | 활성 라운드가 없음 |
+| ROUND_ALREADY_ACTIVE | 400 | 이미 활성 라운드가 존재함 |
 | RATE_LIMIT_EXCEEDED | 429 | 요청 횟수 제한 초과 |
 
 ---
 
-## Rate Limiting
+## 12. Rate Limiting
 
+### User APIs
 - 프롬프트 제출: 라운드당 1회
 - 리더보드 조회: 분당 30회
 - 프로필 수정: 분당 5회
 
+### Admin APIs
+- 라운드 관리: 분당 10회
+- 프롬프트 삭제: 시간당 50회
+- 사용자 제재: 시간당 20회
+- 통계 조회: 분당 20회
+
 ---
 
-## Cron Jobs (Supabase Edge Functions)
+## 13. Admin vs User API 구분
 
-### 라운드 자동 전환
-```bash
-# 1시간마다 실행
-0 * * * * curl -X POST https://your-project.supabase.co/functions/v1/advance-round \
-  -H "Authorization: Bearer <service_role_key>"
-```
+### User API
+- **읽기**: `/rest/v1/*` (Client SDK 직접 접근, anon key)
+- **쓰기**: `/functions/v1/submit-prompt`, `/functions/v1/get-my-rank` (Edge Functions)
 
-또는 Supabase Cron 설정:
-```sql
-SELECT cron.schedule(
-  'advance-round-hourly',
-  '0 * * * *',
-  $$
-  SELECT net.http_post(
-    url := 'https://your-project.supabase.co/functions/v1/advance-round',
-    headers := '{"Authorization": "Bearer <service_role_key>"}'::jsonb
-  );
-  $$
-);
-```
+### Admin API
+- **모든 작업**: `/functions/v1/admin-*` (Edge Functions)
+- 예: `/functions/v1/admin-rounds-start`, `/functions/v1/admin-stats`
+
+### Authentication
+- **User & Admin 모두**: Supabase Auth JWT (동일한 토큰)
+- **Admin 확인**: Edge Function 내부에서 `admin_users` 테이블 조회
+
+---
+
+## 14. 라운드 관리 방식 변경
+
+**이전 (Cron Job 자동):**
+- ❌ Cron job으로 1시간마다 자동 라운드 전환
+- ❌ advance-round Edge Function
+
+**현재 (Admin 수동):**
+- ✅ Admin이 수동으로 라운드 생성/시작/종료
+- ✅ 특정 시간대에만 진행 (예: 09:00~23:00)
+- ✅ 유연한 라운드 연장/취소 가능
+- ✅ 모든 Admin 행동 Audit Log에 기록

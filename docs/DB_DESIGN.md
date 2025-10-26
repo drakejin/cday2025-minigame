@@ -2,14 +2,16 @@
 
 ## Overview
 Supabase PostgreSQL 기반 데이터베이스 설계 문서입니다.
-**서버 사이드 API 아키텍처**를 전제로 설계되었으며, 모든 비즈니스 로직은 애플리케이션 서버에서 처리합니다.
+**100% Supabase Edge Functions 아키텍처**를 전제로 설계되었으며, 모든 비즈니스 로직은 Edge Functions (Deno)에서 처리합니다.
 
 ## Architecture Philosophy
 
-### 1. 서버 사이드 API 방식
-- **모든 비즈니스 로직은 서버(Node.js/Express/Fastify 등)에서 처리**
+### 1. 100% Supabase Edge Functions 방식
+- **모든 비즈니스 로직은 Supabase Edge Functions (Deno)에서 처리**
 - DB Function/Procedure는 최소화 (triggers만 유지)
-- Supabase는 인증(Auth) + 데이터베이스 + 실시간(Realtime) 용도로만 사용
+- Supabase 풀스택: Auth + Database + Realtime + Edge Functions
+- 프론트엔드는 읽기 전용으로 Client SDK 직접 사용 가능 (리더보드, 라운드 정보 등)
+- 모든 쓰기 작업은 Edge Functions를 통해서만 수행
 
 ### 2. RLS (Row Level Security) Policy
 **Policy가 필요한 경우:**
@@ -17,13 +19,13 @@ Supabase PostgreSQL 기반 데이터베이스 설계 문서입니다.
 - 사용자별 데이터 접근 권한을 DB 레벨에서 제어해야 할 때
 
 **Policy가 필요 없는 경우:**
-- 서버에서 Service Role Key로 DB 접근할 때
-- 모든 권한 로직을 API 서버에서 처리할 때
+- Edge Functions에서 Service Role Key로 DB 접근할 때
+- 모든 권한 로직을 Edge Functions에서 처리할 때
 
 **현재 설정:**
-- RLS는 활성화되어 있지만, 서버 API에서는 Service Role Key로 접근하므로 영향 없음
+- RLS는 활성화되어 있지만, Edge Functions에서는 Service Role Key로 접근하므로 영향 없음
 - 프론트엔드에서 읽기 전용(SELECT) 용도로 직접 접근할 수 있도록 허용
-- 모든 쓰기 작업(INSERT/UPDATE/DELETE)은 서버 API를 통해서만 수행
+- 모든 쓰기 작업(INSERT/UPDATE/DELETE)은 Edge Functions를 통해서만 수행
 
 **RLS를 완전히 비활성화하려면:**
 ```sql
@@ -36,13 +38,14 @@ ALTER TABLE leaderboard_snapshots DISABLE ROW LEVEL SECURITY;
 
 ### 3. Supabase vs 일반 PostgreSQL 차이점
 
-| 항목 | 일반 PostgreSQL | Supabase PostgreSQL |
-|------|-----------------|---------------------|
-| **접근 방식** | 서버만 접근 | 클라이언트 직접 접근 가능 (optional) |
-| **권한 제어** | 애플리케이션 레벨 | RLS Policy (optional) |
-| **비즈니스 로직** | 서버 API | DB Function (optional) |
-| **실시간 업데이트** | 별도 구현 필요 | Realtime 내장 |
-| **인증** | 별도 구현 | Auth 내장 |
+| 항목 | 일반 PostgreSQL + Node.js | Supabase (Edge Functions) |
+|------|---------------------------|---------------------------|
+| **접근 방식** | Node.js 서버만 접근 | Edge Functions + 클라이언트 직접 접근 (읽기) |
+| **권한 제어** | 애플리케이션 레벨 | RLS Policy (읽기) + Edge Functions (쓰기) |
+| **비즈니스 로직** | Node.js/Express | Edge Functions (Deno) |
+| **실시간 업데이트** | Socket.io 등 별도 구현 | Realtime 내장 |
+| **인증** | JWT 직접 구현 | Auth 내장 |
+| **배포** | Vercel/Railway 등 | Supabase CLI (내장) |
 
 ---
 
@@ -108,8 +111,39 @@ CREATE INDEX idx_characters_is_active ON characters(is_active) WHERE is_active =
 
 ---
 
-### 3. game_rounds
-게임 라운드 관리 (1시간 단위)
+### 3. admin_users
+Admin 사용자 관리 (게임 운영진)
+
+```sql
+CREATE TABLE admin_users (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  role VARCHAR(20) DEFAULT 'admin' NOT NULL CHECK (role IN ('super_admin', 'admin', 'moderator')),
+  permissions JSONB DEFAULT '{"rounds": true, "users": true, "stats": true}' NOT NULL,
+  is_active BOOLEAN DEFAULT true NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE INDEX idx_admin_users_profile_id ON admin_users(profile_id);
+CREATE INDEX idx_admin_users_is_active ON admin_users(is_active) WHERE is_active = true;
+```
+
+**필드 설명:**
+- `profile_id`: profiles 테이블과 연결
+- `role`: Admin 권한 등급 (super_admin > admin > moderator)
+- `permissions`: JSONB 형태의 세부 권한 설정
+- `is_active`: Admin 계정 활성화 여부
+
+**권한 등급:**
+- `super_admin`: 모든 권한 (Admin 계정 생성/삭제 포함)
+- `admin`: 라운드 관리, 사용자 관리, 통계 조회
+- `moderator`: 부적절한 콘텐츠 삭제, 통계 조회만 가능
+
+---
+
+### 4. game_rounds
+게임 라운드 관리 (Admin 수동 제어)
 
 ```sql
 CREATE TABLE game_rounds (
@@ -117,45 +151,85 @@ CREATE TABLE game_rounds (
   round_number INTEGER UNIQUE NOT NULL,
   start_time TIMESTAMPTZ NOT NULL,
   end_time TIMESTAMPTZ NOT NULL,
-  is_active BOOLEAN DEFAULT true NOT NULL,
+  actual_end_time TIMESTAMPTZ,
+  is_active BOOLEAN DEFAULT false NOT NULL,
+  status VARCHAR(20) DEFAULT 'scheduled' NOT NULL CHECK (status IN ('scheduled', 'active', 'completed', 'cancelled')),
+  started_by UUID REFERENCES admin_users(id),
+  ended_by UUID REFERENCES admin_users(id),
+  notes TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
 
   CONSTRAINT one_active_round UNIQUE (is_active) WHERE (is_active = true)
 );
 
 CREATE INDEX idx_game_rounds_round_number ON game_rounds(round_number DESC);
+CREATE INDEX idx_game_rounds_status ON game_rounds(status);
 CREATE INDEX idx_game_rounds_is_active ON game_rounds(is_active) WHERE is_active = true;
+CREATE INDEX idx_game_rounds_start_time ON game_rounds(start_time);
 CREATE INDEX idx_game_rounds_end_time ON game_rounds(end_time);
 ```
 
 **필드 설명:**
 - `round_number`: 라운드 번호 (1부터 시작)
-- `start_time`: 라운드 시작 시간
-- `end_time`: 라운드 종료 시간
+- `start_time`: 라운드 예정 시작 시간
+- `end_time`: 라운드 예정 종료 시간
+- `actual_end_time`: 실제 종료 시간 (연장된 경우)
 - `is_active`: 현재 진행 중인 라운드 여부
+- `status`: 라운드 상태
+  - `scheduled`: 예정됨 (아직 시작 전)
+  - `active`: 진행 중
+  - `completed`: 정상 종료
+  - `cancelled`: 취소됨
+- `started_by`: 라운드를 시작한 Admin ID
+- `ended_by`: 라운드를 종료한 Admin ID
+- `notes`: Admin 메모 (예: "서버 점검으로 인한 조기 종료")
 
 **제약조건:**
 - `one_active_round`: 항상 활성 라운드는 1개만 존재
 
-**라운드 관리 로직 (서버 API에서 구현):**
+**라운드 관리 로직 (Admin API):**
 ```typescript
-// 라운드 종료 및 새 라운드 생성 (Cron Job)
-async function advanceRound() {
-  // 1. 현재 활성 라운드 비활성화
+// POST /api/admin/rounds/start
+async function startRound(adminId: string, roundId: string) {
+  // 1. 라운드 상태를 'active'로 변경
   await supabase
     .from('game_rounds')
-    .update({ is_active: false })
-    .eq('is_active', true)
+    .update({
+      is_active: true,
+      status: 'active',
+      started_by: adminId
+    })
+    .eq('id', roundId)
+
+  // 2. Admin audit log 기록
+  await logAdminAction(adminId, 'START_ROUND', roundId)
+}
+
+// POST /api/admin/rounds/:id/end
+async function endRound(adminId: string, roundId: string) {
+  // 1. 현재 라운드 종료
+  await supabase
+    .from('game_rounds')
+    .update({
+      is_active: false,
+      status: 'completed',
+      actual_end_time: new Date(),
+      ended_by: adminId
+    })
+    .eq('id', roundId)
 
   // 2. 리더보드 스냅샷 생성
-  // 3. 새 라운드 생성
+  await createLeaderboardSnapshot(roundId)
+
+  // 3. Admin audit log 기록
+  await logAdminAction(adminId, 'END_ROUND', roundId)
 }
 ```
 
 ---
 
-### 4. prompt_history
-프롬프트 입력 이력 (1시간마다 입력)
+### 5. prompt_history
+프롬프트 입력 이력 (라운드당 1번 제출)
 
 ```sql
 CREATE TABLE prompt_history (
@@ -168,6 +242,10 @@ CREATE TABLE prompt_history (
   charm_gained INTEGER DEFAULT 0 NOT NULL,
   creativity_gained INTEGER DEFAULT 0 NOT NULL,
   total_score_gained INTEGER DEFAULT 0 NOT NULL,
+  is_deleted BOOLEAN DEFAULT false NOT NULL,
+  deleted_by UUID REFERENCES admin_users(id),
+  deleted_at TIMESTAMPTZ,
+  delete_reason TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
 
   CONSTRAINT unique_prompt_per_round UNIQUE (character_id, round_number)
@@ -177,12 +255,16 @@ CREATE INDEX idx_prompt_history_character_id ON prompt_history(character_id);
 CREATE INDEX idx_prompt_history_user_id ON prompt_history(user_id);
 CREATE INDEX idx_prompt_history_round_number ON prompt_history(round_number);
 CREATE INDEX idx_prompt_history_created_at ON prompt_history(created_at DESC);
+CREATE INDEX idx_prompt_history_is_deleted ON prompt_history(is_deleted) WHERE is_deleted = false;
 ```
 
 **필드 설명:**
 - `prompt`: 제출한 프롬프트 (최대 30자)
 - `round_number`: 제출한 라운드 번호
 - `*_gained`: 해당 라운드에서 획득한 점수
+- `is_deleted`: 부적절한 콘텐츠로 인한 삭제 여부
+- `deleted_by`: 삭제를 수행한 Admin ID
+- `delete_reason`: 삭제 사유
 
 **제약조건:**
 - `unique_prompt_per_round`: 캐릭터는 라운드당 1번만 제출 가능
@@ -198,9 +280,29 @@ async function submitPrompt(characterId: string, prompt: string) {
 }
 ```
 
+**Admin 프롬프트 삭제 로직:**
+```typescript
+// DELETE /api/admin/prompts/:id
+async function deletePrompt(adminId: string, promptId: string, reason: string) {
+  // 1. prompt_history 소프트 삭제
+  await supabase
+    .from('prompt_history')
+    .update({
+      is_deleted: true,
+      deleted_by: adminId,
+      deleted_at: new Date(),
+      delete_reason: reason
+    })
+    .eq('id', promptId)
+
+  // 2. 점수 롤백 (characters 테이블)
+  // 3. Admin audit log 기록
+}
+```
+
 ---
 
-### 5. leaderboard_snapshots
+### 6. leaderboard_snapshots
 시간별 리더보드 스냅샷 (순위 기록용)
 
 ```sql
@@ -232,6 +334,60 @@ CREATE INDEX idx_leaderboard_character_id ON leaderboard_snapshots(character_id)
 async function createLeaderboardSnapshot(roundNumber: number) {
   // 1. 현재 characters 테이블에서 순위 계산
   // 2. leaderboard_snapshots에 저장
+}
+```
+
+---
+
+### 7. admin_audit_log
+Admin 행동 추적 로그 (보안 및 책임 추적)
+
+```sql
+CREATE TABLE admin_audit_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  admin_id UUID NOT NULL REFERENCES admin_users(id),
+  action VARCHAR(50) NOT NULL,
+  resource_type VARCHAR(50) NOT NULL,
+  resource_id UUID,
+  changes JSONB,
+  ip_address INET,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE INDEX idx_audit_log_admin_id ON admin_audit_log(admin_id);
+CREATE INDEX idx_audit_log_action ON admin_audit_log(action);
+CREATE INDEX idx_audit_log_resource ON admin_audit_log(resource_type, resource_id);
+CREATE INDEX idx_audit_log_created_at ON admin_audit_log(created_at DESC);
+```
+
+**필드 설명:**
+- `admin_id`: 행동을 수행한 Admin ID
+- `action`: 수행한 작업 (예: START_ROUND, END_ROUND, DELETE_PROMPT, BAN_USER)
+- `resource_type`: 작업 대상 타입 (예: game_rounds, prompt_history, profiles)
+- `resource_id`: 작업 대상 ID
+- `changes`: 변경 내용 (before/after JSON)
+- `ip_address`: Admin의 IP 주소
+- `user_agent`: Admin의 브라우저 정보
+
+**사용 예시:**
+```typescript
+async function logAdminAction(
+  adminId: string,
+  action: string,
+  resourceType: string,
+  resourceId: string,
+  changes?: any
+) {
+  await supabase.from('admin_audit_log').insert({
+    admin_id: adminId,
+    action,
+    resource_type: resourceType,
+    resource_id: resourceId,
+    changes,
+    ip_address: req.ip,
+    user_agent: req.headers['user-agent']
+  })
 }
 ```
 
@@ -291,73 +447,131 @@ CREATE TRIGGER on_auth_user_created
 
 ---
 
-## Business Logic (서버 API에서 구현)
+## Business Logic (Edge Functions에서 구현)
 
-모든 비즈니스 로직은 DB Function 대신 서버 API에서 구현합니다.
+모든 비즈니스 로직은 Supabase Edge Functions (Deno)에서 구현합니다.
 
 ### 1. 프롬프트 제출 및 점수 계산
 
+**파일**: `supabase/functions/submit-prompt/index.ts`
+
 ```typescript
-// POST /api/prompts/submit
-async function submitPrompt(req, res) {
-  const { characterId, prompt } = req.body
-  const userId = req.user.id
+// Deno Edge Function
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-  // 1. 현재 활성 라운드 조회
-  const { data: round } = await supabase
-    .from('game_rounds')
-    .select('*')
-    .eq('is_active', true)
-    .single()
+serve(async (req) => {
+  try {
+    // 1. JWT 검증
+    const authHeader = req.headers.get('Authorization')!
+    const token = authHeader.replace('Bearer ', '')
 
-  if (!round) {
-    return res.status(400).json({ error: 'No active round' })
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, // Service Role Key
+    )
+
+    const { data: { user } } = await supabase.auth.getUser(token)
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+    }
+
+    // 2. Request Body 파싱
+    const { characterId, prompt } = await req.json()
+
+    // 3. 현재 활성 라운드 조회
+    const { data: round } = await supabase
+      .from('game_rounds')
+      .select('*')
+      .eq('is_active', true)
+      .single()
+
+    if (!round) {
+      return new Response(JSON.stringify({ error: 'No active round' }), { status: 400 })
+    }
+
+    // 4. 중복 제출 확인
+    const { data: existing } = await supabase
+      .from('prompt_history')
+      .select('id')
+      .eq('character_id', characterId)
+      .eq('round_number', round.round_number)
+      .maybeSingle()
+
+    if (existing) {
+      return new Response(
+        JSON.stringify({ error: 'Already submitted this round' }),
+        { status: 400 }
+      )
+    }
+
+    // 5. AI 점수 평가
+    const scores = await evaluatePromptWithAI(prompt)
+
+    // 6. prompt_history 저장
+    await supabase.from('prompt_history').insert({
+      character_id: characterId,
+      user_id: user.id,
+      prompt,
+      round_number: round.round_number,
+      strength_gained: scores.strength,
+      charm_gained: scores.charm,
+      creativity_gained: scores.creativity,
+      total_score_gained: scores.total,
+    })
+
+    // 7. characters 점수 업데이트
+    const { data: character } = await supabase
+      .from('characters')
+      .select('*')
+      .eq('id', characterId)
+      .single()
+
+    await supabase
+      .from('characters')
+      .update({
+        current_prompt: prompt,
+        strength: character.strength + scores.strength,
+        charm: character.charm + scores.charm,
+        creativity: character.creativity + scores.creativity,
+        total_score: character.total_score + scores.total,
+      })
+      .eq('id', characterId)
+
+    return new Response(
+      JSON.stringify({ success: true, scores }),
+      { headers: { 'Content-Type': 'application/json' } }
+    )
+
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    )
   }
+})
 
-  // 2. 이미 제출했는지 확인
-  const { data: existing } = await supabase
-    .from('prompt_history')
-    .select('id')
-    .eq('character_id', characterId)
-    .eq('round_number', round.round_number)
-    .single()
-
-  if (existing) {
-    return res.status(400).json({ error: 'Already submitted this round' })
+async function evaluatePromptWithAI(prompt: string) {
+  // OpenAI/Claude/Gemini API 호출
+  // 간단한 예시 (실제로는 AI API 호출)
+  return {
+    strength: Math.floor(Math.random() * 50),
+    charm: Math.floor(Math.random() * 50),
+    creativity: Math.floor(Math.random() * 50),
+    total: 0, // 위 3개의 합
   }
-
-  // 3. AI 점수 평가 (OpenAI/Claude/Gemini API 호출)
-  const scores = await evaluatePromptWithAI(prompt)
-
-  // 4. prompt_history 저장
-  await supabase.from('prompt_history').insert({
-    character_id: characterId,
-    user_id: userId,
-    prompt,
-    round_number: round.round_number,
-    strength_gained: scores.strength,
-    charm_gained: scores.charm,
-    creativity_gained: scores.creativity,
-    total_score_gained: scores.total,
-  })
-
-  // 5. characters 점수 업데이트
-  await supabase.rpc('increment_character_scores', {
-    p_character_id: characterId,
-    p_strength: scores.strength,
-    p_charm: scores.charm,
-    p_creativity: scores.creativity,
-  })
-
-  res.json({ success: true, scores })
 }
 ```
 
 ### 2. 리더보드 조회
 
+**프론트엔드에서 Client SDK로 직접 조회 (읽기 전용)**
+
 ```typescript
-// GET /api/leaderboard/current
-async function getCurrentLeaderboard(req, res) {
+// Frontend code
+import { supabase } from '@/lib/supabase'
+
+async function getCurrentLeaderboard() {
   const { data } = await supabase
     .from('characters')
     .select(`
@@ -378,36 +592,121 @@ async function getCurrentLeaderboard(req, res) {
     .order('total_score', { ascending: false })
     .limit(100)
 
-  const leaderboard = data.map((char, index) => ({
+  return data.map((char, index) => ({
     rank: index + 1,
     ...char,
   }))
-
-  res.json(leaderboard)
 }
 ```
 
-### 3. 라운드 종료 및 새 라운드 생성
+### 3. Admin - 라운드 수동 시작/종료
+
+**파일**: `supabase/functions/admin-rounds-start/index.ts`
 
 ```typescript
-// Cron Job (매 시간마다 실행)
-async function advanceRound() {
-  // 1. 현재 활성 라운드 조회
-  const { data: currentRound } = await supabase
+// Deno Edge Function
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+serve(async (req) => {
+  try {
+    const authHeader = req.headers.get('Authorization')!
+    const token = authHeader.replace('Bearer ', '')
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    )
+
+    // 1. JWT 검증 및 Admin 확인
+    const { data: { user } } = await supabase.auth.getUser(token)
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+    }
+
+    const { data: admin } = await supabase
+      .from('admin_users')
+      .select('*')
+      .eq('id', user.id)
+      .eq('is_active', true)
+      .single()
+
+    if (!admin || !admin.permissions.rounds) {
+      return new Response(JSON.stringify({ error: 'Admin permission required' }), { status: 403 })
+    }
+
+    // 2. Request Body 파싱
+    const { roundId } = await req.json()
+
+    // 3. 라운드 시작
+    const { data: round, error } = await supabase
+      .from('game_rounds')
+      .update({
+        is_active: true,
+        status: 'active',
+        started_by: admin.id
+      })
+      .eq('id', roundId)
+      .eq('status', 'scheduled')
+      .select()
+      .single()
+
+    if (error || !round) {
+      return new Response(
+        JSON.stringify({ error: 'Round not found or already started' }),
+        { status: 400 }
+      )
+    }
+
+    // 4. Audit log 기록
+    await supabase.from('admin_audit_log').insert({
+      admin_id: admin.id,
+      action: 'START_ROUND',
+      resource_type: 'game_rounds',
+      resource_id: roundId,
+      changes: { status: 'scheduled -> active' },
+      ip_address: req.headers.get('x-forwarded-for') || 'unknown',
+      user_agent: req.headers.get('user-agent')
+    })
+
+    return new Response(
+      JSON.stringify({ success: true, round }),
+      { headers: { 'Content-Type': 'application/json' } }
+    )
+
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500 }
+    )
+  }
+})
+
+// POST /api/admin/rounds/:id/end
+async function endRound(req: Request, res: Response) {
+  const { id: roundId } = req.params
+  const { notes } = req.body
+  const adminId = req.admin.id
+
+  // 1. 현재 라운드 종료
+  const { data: round } = await supabase
     .from('game_rounds')
-    .select('*')
+    .update({
+      is_active: false,
+      status: 'completed',
+      actual_end_time: new Date(),
+      ended_by: adminId,
+      notes
+    })
+    .eq('id', roundId)
     .eq('is_active', true)
     .single()
 
-  if (!currentRound) return
+  if (!round) {
+    return res.status(400).json({ error: 'No active round found' })
+  }
 
-  // 2. 현재 라운드 비활성화
-  await supabase
-    .from('game_rounds')
-    .update({ is_active: false })
-    .eq('id', currentRound.id)
-
-  // 3. 리더보드 스냅샷 생성
+  // 2. 리더보드 스냅샷 생성
   const { data: characters } = await supabase
     .from('characters')
     .select('*')
@@ -415,7 +714,7 @@ async function advanceRound() {
     .order('total_score', { ascending: false })
 
   const snapshots = characters.map((char, index) => ({
-    round_number: currentRound.round_number,
+    round_number: round.round_number,
     character_id: char.id,
     user_id: char.user_id,
     rank: index + 1,
@@ -427,12 +726,72 @@ async function advanceRound() {
 
   await supabase.from('leaderboard_snapshots').insert(snapshots)
 
-  // 4. 새 라운드 생성
-  await supabase.from('game_rounds').insert({
-    round_number: currentRound.round_number + 1,
-    start_time: new Date(),
-    end_time: new Date(Date.now() + 60 * 60 * 1000), // 1시간 후
-    is_active: true,
+  // 3. Audit log 기록
+  await supabase.from('admin_audit_log').insert({
+    admin_id: adminId,
+    action: 'END_ROUND',
+    resource_type: 'game_rounds',
+    resource_id: roundId,
+    ip_address: req.ip,
+    user_agent: req.headers['user-agent']
+  })
+
+  res.json({ success: true })
+}
+
+// POST /api/admin/rounds/create
+async function createRound(req: Request, res: Response) {
+  const { round_number, start_time, end_time } = req.body
+  const adminId = req.admin.id
+
+  const { data: round } = await supabase.from('game_rounds').insert({
+    round_number,
+    start_time,
+    end_time,
+    status: 'scheduled',
+    is_active: false
+  }).single()
+
+  await supabase.from('admin_audit_log').insert({
+    admin_id: adminId,
+    action: 'CREATE_ROUND',
+    resource_type: 'game_rounds',
+    resource_id: round.id
+  })
+
+  res.json({ success: true, round })
+}
+```
+
+### 4. Admin - 통계 조회
+
+```typescript
+// GET /api/admin/stats
+async function getStats(req: Request, res: Response) {
+  const adminId = req.admin.id
+
+  // 1. 전체 통계
+  const { data: stats } = await supabase.rpc('get_admin_stats')
+
+  // 또는 직접 쿼리:
+  const [
+    { count: totalUsers },
+    { count: totalCharacters },
+    { count: totalPrompts },
+    { data: currentRound }
+  ] = await Promise.all([
+    supabase.from('profiles').select('*', { count: 'exact', head: true }),
+    supabase.from('characters').select('*', { count: 'exact', head: true }).eq('is_active', true),
+    supabase.from('prompt_history').select('*', { count: 'exact', head: true }).eq('is_deleted', false),
+    supabase.from('game_rounds').select('*').eq('is_active', true).single()
+  ])
+
+  res.json({
+    totalUsers,
+    totalCharacters,
+    totalPrompts,
+    currentRound,
+    submissionRate: totalPrompts / totalCharacters
   })
 }
 ```
@@ -486,13 +845,14 @@ VALUES (
 
 ## Considerations
 
-1. **서버 사이드 API 우선**
-   - 모든 비즈니스 로직은 서버에서 처리
+1. **100% Supabase Edge Functions**
+   - 모든 비즈니스 로직은 Edge Functions (Deno)에서 처리
    - DB는 데이터 저장 + 기본 제약조건만 담당
+   - 프론트엔드는 읽기 전용으로 Client SDK 직접 사용 가능
 
 2. **RLS Policy는 선택사항**
-   - 서버에서 Service Role Key 사용 시 RLS 무시됨
-   - 프론트엔드 직접 접근이 필요한 경우만 RLS 활성화
+   - Edge Functions에서 Service Role Key 사용 시 RLS 무시됨
+   - 프론트엔드 직접 접근 (읽기)을 위해 RLS 활성화
 
 3. **실시간성**
    - Supabase Realtime으로 리더보드 실시간 업데이트
@@ -507,9 +867,29 @@ VALUES (
    - Supabase Auth JWT 토큰 검증
 
 6. **게임 라운드 관리**
-   - Cron job (node-cron, vercel cron 등)으로 1시간마다 자동 라운드 전환
-   - 또는 Supabase Edge Function + Cron Trigger 사용
+   - **Admin이 수동으로 라운드 시작/종료 (Edge Functions)**
+   - 특정 시간대에만 진행 (예: 09:00~23:00)
+   - 라운드 생성, 시작, 종료, 취소 모두 Admin이 제어
+   - Cron Job 없음 (완전 수동 관리)
 
-7. **AI 점수 계산**
-   - 서버 API에서 OpenAI/Claude/Gemini API 호출
+7. **Admin 시스템**
+   - Admin 권한 3단계: super_admin, admin, moderator
+   - Admin 행동 추적 (Audit Log)
+   - Admin Panel: 라운드 관리, 사용자 관리, 통계 대시보드
+   - 부적절한 프롬프트 삭제 및 점수 롤백
+   - 모든 Admin API는 Edge Functions로 구현
+
+8. **AI 점수 계산**
+   - Edge Functions에서 OpenAI/Claude/Gemini API 호출
+   - Deno에서 직접 외부 API 호출 가능
    - 프롬프트 평가 후 점수 반영
+
+9. **보안 및 책임 추적**
+   - 모든 Admin 행동은 admin_audit_log에 기록
+   - IP 주소, User-Agent 추적
+   - 변경 내역 JSONB 형태로 저장
+
+10. **배포 및 관리**
+   - `supabase functions deploy` 명령어로 간단 배포
+   - Supabase Dashboard에서 Edge Functions 로그 확인
+   - 환경 변수는 Supabase Secrets로 관리
