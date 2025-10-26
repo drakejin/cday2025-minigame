@@ -7,7 +7,16 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["node_modules", "dist", "build", ".vite", "*.config.js", "*.config.ts"]
+    "ignore": [
+      "node_modules",
+      "dist",
+      "build",
+      ".vite",
+      "*.config.js",
+      "*.config.ts",
+      "src/components/ui/**",
+      "src/hooks/use-toast.ts"
+    ]
   },
   "formatter": {
     "enabled": true,
