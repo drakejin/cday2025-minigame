@@ -33,7 +33,10 @@ cd cday2025-minigame
 #### Step 2: Install Dependencies
 ```bash
 # Core dependencies
-yarn add react react-dom react-router-dom zustand @supabase/supabase-js
+yarn add react react-dom react-router-dom @supabase/supabase-js
+
+# State Management & Data Fetching
+yarn add zustand @tanstack/react-query
 
 # UI - Ant Design (모든 페이지에서 사용)
 yarn add antd @ant-design/icons
@@ -482,6 +485,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
 ### 7. src/App.tsx
 ```typescript
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ConfigProvider } from 'antd'
 import { ThemeProvider } from 'styled-components'
@@ -496,30 +500,44 @@ import { Dashboard } from './pages/user/Dashboard'
 import { Leaderboard } from './pages/user/Leaderboard'
 import { History } from './pages/user/History'
 import { Profile } from './pages/user/Profile'
+import './store/authStore' // Auth 모듈 레벨 초기화
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5분
+      gcTime: 1000 * 60 * 10, // 10분
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
 
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider theme={appTheme}>
-        <GlobalStyles />
-        <ConfigProvider theme={antdTheme}>
-          <BrowserRouter>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Landing />} />
-              <Route path="/login" element={<Login />} />
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={appTheme}>
+          <GlobalStyles />
+          <ConfigProvider theme={antdTheme}>
+            <BrowserRouter>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Landing />} />
+                <Route path="/login" element={<Login />} />
 
-              {/* Protected Routes */}
-              <Route element={<AuthGuard />}>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/leaderboard" element={<Leaderboard />} />
-                <Route path="/history" element={<History />} />
-                <Route path="/profile" element={<Profile />} />
-              </Route>
-            </Routes>
-          </BrowserRouter>
-        </ConfigProvider>
-      </ThemeProvider>
+                {/* Protected Routes */}
+                <Route element={<AuthGuard />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/leaderboard" element={<Leaderboard />} />
+                  <Route path="/history" element={<History />} />
+                  <Route path="/profile" element={<Profile />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </ConfigProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   )
 }
@@ -594,9 +612,11 @@ yarn type-check
 - **Use default exports for components** (prefer default export over named export)
 
 ### 2. Component Structure (Ant Design 기본 우선)
+
+**실제 사용 중인 패턴:**
 ```typescript
 // ComponentName.tsx
-import { type FC } from 'react'
+import type { FC } from 'react'
 import { Card, Space, Typography } from 'antd'
 
 interface ComponentNameProps {
@@ -604,7 +624,7 @@ interface ComponentNameProps {
   // other props
 }
 
-const ComponentName: FC<ComponentNameProps> = ({ title }) => {
+export const ComponentName: FC<ComponentNameProps> = ({ title }) => {
   return (
     <Card title={title} style={{ marginBottom: 16 }}>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
@@ -613,48 +633,153 @@ const ComponentName: FC<ComponentNameProps> = ({ title }) => {
     </Card>
   )
 }
-
-export default ComponentName
 ```
 
 **원칙:**
 - ✅ Ant Design 기본 컴포넌트 사용
 - ✅ `style` prop으로 간단한 스타일 적용
-- ✅ **Default export 사용 (named export 대신)**
-- ❌ 불필요한 styled-components 제거
+- ✅ **Named export 사용** (현재 프로젝트 표준)
+- ✅ `type FC` import (더 정확한 타입)
+- ❌ 불필요한 styled-components 최소화
 
-### 3. Custom Hook Structure
+### 3. Custom Hook Structure (React Query 패턴)
+
+**현재 프로젝트는 React Query 사용:**
+
 ```typescript
-// useHookName.ts
-import { useState, useEffect } from 'react'
+// hooks/queries/useResourceQuery.ts
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { resourceService } from '@/services/resource.service'
 
-export const useHookName = (param: string) => {
-  const [state, setState] = useState<Type>(initialValue)
+// Query Hook (데이터 조회)
+export const useResource = (id: string) => {
+  return useQuery({
+    queryKey: ['resource', id],
+    queryFn: () => resourceService.getResource(id),
+    enabled: !!id, // id가 있을 때만 실행
+  })
+}
 
-  useEffect(() => {
-    // logic
-  }, [param])
+// Mutation Hook (데이터 수정)
+export const useCreateResource = () => {
+  const queryClient = useQueryClient()
 
-  return { state, setState }
+  return useMutation({
+    mutationFn: (data: CreateData) => resourceService.create(data),
+    onSuccess: () => {
+      // 캐시 무효화 (자동 리프레시)
+      queryClient.invalidateQueries({ queryKey: ['resource'] })
+    },
+  })
 }
 ```
 
-### 4. Service Structure
+**사용 예시:**
 ```typescript
-// service.ts
-import { supabase } from './supabase'
-import type { ServiceType } from '@/types'
+const Dashboard: FC = () => {
+  const { data, isLoading, error } = useResource('123')
+  const createMutation = useCreateResource()
 
-export const serviceName = {
-  async fetchData(): Promise<ServiceType[]> {
-    const { data, error } = await supabase
-      .from('table')
-      .select('*')
+  if (isLoading) return <Loading />
+  if (error) return <Error />
+
+  return <div>{data?.name}</div>
+}
+```
+
+**장점:**
+- ✅ 자동 캐싱 및 중복 요청 방지
+- ✅ 로딩/에러 상태 자동 관리
+- ✅ 백그라운드 리프레시
+- ✅ useState, useEffect 불필요
+
+### 4. Service Structure (Edge Functions Only)
+
+**현재 프로젝트는 100% Edge Functions 사용 (Direct DB Access 금지):**
+
+```typescript
+// services/resource.service.ts
+import { supabase } from './supabase'
+
+export const resourceService = {
+  /**
+   * Get resource by ID (Edge Function)
+   */
+  async getResource(id: string) {
+    const { data, error } = await supabase.functions.invoke('get-resource', {
+      body: { id },
+    })
 
     if (error) throw error
-    return data
+    if (!data.success) throw new Error(data.error || 'Failed to get resource')
+    return data.data
+  },
+
+  /**
+   * Create resource (Edge Function)
+   */
+  async createResource(payload: CreatePayload) {
+    const { data, error } = await supabase.functions.invoke('create-resource', {
+      body: payload,
+    })
+
+    if (error) throw error
+    if (!data.success) throw new Error(data.error || 'Failed to create resource')
+    return data.data
   },
 }
+```
+
+**원칙:**
+- ✅ 모든 API 호출은 `supabase.functions.invoke()` 사용
+- ✅ Direct DB access (`supabase.from()`) 사용 금지
+- ✅ Edge Functions에서 비즈니스 로직 처리
+- ✅ 에러 처리 표준화
+
+### 5. Auth Pattern (Module-level Initialization)
+
+**authStore는 모듈 레벨에서 초기화 (안티패턴 제거):**
+
+```typescript
+// store/authStore.ts
+import { create } from 'zustand'
+import { authService } from '@/services/auth.service'
+import { supabase } from '@/services/supabase'
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  session: null,
+  initialized: false,
+  // ... actions
+}))
+
+// 모듈 레벨 초기화 (파일 import 시 자동 실행)
+;(async () => {
+  const session = await authService.getSession()
+  if (session) {
+    const user = await authService.getUser()
+    useAuthStore.setState({ user, session, initialized: true })
+  } else {
+    useAuthStore.setState({ initialized: true })
+  }
+
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      useAuthStore.setState({ session, user: session.user })
+    } else if (event === 'SIGNED_OUT') {
+      useAuthStore.setState({ session: null, user: null })
+    }
+  })
+})()
+```
+
+**사용:**
+```typescript
+// 어떤 컴포넌트에서든
+const user = useAuthStore((state) => state.user)
+const initialized = useAuthStore((state) => state.initialized)
+
+// HTTP 요청 없음! 메모리 캐시에서 읽기만
 ```
 
 ---
