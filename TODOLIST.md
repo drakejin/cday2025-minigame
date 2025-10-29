@@ -113,12 +113,14 @@
 
 ## Phase 6: Services Layer 🌐
 
-- [ ] Create API services
-  - [ ] src/services/auth.service.ts
-  - [ ] src/services/character.service.ts
-  - [ ] src/services/prompt.service.ts
-  - [ ] src/services/leaderboard.service.ts
-  - [ ] src/services/realtime.service.ts
+- [x] Create API services
+  - [x] src/services/auth.service.ts (Google OAuth login/logout)
+  - [x] src/services/character.service.ts (Character CRUD operations)
+  - [x] src/services/prompt.service.ts (Submit via Edge Function)
+  - [x] src/services/game.service.ts (Game rounds, time calculation)
+  - [x] src/services/leaderboard.service.ts (Direct DB + Edge Functions)
+  - [x] src/services/realtime.service.ts (Realtime subscriptions)
+  - [x] src/services/supabase.ts (Supabase client)
 
 ---
 
@@ -425,8 +427,9 @@
 - Phase 3 - Supabase Setup ✅ (Directory structure and migration file ready)
 - Phase 4 - Type Definitions ✅ (All type files created, database.types.ts pending Supabase setup)
 - Phase 5 - Utility Functions ✅ (validators, constants, helpers all complete)
+- Phase 6 - Services Layer ✅ (Auth, Character, Prompt, Game, Leaderboard, Realtime services)
 
-**Next Up**: Phase 6 - Services Layer
+**Next Up**: Phase 7 - State Management (Zustand)
 
 **NEW: 100% Supabase Edge Functions 아키텍처** 🆕
 - Admin 기반 라운드 관리 시스템 추가
