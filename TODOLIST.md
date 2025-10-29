@@ -36,7 +36,7 @@
 
 ## Phase 2: Dependencies Installation 🔄
 
-- [ ] Install dependencies (100% Ant Design + styled-components)
+- [x] Install dependencies (100% Ant Design + styled-components)
   ```bash
   # Core
   yarn add react react-dom react-router-dom zustand @supabase/supabase-js
@@ -52,31 +52,31 @@
   yarn add zod
 
   # Utils
-  yarn add date-fns dayjs
+  yarn add dayjs
 
   # Dev dependencies
   yarn add -D @types/node @biomejs/biome
   ```
 
-- [ ] ❌ shadcn/ui 설치 안 함 (사용하지 않음)
+- [x] ❌ shadcn/ui 설치 안 함 (사용하지 않음)
 
-- [ ] ❌ Tailwind CSS 설치 안 함 (사용하지 않음)
+- [x] ❌ Tailwind CSS 설치 안 함 (사용하지 않음)
 
 ---
 
 ## Phase 3: Supabase Setup 📦
 
-- [ ] Create Supabase directory structure
+- [x] Create Supabase directory structure
   ```bash
   mkdir -p supabase/migrations
   mkdir -p supabase/functions/{submit-prompt,advance-round,get-my-rank}
   ```
 
-- [ ] Create initial migration file
-  - [ ] Copy SQL from docs/DB_DESIGN.md to migration
-  - [ ] Create: supabase/migrations/20250101000000_initial_schema.sql
+- [x] Create initial migration file
+  - [x] Copy SQL from docs/DB_DESIGN.md to migration
+  - [x] Create: supabase/migrations/20250101000000_initial_schema.sql
 
-- [ ] Setup Supabase project (Manual)
+- [ ] Setup Supabase project (Manual - requires user action)
   - [ ] Create Supabase project at supabase.com
   - [ ] Copy project URL and anon key to .env
   - [ ] Run migrations (via Supabase dashboard or CLI)
@@ -418,9 +418,12 @@
 
 ## Current Status
 
-**Completed**: Phase 1 - Initial Setup ✅
+**Completed**:
+- Phase 1 - Initial Setup ✅
+- Phase 2 - Dependencies Installation ✅
+- Phase 3 - Supabase Setup ✅ (Directory structure and migration file ready)
 
-**Next Up**: Phase 2 - Dependencies Installation
+**Next Up**: Phase 4 - Type Definitions
 
 **NEW: 100% Supabase Edge Functions 아키텍처** 🆕
 - Admin 기반 라운드 관리 시스템 추가
