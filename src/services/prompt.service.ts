@@ -13,37 +13,20 @@ export const promptService = {
     })
 
     if (error) throw error
-    return data
+    if (!data.success) throw new Error(data.error || 'Failed to submit prompt')
+    return data.data
   },
 
   /**
-   * Get prompt history for character
+   * Get prompt history (Edge Function)
    */
-  async getPromptHistory(characterId: string, limit = 20) {
-    const { data, error } = await supabase
-      .from('prompt_history')
-      .select('*')
-      .eq('character_id', characterId)
-      .eq('is_deleted', false)
-      .order('created_at', { ascending: false })
-      .limit(limit)
+  async getPromptHistory(limit = 20, offset = 0) {
+    const { data, error } = await supabase.functions.invoke('get-my-prompts', {
+      body: { limit, offset },
+    })
 
     if (error) throw error
-    return data
-  },
-
-  /**
-   * Check if already submitted in current round
-   */
-  async hasSubmittedInRound(characterId: string, roundNumber: number) {
-    const { data, error } = await supabase
-      .from('prompt_history')
-      .select('id')
-      .eq('character_id', characterId)
-      .eq('round_number', roundNumber)
-      .maybeSingle()
-
-    if (error) throw error
-    return !!data
+    if (!data.success) throw new Error(data.error || 'Failed to get prompt history')
+    return data.data.data
   },
 }

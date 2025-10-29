@@ -1,4 +1,4 @@
-import { type FC, useState, useEffect } from 'react'
+import { type FC, useState, useEffect, useCallback } from 'react'
 import { Card, List, Tag, Space, Typography } from 'antd'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { useCharacter } from '@/hooks/useCharacter'
@@ -12,25 +12,23 @@ export const History: FC = () => {
   const [history, setHistory] = useState<PromptHistory[]>([])
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    if (character?.id) {
-      fetchHistory()
-    }
-  }, [character?.id])
-
-  const fetchHistory = async () => {
-    if (!character?.id) return
-
+  const fetchHistory = useCallback(async () => {
     setLoading(true)
     try {
-      const data = await promptService.getPromptHistory(character.id)
+      const data = await promptService.getPromptHistory(20, 0)
       setHistory(data || [])
     } catch (error) {
       console.error('Failed to fetch history:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (character) {
+      fetchHistory()
+    }
+  }, [character, fetchHistory])
 
   return (
     <MainLayout>

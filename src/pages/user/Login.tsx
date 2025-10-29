@@ -10,9 +10,10 @@ export const Login: FC = () => {
   const navigate = useNavigate()
   const { isAuthenticated, isLoading } = useAuth()
 
+  // Use useEffect for redirect to avoid rendering issues
   useEffect(() => {
-    // If already logged in, redirect to dashboard
     if (isAuthenticated && !isLoading) {
+      console.log('[Login] User authenticated, redirecting to dashboard...')
       navigate('/dashboard', { replace: true })
     }
   }, [isAuthenticated, isLoading, navigate])
@@ -28,7 +29,7 @@ export const Login: FC = () => {
           minHeight: '100vh',
         }}
       >
-        <Spin size="large" />
+        <Spin size="large" tip="인증 확인 중..." />
       </div>
     )
   }

@@ -6,8 +6,8 @@ Supabase PostgreSQL 기반 데이터베이스 설계
 **핵심 원칙:**
 - 모든 비즈니스 로직은 Supabase Edge Functions (Deno)에서 처리
 - DB는 데이터 저장 + 기본 제약조건만 담당
-- 프론트엔드는 읽기 전용으로 Client SDK 직접 사용 가능
-- 모든 쓰기 작업은 Edge Functions를 통해서만 수행
+- **프론트엔드는 DB에 직접 접근 금지 - 모든 요청은 Edge Functions를 통해서만**
+- 읽기/쓰기 모든 작업은 Edge Functions API를 통해서만 수행
 
 ---
 

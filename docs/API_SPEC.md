@@ -38,16 +38,33 @@ const { data } = await supabase.auth.signInWithOAuth({
 
 ---
 
-### 2. Character (Direct DB Access - 읽기만)
+### 2. Character (Edge Functions)
 
-프론트엔드에서 Supabase Client로 직접 조회:
-```typescript
-// 내 캐릭터 조회
-const { data } = await supabase
-  .from('characters')
-  .select('*')
-  .eq('user_id', userId)
-  .eq('is_active', true)
+#### GET /functions/v1/get-my-character
+내 캐릭터 조회
+```json
+Response:
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "name": "용사 김철수",
+    "current_prompt": "불꽃을 다루는 마법사",
+    "total_score": 150,
+    "strength": 50,
+    "charm": 45,
+    "creativity": 55
+  }
+}
+```
+
+#### POST /functions/v1/create-character
+캐릭터 생성
+```json
+Request:
+{
+  "name": "용사 김철수"
+}
   .single()
 ```
 

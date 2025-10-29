@@ -8,19 +8,16 @@ export const useCharacter = () => {
     useCharacterStore()
 
   useEffect(() => {
-    if (user?.id) {
-      fetchCharacter(user.id)
+    if (user) {
+      fetchCharacter()
     }
-  }, [user?.id, fetchCharacter])
+  }, [user, fetchCharacter])
 
   return {
     character,
     isLoading,
     error,
-    createCharacter: (name: string) => {
-      if (!user?.id) throw new Error('User not authenticated')
-      return createCharacter(user.id, name)
-    },
+    createCharacter,
     updateCharacterName,
   }
 }

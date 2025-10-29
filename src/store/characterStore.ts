@@ -7,8 +7,8 @@ interface CharacterState {
   isLoading: boolean
   error: string | null
   setCharacter: (character: Character | null) => void
-  fetchCharacter: (userId: string) => Promise<void>
-  createCharacter: (userId: string, name: string) => Promise<void>
+  fetchCharacter: () => Promise<void>
+  createCharacter: (name: string) => Promise<void>
   updateCharacterName: (characterId: string, name: string) => Promise<void>
   clearError: () => void
 }
@@ -20,10 +20,10 @@ export const useCharacterStore = create<CharacterState>((set) => ({
 
   setCharacter: (character) => set({ character }),
 
-  fetchCharacter: async (userId) => {
+  fetchCharacter: async () => {
     set({ isLoading: true, error: null })
     try {
-      const character = await characterService.getMyCharacter(userId)
+      const character = await characterService.getMyCharacter()
       set({ character })
     } catch (error) {
       set({ error: (error as Error).message })
@@ -32,10 +32,10 @@ export const useCharacterStore = create<CharacterState>((set) => ({
     }
   },
 
-  createCharacter: async (userId, name) => {
+  createCharacter: async (name) => {
     set({ isLoading: true, error: null })
     try {
-      const character = await characterService.createCharacter(userId, name)
+      const character = await characterService.createCharacter(name)
       set({ character })
     } catch (error) {
       set({ error: (error as Error).message })
@@ -47,8 +47,10 @@ export const useCharacterStore = create<CharacterState>((set) => ({
   updateCharacterName: async (characterId, name) => {
     set({ isLoading: true, error: null })
     try {
-      const character = await characterService.updateCharacterName(characterId, name)
-      set({ character })
+      const updated = await characterService.updateCharacterName(characterId, name)
+      set((state) => ({
+        character: state.character ? { ...state.character, name: updated.name } : null,
+      }))
     } catch (error) {
       set({ error: (error as Error).message })
     } finally {

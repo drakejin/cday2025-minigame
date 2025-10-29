@@ -2,64 +2,39 @@ import { supabase } from './supabase'
 
 export const characterService = {
   /**
-   * Get user's active character
+   * Get user's active character (Edge Function)
    */
-  async getMyCharacter(userId: string) {
-    const { data, error } = await supabase
-      .from('characters')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('is_active', true)
-      .maybeSingle()
+  async getMyCharacter() {
+    const { data, error } = await supabase.functions.invoke('get-my-character')
 
     if (error) throw error
-    return data
+    if (!data.success) throw new Error(data.error || 'Failed to get character')
+    return data.data
   },
 
   /**
-   * Create new character
+   * Create new character (Edge Function)
    */
-  async createCharacter(userId: string, name: string) {
-    const { data, error } = await supabase
-      .from('characters')
-      .insert({
-        user_id: userId,
-        name,
-        current_prompt: '새로운 영웅',
-      })
-      .select()
-      .single()
+  async createCharacter(name: string) {
+    const { data, error } = await supabase.functions.invoke('create-character', {
+      body: { name },
+    })
 
     if (error) throw error
-    return data
+    if (!data.success) throw new Error(data.error || 'Failed to create character')
+    return data.data
   },
 
   /**
-   * Update character name
+   * Update character name (Edge Function)
    */
   async updateCharacterName(characterId: string, name: string) {
-    const { data, error } = await supabase
-      .from('characters')
-      .update({ name })
-      .eq('id', characterId)
-      .select()
-      .single()
+    const { data, error } = await supabase.functions.invoke('update-character-name', {
+      body: { character_id: characterId, name },
+    })
 
     if (error) throw error
-    return data
-  },
-
-  /**
-   * Get character by ID
-   */
-  async getCharacterById(characterId: string) {
-    const { data, error } = await supabase
-      .from('characters')
-      .select('*')
-      .eq('id', characterId)
-      .single()
-
-    if (error) throw error
-    return data
+    if (!data.success) throw new Error(data.error || 'Failed to update character')
+    return data.data
   },
 }

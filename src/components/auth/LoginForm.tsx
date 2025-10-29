@@ -1,5 +1,5 @@
 import type { FC } from 'react'
-import { Button, Space, Divider } from 'antd'
+import { Button, Space, Divider, message } from 'antd'
 import { GoogleOutlined } from '@ant-design/icons'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -8,9 +8,12 @@ export const LoginForm: FC = () => {
 
   const handleGoogleLogin = async () => {
     try {
-      await signInWithGoogle()
+      console.log('Starting Google login...')
+      const result = await signInWithGoogle()
+      console.log('Google login result:', result)
     } catch (error) {
       console.error('Google login error:', error)
+      message.error('로그인 중 오류가 발생했습니다. 다시 시도해주세요.')
     }
   }
 
