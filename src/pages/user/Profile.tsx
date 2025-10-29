@@ -3,11 +3,11 @@ import { Card, Descriptions, Avatar, Space, Button } from 'antd'
 import { UserOutlined, EditOutlined } from '@ant-design/icons'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { useAuthStore } from '@/store/authStore'
-import { useCharacter } from '@/hooks/useCharacter'
+import { useMyCharacter } from '@/hooks/queries/useCharacterQuery'
 
 export const Profile: FC = () => {
   const user = useAuthStore((state) => state.user)
-  const { character } = useCharacter()
+  const { data: character } = useMyCharacter()
 
   return (
     <MainLayout>
