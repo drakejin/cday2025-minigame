@@ -349,33 +349,7 @@ supabase gen types typescript --local > src/types/database.types.ts
 
 ### 1. src/styles/theme.ts
 ```typescript
-import { DefaultTheme } from 'styled-components'
-
-export const appTheme: DefaultTheme = {
-  colors: {
-    user: {
-      primary: '#7c3aed',
-      secondary: '#f59e0b',
-      success: '#10b981',
-      danger: '#ef4444',
-      background: '#0f172a',
-      surface: '#1e293b',
-    },
-    admin: {
-      primary: '#1890ff',
-      success: '#52c41a',
-      warning: '#faad14',
-      error: '#f5222d',
-      background: '#f0f2f5',
-      white: '#ffffff',
-    },
-    text: {
-      primary: 'rgba(0, 0, 0, 0.85)',
-      secondary: 'rgba(0, 0, 0, 0.65)',
-      disabled: 'rgba(0, 0, 0, 0.25)',
-      inverse: '#ffffff',
-    },
-  },
+export const appTheme = {
   spacing: {
     xs: '8px',
     sm: '12px',
@@ -405,19 +379,28 @@ export const GlobalStyles = createGlobalStyle`
   }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  .user-layout {
-    background: ${props => props.theme.colors.user.background};
-    min-height: 100vh;
+  /* 스크롤바 스타일 */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
   }
 
-  .admin-layout {
-    background: ${props => props.theme.colors.admin.background};
-    min-height: 100vh;
+  ::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.5);
   }
 `
 ```
@@ -426,18 +409,8 @@ export const GlobalStyles = createGlobalStyle`
 ```typescript
 import type { ThemeConfig } from 'antd'
 
-export const userAntdTheme: ThemeConfig = {
-  token: {
-    colorPrimary: '#7c3aed',
-    colorSuccess: '#10b981',
-    colorWarning: '#f59e0b',
-    colorError: '#ef4444',
-    borderRadius: 12,
-    fontSize: 14,
-  },
-}
-
-export const adminAntdTheme: ThemeConfig = {
+// 전체 앱 통일 테마
+export const antdTheme: ThemeConfig = {
   token: {
     colorPrimary: '#1890ff',
     colorSuccess: '#52c41a',
@@ -447,21 +420,41 @@ export const adminAntdTheme: ThemeConfig = {
     fontSize: 14,
   },
 }
-```
 
-### 4. src/services/supabase.ts
-```typescript
-import { createClient } from '@supabase/supabase-js'
-import type { Database } from '@/types/database.types'
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
+// User Pages는 다른 primary color 사용 (선택사항)
+export const userAntdTheme: ThemeConfig = {
+  ...antdTheme,
+  token: {
+    ...antdTheme.token,
+    colorPrimary: '#7c3aed', // Purple for game feeling
+  },
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+// Admin Pages는 기본 테마 사용
+export const adminAntdTheme = antdTheme
+```
+
+### 4. src/config/env.ts
+```typescript
+export const env = {
+  supabase: {
+    url: import.meta.env.VITE_SUPABASE_URL,
+    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+  },
+} as const
+
+// Validation
+if (!env.supabase.url || !env.supabase.anonKey) {
+  throw new Error('Missing required environment variables')
+}
+```
+
+### 5. src/services/supabase.ts
+```typescript
+import { createClient } from '@supabase/supabase-js'
+import { env } from '@/config/env'
+
+export const supabase = createClient(env.supabase.url, env.supabase.anonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
@@ -474,7 +467,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
 })
 ```
 
-### 5. src/main.tsx
+### 6. src/main.tsx
 ```typescript
 import React from 'react'
 import ReactDOM from 'react-dom/client'
@@ -487,65 +480,59 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 )
 ```
 
-### 6. src/App.tsx
+### 7. src/App.tsx
 ```typescript
-import { BrowserRouter } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ConfigProvider } from 'antd'
 import { ThemeProvider } from 'styled-components'
 import { GlobalStyles } from './styles/globalStyles'
 import { appTheme } from './styles/theme'
-import { userAntdTheme } from './config/antd.config'
+import { antdTheme } from './config/antd.config'
+import { ErrorBoundary } from './components/common/ErrorBoundary'
+import { AuthGuard } from './components/common/AuthGuard'
+import { Landing } from './pages/user/Landing'
+import { Login } from './pages/user/Login'
+import { Dashboard } from './pages/user/Dashboard'
+import { Leaderboard } from './pages/user/Leaderboard'
+import { History } from './pages/user/History'
+import { Profile } from './pages/user/Profile'
 
 function App() {
   return (
-    <ThemeProvider theme={appTheme}>
-      <GlobalStyles />
-      <ConfigProvider theme={userAntdTheme}>
-        <BrowserRouter>
-          <div style={{ minHeight: '100vh', padding: '32px', textAlign: 'center' }}>
-            <h1 style={{ fontSize: '32px', fontWeight: 'bold' }}>
-              Character Battle
-            </h1>
-          </div>
-        </BrowserRouter>
-      </ConfigProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider theme={appTheme}>
+        <GlobalStyles />
+        <ConfigProvider theme={antdTheme}>
+          <BrowserRouter>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Landing />} />
+              <Route path="/login" element={<Login />} />
+
+              {/* Protected Routes */}
+              <Route element={<AuthGuard />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/leaderboard" element={<Leaderboard />} />
+                <Route path="/history" element={<History />} />
+                <Route path="/profile" element={<Profile />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </ConfigProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   )
 }
 
 export default App
 ```
 
-### 7. src/styled.d.ts (TypeScript 타입 정의)
+### 8. src/styled.d.ts (TypeScript 타입 정의)
 ```typescript
 import 'styled-components'
 
 declare module 'styled-components' {
   export interface DefaultTheme {
-    colors: {
-      user: {
-        primary: string
-        secondary: string
-        success: string
-        danger: string
-        background: string
-        surface: string
-      }
-      admin: {
-        primary: string
-        success: string
-        warning: string
-        error: string
-        background: string
-        white: string
-      }
-      text: {
-        primary: string
-        secondary: string
-        disabled: string
-        inverse: string
-      }
-    }
     spacing: {
       xs: string
       sm: string
@@ -604,7 +591,7 @@ yarn type-check
 - Use Biome.js for formatting and linting
 - Follow TypeScript strict mode
 - Use functional components with hooks
-- Prefer named exports over default exports
+- **Use default exports for components** (prefer default export over named export)
 
 ### 2. Component Structure (Ant Design 기본 우선)
 ```typescript
@@ -617,7 +604,7 @@ interface ComponentNameProps {
   // other props
 }
 
-export const ComponentName: FC<ComponentNameProps> = ({ title }) => {
+const ComponentName: FC<ComponentNameProps> = ({ title }) => {
   return (
     <Card title={title} style={{ marginBottom: 16 }}>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
@@ -626,11 +613,14 @@ export const ComponentName: FC<ComponentNameProps> = ({ title }) => {
     </Card>
   )
 }
+
+export default ComponentName
 ```
 
 **원칙:**
 - ✅ Ant Design 기본 컴포넌트 사용
 - ✅ `style` prop으로 간단한 스타일 적용
+- ✅ **Default export 사용 (named export 대신)**
 - ❌ 불필요한 styled-components 제거
 
 ### 3. Custom Hook Structure
