@@ -103,11 +103,11 @@
 
 ## Phase 5: Utility Functions 🔧
 
-- [ ] Create utility files
-  - [ ] src/utils/formatters.ts (date, number formatting)
-  - [ ] src/utils/validators.ts (validation functions)
-  - [ ] src/utils/constants.ts (app constants)
-  - [ ] src/utils/helpers.ts (helper functions)
+- [x] Create utility files
+  - [x] src/utils/validators.ts (Zod schemas and validation functions)
+  - [x] src/utils/constants.ts (app constants, routes, messages)
+  - [x] src/utils/helpers.ts (helper functions including formatters)
+  - [x] src/utils/index.ts (central exports)
 
 ---
 
@@ -424,8 +424,9 @@
 - Phase 2 - Dependencies Installation ✅
 - Phase 3 - Supabase Setup ✅ (Directory structure and migration file ready)
 - Phase 4 - Type Definitions ✅ (All type files created, database.types.ts pending Supabase setup)
+- Phase 5 - Utility Functions ✅ (validators, constants, helpers all complete)
 
-**Next Up**: Phase 5 - Utility Functions
+**Next Up**: Phase 6 - Services Layer
 
 **NEW: 100% Supabase Edge Functions 아키텍처** 🆕
 - Admin 기반 라운드 관리 시스템 추가
