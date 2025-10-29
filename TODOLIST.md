@@ -85,18 +85,19 @@
 
 ## Phase 4: Type Definitions 📝
 
-- [ ] Create database types (after Supabase setup)
+- [ ] Create database types (after Supabase setup - requires manual Supabase project creation first)
   ```bash
   # If using Supabase CLI
   supabase gen types typescript --local > src/types/database.types.ts
   ```
 
-- [ ] Create type files
-  - [ ] src/types/auth.types.ts
-  - [ ] src/types/character.types.ts
-  - [ ] src/types/game.types.ts
-  - [ ] src/types/leaderboard.types.ts
-  - [ ] src/types/api.types.ts
+- [x] Create type files
+  - [x] src/types/auth.types.ts
+  - [x] src/types/character.types.ts
+  - [x] src/types/game.types.ts
+  - [x] src/types/leaderboard.types.ts
+  - [x] src/types/api.types.ts
+  - [x] src/types/index.ts (central export)
 
 ---
 
@@ -422,8 +423,9 @@
 - Phase 1 - Initial Setup ✅
 - Phase 2 - Dependencies Installation ✅
 - Phase 3 - Supabase Setup ✅ (Directory structure and migration file ready)
+- Phase 4 - Type Definitions ✅ (All type files created, database.types.ts pending Supabase setup)
 
-**Next Up**: Phase 4 - Type Definitions
+**Next Up**: Phase 5 - Utility Functions
 
 **NEW: 100% Supabase Edge Functions 아키텍처** 🆕
 - Admin 기반 라운드 관리 시스템 추가
