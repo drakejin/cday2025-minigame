@@ -126,11 +126,11 @@
 
 ## Phase 7: State Management (Zustand) 🗄️
 
-- [ ] Create stores
-  - [ ] src/store/authStore.ts
-  - [ ] src/store/characterStore.ts
-  - [ ] src/store/gameStore.ts
-  - [ ] src/store/uiStore.ts (toast, modal, etc.)
+- [x] Create stores
+  - [x] src/store/authStore.ts (user, session, auth actions)
+  - [x] src/store/characterStore.ts (character state, CRUD actions)
+  - [x] src/store/gameStore.ts (current round, time remaining, submission status)
+  - [x] src/store/uiStore.ts (toast notifications, modal state)
 
 ---
 
@@ -428,8 +428,9 @@
 - Phase 4 - Type Definitions ✅ (All type files created, database.types.ts pending Supabase setup)
 - Phase 5 - Utility Functions ✅ (validators, constants, helpers all complete)
 - Phase 6 - Services Layer ✅ (Auth, Character, Prompt, Game, Leaderboard, Realtime services)
+- Phase 7 - State Management ✅ (Zustand stores: auth, character, game, UI)
 
-**Next Up**: Phase 7 - State Management (Zustand)
+**Next Up**: Phase 8 - Custom Hooks
 
 **NEW: 100% Supabase Edge Functions 아키텍처** 🆕
 - Admin 기반 라운드 관리 시스템 추가
