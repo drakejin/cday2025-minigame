@@ -1,49 +1,37 @@
-# API Specification
+# API Specification v2.0
+**100% Edge Functions Architecture - No Direct DB Access from Client**
 
 ## Base URL
 ```
-Development: http://localhost:54321
-Production: https://your-project.supabase.co
+Development: http://localhost:54321/functions/v1
+Production: https://oapwrpmohheorgbweeon.supabase.co/functions/v1
 ```
 
 ## Authentication
+모든 API는 JWT 토큰 필요 (Supabase Auth)
 ```
 Authorization: Bearer <access_token>
 ```
 
----
-
-## User APIs
-
-### 1. Auth (Google OAuth Only)
-
-#### 프론트엔드에서 Google OAuth 시작
-```typescript
-const { data } = await supabase.auth.signInWithOAuth({
-  provider: 'google',
-  options: {
-    redirectTo: `${window.location.origin}/dashboard`,
-  },
-})
-```
-
-**자동 처리:**
-- 구글 로그인 완료 후 자동으로 `profiles` 테이블에 사용자 생성
-- `display_name`: 구글 계정 이름
-- `avatar_url`: 구글 프로필 이미지
-- `email`: 구글 계정 이메일
-
-#### POST /auth/v1/logout
-로그아웃
+**예외:**
+- Google OAuth: `supabase.auth.signInWithOAuth()` 사용 (Supabase Auth 직접)
+- 로그아웃: `supabase.auth.signOut()` 사용
 
 ---
 
-### 2. Character (Edge Functions)
+## User Edge Functions (일반 사용자)
 
-#### GET /functions/v1/get-my-character
-내 캐릭터 조회
+### 1. Character APIs
+
+#### GET /get-my-character
+내 활성 캐릭터 조회
+
+**Request:**
+- Headers: `Authorization: Bearer <token>`
+- Body: None
+
+**Response:**
 ```json
-Response:
 {
   "success": true,
   "data": {
@@ -53,183 +41,638 @@ Response:
     "total_score": 150,
     "strength": 50,
     "charm": 45,
-    "creativity": 55
+    "creativity": 55,
+    "created_at": "2025-01-15T10:00:00Z"
   }
 }
 ```
 
-#### POST /functions/v1/create-character
-캐릭터 생성
+**Errors:**
+- `401 UNAUTHORIZED`: 인증 필요
+- `404 CHARACTER_NOT_FOUND`: 캐릭터 없음
+
+---
+
+#### POST /create-character
+캐릭터 생성 (사용자당 1개만)
+
+**Request:**
 ```json
-Request:
 {
   "name": "용사 김철수"
 }
-  .single()
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "name": "용사 김철수",
+    "current_prompt": "새로운 영웅",
+    "total_score": 0,
+    "strength": 0,
+    "charm": 0,
+    "creativity": 0
+  }
+}
+```
+
+**Errors:**
+- `400 CHARACTER_ALREADY_EXISTS`: 이미 활성 캐릭터 존재
+- `400 INVALID_CHARACTER_NAME`: 이름 형식 오류
+
+---
+
+#### PATCH /update-character-name
+캐릭터 이름 수정
+
+**Request:**
+```json
+{
+  "character_id": "uuid",
+  "name": "마법사 김철수"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "name": "마법사 김철수"
+  }
+}
 ```
 
 ---
 
-### 3. Prompt Submission (Edge Function)
+### 2. Prompt APIs
 
-#### POST /functions/v1/submit-prompt
+#### POST /submit-prompt
+프롬프트 제출 및 AI 평가
+
+**Request:**
 ```json
-Request:
 {
   "character_id": "uuid",
   "prompt": "불꽃을 다루는 마법사"
 }
+```
 
-Response:
+**Response:**
+```json
 {
   "success": true,
   "data": {
+    "prompt_id": "uuid",
+    "round_number": 5,
     "scores": {
       "strength": 15,
       "charm": 20,
       "creativity": 25,
       "total": 60
+    },
+    "character": {
+      "total_score": 210,
+      "strength": 65,
+      "charm": 65,
+      "creativity": 80
     }
   }
 }
-
-Errors:
-- ALREADY_SUBMITTED (400): 이미 제출함
-- INVALID_PROMPT_LENGTH (400): 30자 초과
-- ROUND_NOT_ACTIVE (400): 활성 라운드 없음
 ```
+
+**Errors:**
+- `400 ALREADY_SUBMITTED`: 이미 제출함
+- `400 INVALID_PROMPT_LENGTH`: 1-30자 범위 벗어남
+- `400 ROUND_NOT_ACTIVE`: 활성 라운드 없음
+- `429 RATE_LIMIT_EXCEEDED`: 요청 제한 초과
 
 ---
 
-### 4. Leaderboard (Direct DB Access - 읽기만)
+#### GET /get-my-prompts
+내 프롬프트 히스토리 조회
 
-```typescript
-// 현재 리더보드
-const { data } = await supabase
-  .from('characters')
-  .select('*, profiles(*)')
-  .eq('is_active', true)
-  .order('total_score', { ascending: false })
-  .limit(100)
+**Query Params:**
+- `limit`: 조회 개수 (default: 20, max: 100)
+- `offset`: 페이지네이션 (default: 0)
 
-// 과거 라운드 리더보드
-const { data } = await supabase
-  .from('leaderboard_snapshots')
-  .select('*, profiles(*)')
-  .eq('round_number', 5)
-  .order('rank')
-  .limit(100)
-```
-
----
-
-### 5. Round Info (Direct DB Access - 읽기만)
-
-```typescript
-// 현재 라운드 조회
-const { data } = await supabase
-  .from('game_rounds')
-  .select('*')
-  .eq('is_active', true)
-  .single()
-```
-
----
-
-## Admin APIs (Edge Functions)
-
-**모든 Admin API는 Edge Function 내부에서 admin_users 테이블 확인**
-
-### 1. Round Management
-
-#### POST /functions/v1/admin-rounds-create
+**Response:**
 ```json
-Request:
 {
-  "round_number": 6,
-  "start_time": "2025-01-15T11:00:00Z",
-  "end_time": "2025-01-15T12:00:00Z"
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "prompt": "불꽃을 다루는 마법사",
+      "round_number": 5,
+      "strength_gained": 15,
+      "charm_gained": 20,
+      "creativity_gained": 25,
+      "total_score_gained": 60,
+      "created_at": "2025-01-15T11:30:00Z"
+    }
+  ],
+  "pagination": {
+    "total": 50,
+    "limit": 20,
+    "offset": 0
+  }
 }
 ```
 
-#### POST /functions/v1/admin-rounds-start
+---
+
+### 3. Game Round APIs
+
+#### GET /get-current-round
+현재 활성 라운드 조회
+
+**Response:**
 ```json
-Request:
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "round_number": 5,
+    "start_time": "2025-01-15T11:00:00Z",
+    "end_time": "2025-01-15T12:00:00Z",
+    "time_remaining": "00:25:30",
+    "is_active": true,
+    "status": "active"
+  }
+}
+```
+
+**Errors:**
+- `404 NO_ACTIVE_ROUND`: 활성 라운드 없음
+
+---
+
+#### GET /get-round-info
+특정 라운드 정보 조회
+
+**Query Params:**
+- `round_number`: 라운드 번호
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "round_number": 5,
+    "start_time": "2025-01-15T11:00:00Z",
+    "end_time": "2025-01-15T12:00:00Z",
+    "actual_end_time": "2025-01-15T12:00:00Z",
+    "status": "completed",
+    "total_participants": 450
+  }
+}
+```
+
+---
+
+### 4. Leaderboard APIs
+
+#### GET /get-leaderboard
+현재 리더보드 조회
+
+**Query Params:**
+- `limit`: 조회 개수 (default: 100, max: 1000)
+- `offset`: 페이지네이션 (default: 0)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "rank": 1,
+      "character_id": "uuid",
+      "character_name": "용사 김철수",
+      "display_name": "김철수",
+      "avatar_url": "https://...",
+      "total_score": 500,
+      "strength": 180,
+      "charm": 160,
+      "creativity": 160,
+      "current_prompt": "불꽃을 다루는 마법사"
+    }
+  ],
+  "pagination": {
+    "total": 1200,
+    "limit": 100,
+    "offset": 0
+  }
+}
+```
+
+---
+
+#### GET /get-past-leaderboard
+과거 라운드 리더보드 조회
+
+**Query Params:**
+- `round_number`: 라운드 번호 (required)
+- `limit`: 조회 개수 (default: 100)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "rank": 1,
+      "character_id": "uuid",
+      "character_name": "용사 김철수",
+      "display_name": "김철수",
+      "avatar_url": "https://...",
+      "total_score": 450,
+      "strength": 160,
+      "charm": 145,
+      "creativity": 145
+    }
+  ]
+}
+```
+
+---
+
+#### GET /get-my-rank
+내 순위 조회
+
+**Request:**
+```json
+{
+  "character_id": "uuid"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "rank": 42,
+    "total_participants": 1200,
+    "percentile": 96.5,
+    "character": {
+      "total_score": 210,
+      "strength": 70,
+      "charm": 70,
+      "creativity": 70
+    }
+  }
+}
+```
+
+---
+
+### 5. Profile APIs
+
+#### GET /get-my-profile
+내 프로필 조회
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "display_name": "김철수",
+    "avatar_url": "https://...",
+    "email": "user@example.com",
+    "created_at": "2025-01-01T00:00:00Z"
+  }
+}
+```
+
+---
+
+#### PATCH /update-profile
+프로필 수정
+
+**Request:**
+```json
+{
+  "display_name": "마법사 김철수"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "display_name": "마법사 김철수"
+  }
+}
+```
+
+---
+
+## Admin Edge Functions
+
+### 6. Round Management
+
+#### POST /admin-rounds-create
+라운드 생성
+
+**Request:**
+```json
+{
+  "round_number": 6,
+  "start_time": "2025-01-15T11:00:00Z",
+  "end_time": "2025-01-15T12:00:00Z",
+  "notes": "정규 라운드"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "round_number": 6,
+    "status": "scheduled"
+  }
+}
+```
+
+---
+
+#### POST /admin-rounds-start
+라운드 시작
+
+**Request:**
+```json
 {
   "round_id": "uuid"
 }
 ```
 
-#### POST /functions/v1/admin-rounds-end
+**Response:**
 ```json
-Request:
-{
-  "notes": "정상 종료"
-}
-
-Response:
 {
   "success": true,
-  "snapshot_created": true
-}
-```
-
-#### POST /functions/v1/admin-rounds-extend
-```json
-Request:
-{
-  "round_id": "uuid",
-  "extend_minutes": 30
-}
-```
-
----
-
-### 2. Prompt Moderation
-
-#### GET /functions/v1/admin-prompts?round=5&page=1&limit=50
-프롬프트 목록 조회
-
-#### POST /functions/v1/admin-prompts-delete
-```json
-Request:
-{
-  "prompt_id": "uuid",
-  "reason": "부적절한 언어 사용"
-}
-
-Response:
-{
-  "success": true,
-  "rollbackScore": {
-    "strength": -8,
-    "charm": -5,
-    "creativity": -7,
-    "total": -20
+  "data": {
+    "round_number": 6,
+    "status": "active",
+    "started_at": "2025-01-15T11:00:00Z"
   }
 }
 ```
 
 ---
 
-### 3. User Management
+#### POST /admin-rounds-end
+라운드 종료 (스냅샷 자동 생성)
 
-#### GET /functions/v1/admin-users?search=player1&page=1
-사용자 검색
-
-#### POST /functions/v1/admin-users-ban
+**Request:**
 ```json
-Request:
 {
-  "user_id": "uuid",
-  "reason": "규정 위반",
-  "duration": "7d"
+  "notes": "정상 종료"
 }
 ```
 
-#### POST /functions/v1/admin-users-unban
+**Response:**
 ```json
-Request:
+{
+  "success": true,
+  "data": {
+    "round_number": 6,
+    "status": "completed",
+    "ended_at": "2025-01-15T12:00:00Z",
+    "snapshot_created": true,
+    "total_participants": 450
+  }
+}
+```
+
+---
+
+#### POST /admin-rounds-extend
+라운드 연장
+
+**Request:**
+```json
+{
+  "extend_minutes": 30
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "round_number": 6,
+    "new_end_time": "2025-01-15T12:30:00Z"
+  }
+}
+```
+
+---
+
+#### POST /admin-rounds-cancel
+라운드 취소
+
+**Request:**
+```json
+{
+  "round_id": "uuid",
+  "reason": "기술적 문제"
+}
+```
+
+---
+
+#### GET /admin-rounds-list
+라운드 목록 조회
+
+**Query Params:**
+- `status`: scheduled | active | completed | cancelled
+- `limit`: 조회 개수
+- `offset`: 페이지네이션
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "round_number": 6,
+      "start_time": "2025-01-15T11:00:00Z",
+      "end_time": "2025-01-15T12:00:00Z",
+      "status": "active",
+      "total_participants": 450
+    }
+  ]
+}
+```
+
+---
+
+### 7. Prompt Moderation
+
+#### GET /admin-prompts-list
+프롬프트 목록 조회 (필터링, 검색)
+
+**Query Params:**
+- `round_number`: 라운드 번호 (optional)
+- `search`: 검색어 (optional)
+- `limit`: 조회 개수
+- `offset`: 페이지네이션
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "character_name": "용사 김철수",
+      "user_email": "user@example.com",
+      "prompt": "불꽃을 다루는 마법사",
+      "round_number": 5,
+      "total_score_gained": 60,
+      "created_at": "2025-01-15T11:30:00Z"
+    }
+  ]
+}
+```
+
+---
+
+#### DELETE /admin-prompts-delete
+프롬프트 삭제 (소프트 삭제 + 점수 롤백)
+
+**Request:**
+```json
+{
+  "prompt_id": "uuid",
+  "reason": "부적절한 내용"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "prompt_id": "uuid",
+    "rollback_scores": {
+      "strength": -15,
+      "charm": -20,
+      "creativity": -25,
+      "total": -60
+    },
+    "new_character_total": 150
+  }
+}
+```
+
+---
+
+### 8. User Management
+
+#### GET /admin-users-list
+사용자 검색/목록
+
+**Query Params:**
+- `search`: 이메일 또는 이름 검색
+- `limit`: 조회 개수
+- `offset`: 페이지네이션
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "display_name": "김철수",
+      "email": "user@example.com",
+      "avatar_url": "https://...",
+      "created_at": "2025-01-01T00:00:00Z",
+      "character": {
+        "name": "용사 김철수",
+        "total_score": 210
+      }
+    }
+  ]
+}
+```
+
+---
+
+#### GET /admin-users-detail
+사용자 상세 정보
+
+**Query Params:**
+- `user_id`: 사용자 ID
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "profile": {
+      "id": "uuid",
+      "display_name": "김철수",
+      "email": "user@example.com"
+    },
+    "character": {
+      "name": "용사 김철수",
+      "total_score": 210
+    },
+    "stats": {
+      "total_prompts": 50,
+      "average_score": 42,
+      "best_round": 5
+    }
+  }
+}
+```
+
+---
+
+#### POST /admin-users-ban
+사용자 제재 (캐릭터 비활성화)
+
+**Request:**
+```json
+{
+  "user_id": "uuid",
+  "reason": "규정 위반",
+  "duration_hours": 168
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "user_id": "uuid",
+    "banned_until": "2025-01-22T11:00:00Z"
+  }
+}
+```
+
+---
+
+#### POST /admin-users-unban
+제재 해제
+
+**Request:**
+```json
 {
   "user_id": "uuid"
 }
@@ -237,91 +680,179 @@ Request:
 
 ---
 
-### 4. Statistics
+### 9. Statistics
 
-#### GET /functions/v1/admin-stats
+#### GET /admin-stats
+전체 통계 조회
+
+**Response:**
 ```json
-Response:
 {
-  "totalUsers": 1500,
-  "totalCharacters": 1200,
-  "totalPrompts": 5400,
-  "currentRound": {
-    "round_number": 5,
-    "status": "active",
-    "participants": 450
+  "success": true,
+  "data": {
+    "total_users": 1500,
+    "total_characters": 1200,
+    "total_prompts": 5400,
+    "current_round": {
+      "round_number": 5,
+      "status": "active",
+      "participants": 450,
+      "time_remaining": "00:25:30"
+    }
   }
 }
 ```
 
 ---
 
-### 5. Audit Log
+#### GET /admin-stats-rounds
+라운드별 통계
 
-#### GET /functions/v1/admin-audit-log?page=1&action=START_ROUND
-Admin 행동 로그 조회
+**Query Params:**
+- `round_number`: 라운드 번호 (optional, 없으면 최근 10개)
 
----
-
-## Error Codes
-
-| Code | Status | Description |
-|------|--------|-------------|
-| INVALID_PROMPT_LENGTH | 400 | 30자 초과 |
-| ALREADY_SUBMITTED | 400 | 이미 제출함 |
-| ROUND_NOT_ACTIVE | 400 | 활성 라운드 없음 |
-| UNAUTHORIZED | 401 | 인증 필요 |
-| ADMIN_FORBIDDEN | 403 | Admin 권한 없음 |
-| RATE_LIMIT_EXCEEDED | 429 | 요청 제한 초과 |
-
----
-
-## Rate Limiting
-
-**User APIs:**
-- 프롬프트 제출: 라운드당 1회
-- 리더보드 조회: 분당 30회
-
-**Admin APIs:**
-- 라운드 관리: 분당 10회
-- 프롬프트 삭제: 시간당 50회
-- 사용자 제재: 시간당 20회
-
----
-
-## Realtime Subscriptions
-
-```typescript
-// 리더보드 실시간 업데이트
-supabase
-  .channel('leaderboard')
-  .on('postgres_changes', {
-    event: '*',
-    schema: 'public',
-    table: 'characters'
-  }, (payload) => {
-    // 리더보드 업데이트
-  })
-  .subscribe()
-
-// 라운드 변경 알림
-supabase
-  .channel('rounds')
-  .on('postgres_changes', {
-    event: 'UPDATE',
-    schema: 'public',
-    table: 'game_rounds'
-  }, (payload) => {
-    // 라운드 정보 업데이트
-  })
-  .subscribe()
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "round_number": 5,
+      "total_participants": 450,
+      "total_prompts": 450,
+      "average_score": 42,
+      "highest_score": 95,
+      "started_at": "2025-01-15T11:00:00Z",
+      "ended_at": "2025-01-15T12:00:00Z"
+    }
+  ]
+}
 ```
 
 ---
 
-## 중요 포인트
+#### GET /admin-stats-users
+사용자 통계 (참여율, 활동 분석)
 
-1. **User API**: 읽기는 Direct DB Access, 쓰기는 Edge Functions
-2. **Admin API**: 모든 작업은 Edge Functions
-3. **Admin 권한 확인**: Edge Function 내부에서 admin_users 테이블 조회
-4. **Realtime**: Supabase Realtime으로 리더보드/라운드 실시간 업데이트
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "active_users_today": 450,
+    "new_users_today": 50,
+    "retention_rate": 0.75,
+    "average_prompts_per_user": 10.5
+  }
+}
+```
+
+---
+
+### 10. Audit Log
+
+#### GET /admin-audit-log
+관리자 행동 로그 조회
+
+**Query Params:**
+- `action`: 액션 필터 (optional)
+- `admin_id`: 관리자 ID 필터 (optional)
+- `limit`: 조회 개수
+- `offset`: 페이지네이션
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid",
+      "admin_email": "admin@example.com",
+      "action": "START_ROUND",
+      "resource_type": "game_rounds",
+      "resource_id": "uuid",
+      "changes": {
+        "status": "active"
+      },
+      "created_at": "2025-01-15T11:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+## Error Response Format
+
+모든 Edge Functions는 동일한 에러 포맷 사용:
+
+```json
+{
+  "success": false,
+  "error": "ERROR_CODE",
+  "message": "사용자 친화적 에러 메시지",
+  "details": {}
+}
+```
+
+---
+
+## Common Error Codes
+
+| Code | Status | Description |
+|------|--------|-------------|
+| `UNAUTHORIZED` | 401 | 인증 필요 |
+| `FORBIDDEN` | 403 | 권한 없음 |
+| `NOT_FOUND` | 404 | 리소스 없음 |
+| `INVALID_REQUEST` | 400 | 잘못된 요청 |
+| `RATE_LIMIT_EXCEEDED` | 429 | 요청 제한 초과 |
+| `INTERNAL_ERROR` | 500 | 서버 오류 |
+
+---
+
+## 전체 Edge Functions 목록 (26개)
+
+### User Functions (11개)
+1. `get-my-character` - 내 캐릭터 조회
+2. `create-character` - 캐릭터 생성
+3. `update-character-name` - 캐릭터 이름 수정
+4. `submit-prompt` - 프롬프트 제출 ✅
+5. `get-my-prompts` - 내 프롬프트 히스토리
+6. `get-current-round` - 현재 라운드
+7. `get-round-info` - 라운드 정보
+8. `get-leaderboard` - 현재 리더보드
+9. `get-past-leaderboard` - 과거 리더보드
+10. `get-my-rank` - 내 순위 ✅
+11. `update-profile` - 프로필 수정
+
+### Admin Functions (15개)
+12. `admin-rounds-create` - 라운드 생성
+13. `admin-rounds-start` - 라운드 시작
+14. `admin-rounds-end` - 라운드 종료
+15. `admin-rounds-extend` - 라운드 연장
+16. `admin-rounds-cancel` - 라운드 취소
+17. `admin-rounds-list` - 라운드 목록
+18. `admin-prompts-list` - 프롬프트 목록
+19. `admin-prompts-delete` - 프롬프트 삭제
+20. `admin-users-list` - 사용자 목록
+21. `admin-users-detail` - 사용자 상세
+22. `admin-users-ban` - 사용자 제재
+23. `admin-users-unban` - 제재 해제
+24. `admin-stats` - 전체 통계
+25. `admin-stats-rounds` - 라운드별 통계
+26. `admin-stats-users` - 사용자 통계
+27. `admin-audit-log` - 감사 로그
+
+---
+
+## Shared Utilities
+
+모든 Edge Functions에서 공통으로 사용:
+
+1. `_shared/cors.ts` - CORS 헤더
+2. `_shared/response.ts` - 응답 포맷
+3. `_shared/auth.ts` - JWT 검증
+4. `_shared/admin.ts` - Admin 권한 확인
+5. `_shared/db.ts` - Supabase 클라이언트 (Service Role)
+6. `_shared/audit.ts` - Audit Log 생성
+7. `_shared/rateLimit.ts` - Rate Limiting (Deno KV)
