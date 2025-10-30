@@ -134,8 +134,8 @@ export const UserManagement: FC = () => {
       key: 'role',
       width: 100,
       render: (role: string) => (
-        <Tag color={role === 'super_admin' ? 'purple' : role === 'admin' ? 'blue' : 'default'}>
-          {role === 'super_admin' ? 'Super Admin' : role === 'admin' ? 'Admin' : 'User'}
+        <Tag color={role === 'admin' ? 'blue' : 'default'}>
+          {role === 'admin' ? 'Admin' : 'User'}
         </Tag>
       ),
     },
@@ -285,16 +285,8 @@ export const UserManagement: FC = () => {
                 )}
               </Descriptions.Item>
               <Descriptions.Item label="역할">
-                <Tag
-                  color={
-                    userDetail.user.role === 'super_admin'
-                      ? 'purple'
-                      : userDetail.user.role === 'admin'
-                        ? 'blue'
-                        : 'default'
-                  }
-                >
-                  {userDetail.user.role}
+                <Tag color={userDetail.user.role === 'admin' ? 'blue' : 'default'}>
+                  {userDetail.user.role === 'admin' ? 'Admin' : 'User'}
                 </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="가입일" span={2}>

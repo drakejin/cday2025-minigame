@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 /**
  * Verify admin authentication
- * Simplified: Only checks if user has admin or super_admin role
+ * Simplified: Only checks if user has admin role
  * No granular permissions required
  */
 export async function verifyAdmin(req: Request) {
@@ -38,8 +38,8 @@ export async function verifyAdmin(req: Request) {
     return { error: 'Profile not found', status: 403, admin: null, supabase }
   }
 
-  // admin 또는 super_admin만 허용
-  if (profile.role !== 'admin' && profile.role !== 'super_admin') {
+  // admin만 허용
+  if (profile.role !== 'admin') {
     return { error: 'Admin permission required', status: 403, admin: null, supabase }
   }
 

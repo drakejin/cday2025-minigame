@@ -49,7 +49,7 @@ export interface AdminUser {
   isBanned: boolean
   bannedAt?: string
   banReason?: string
-  role: 'user' | 'admin' | 'super_admin'
+  role: 'user' | 'admin'
   characterCount: number
   promptCount: number
   lastSubmissionRound?: number
