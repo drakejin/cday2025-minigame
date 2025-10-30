@@ -124,19 +124,16 @@ supabase/
 
 ## 🚀 Deployment
 
-See [CLAUDE.md - Deployment](./CLAUDE.md#deployment) for detailed deployment instructions.
-
-### Quick Start
+**Quick Deploy:**
 ```bash
-# 1. Build frontend
-yarn build
+# Setup .env first
+cp .env.example .env
 
-# 2. Deploy Edge Functions
-supabase functions deploy --all
-
-# 3. Deploy to Vercel
-vercel --prod
+# One command to deploy everything
+./deploy.sh
 ```
+
+See [DEPLOY.md](./DEPLOY.md) for quick guide or [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) for detailed instructions.
 
 ## 📊 Project Status
 

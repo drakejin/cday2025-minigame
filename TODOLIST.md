@@ -430,50 +430,47 @@
 
 ---
 
-## Phase 21: Deployment 🚀 (Ready)
+## Phase 21: Deployment 🚀 ✅
 
 - [x] Setup environment variables for production ✅
-  - [x] .env 파일 구성 완료
-  - [x] .env.example 업데이트 완료
+  - [x] .env.example 완전 업데이트 (상세 가이드 포함)
+  - [x] SUPABASE_PROJECT_REF 추가
+  - [x] 모든 필수 변수 문서화
 
 - [x] Build production bundle ✅
   - [x] `yarn build` 성공
-  - [x] Bundle size 최적화 완료
+  - [x] Bundle size 최적화 완료 (0.6~6 kB per page)
   - [x] Code splitting 동작 확인
 
+- [x] Deployment automation ✅
+  - [x] `deploy.sh` - 원클릭 전체 배포 스크립트
+  - [x] `deploy-edge-functions.sh` - Edge Functions 배포
+  - [x] Vercel 자동 배포 로직
+  - [x] 환경 변수 자동 설정
+
 - [x] Deployment documentation ✅
-  - [x] DEPLOYMENT.md 생성 (완전한 체크리스트)
-  - [x] deploy-edge-functions.sh 확인
-  - [x] vercel.json 생성
+  - [x] DEPLOY.md - 간단한 배포 가이드 (루트)
+  - [x] docs/DEPLOYMENT.md - 상세 체크리스트
+  - [x] docs/DEPLOY_QUICK_START.md - 5분 퀵가이드
+  - [x] vercel.json - Vercel 설정
 
-- [ ] Deploy to Vercel/Netlify 🔄
-  - [ ] Vercel 프로젝트 생성
-  - [ ] GitHub repository 연결
-  - [ ] Environment variables 설정
-  - [ ] Production 배포
+- [ ] Deploy to Vercel 🔄 (사용자 실행 필요)
+  - [ ] `vercel login` 실행
+  - [ ] `./deploy.sh` 실행
+  - [ ] 배포 URL 확인
 
-- [ ] Deploy Edge Functions 🔄
-  - [ ] `./deploy-edge-functions.sh` 실행
-  - [ ] 27개 함수 배포 확인
-  - [ ] 함수 로그 확인
-
-- [ ] Admin Setup 🔄
+- [ ] Post-Deployment Tasks 🔄 (사용자 실행 필요)
   - [ ] Google OAuth 로그인 테스트
   - [ ] SQL로 super_admin 권한 부여
   - [ ] `/admin` 접근 테스트
   - [ ] 첫 라운드 생성 및 시작
-
-- [ ] Post-Deployment Verification 🔄
-  - [ ] 프론트엔드 동작 확인
-  - [ ] 모든 기능 테스트
-  - [ ] 실시간 기능 확인
-  - [ ] 모바일 반응형 확인
+  - [ ] 모든 기능 검증
 
 ---
 
 ## Current Status
 
-**Completed**:
+**All Phases Completed**:
 - Phase 1 - Initial Setup ✅
 - Phase 2 - Dependencies Installation ✅
 - Phase 3 - Supabase Setup ✅
@@ -494,14 +491,20 @@
 - Phase 18 - Admin Panel UI ✅ (6개 페이지)
 - Phase 19 - Polish & Optimization ✅
 - Phase 20 - Documentation ✅
+- Phase 21 - Deployment Setup ✅
 
-**Current Phase**: Phase 21 - Deployment 🚀 (Ready to deploy)
+**🎯 Ready to Deploy!**
 
-**Deployment Status**:
-- ✅ Build: Production bundle ready
-- ✅ Docs: DEPLOYMENT.md checklist
-- 🔄 Edge Functions: Ready to deploy (use ./deploy-edge-functions.sh)
-- 🔄 Frontend: Ready to deploy (use vercel --prod)
+**Quick Deploy:**
+```bash
+./deploy.sh
+```
+
+**Manual Deploy:**
+```bash
+./deploy-edge-functions.sh  # Edge Functions
+vercel --prod               # Frontend
+```
 
 **NEW: 100% Supabase Edge Functions 아키텍처** 🆕
 - Admin 기반 라운드 관리 시스템 추가
