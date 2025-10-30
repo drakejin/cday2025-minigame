@@ -92,31 +92,6 @@ export const Statistics: FC = () => {
           </Col>
         </Row>
 
-        {overallStats && (
-          <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-            <Col xs={24} sm={12}>
-              <Card title="평균 점수 변동">
-                <Statistic
-                  value={overallStats.avg_score_change || 0}
-                  precision={2}
-                  valueStyle={{
-                    color: (overallStats.avg_score_change || 0) >= 0 ? '#52c41a' : '#ff4d4f',
-                  }}
-                  suffix="점"
-                />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12}>
-              <Card title="최고 점수 변동">
-                <Statistic
-                  value={overallStats.max_score_change || 0}
-                  valueStyle={{ color: '#52c41a' }}
-                  suffix="점"
-                />
-              </Card>
-            </Col>
-          </Row>
-        )}
 
         {/* Round Statistics */}
         <Title level={4} style={{ marginTop: 32 }}>
@@ -192,7 +167,7 @@ export const Statistics: FC = () => {
         <Card>
           <Table
             dataSource={userStats?.users}
-            rowKey="user_id"
+            rowKey="userId"
             loading={isLoadingUsers}
             pagination={{
               pageSize: 20,
