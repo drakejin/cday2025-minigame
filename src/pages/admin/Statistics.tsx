@@ -146,7 +146,7 @@ export const Statistics: FC = () => {
                   <Card>
                     <Statistic
                       title="참여자 수"
-                      value={roundStats.participantCount}
+                      value={roundStats.stats.uniqueUsers}
                       prefix={<UserOutlined />}
                     />
                   </Card>
@@ -155,7 +155,7 @@ export const Statistics: FC = () => {
                   <Card>
                     <Statistic
                       title="제출 프롬프트"
-                      value={roundStats.promptCount}
+                      value={roundStats.stats.totalPrompts}
                       prefix={<BarChartOutlined />}
                     />
                   </Card>
@@ -163,32 +163,9 @@ export const Statistics: FC = () => {
                 <Col xs={24} sm={12} md={8}>
                   <Card>
                     <Statistic
-                      title="평균 점수 변동"
-                      value={roundStats.avgScoreChange}
+                      title="평균 점수"
+                      value={roundStats.stats.averageScores.total}
                       precision={2}
-                      valueStyle={{
-                        color: roundStats.avgScoreChange >= 0 ? '#52c41a' : '#ff4d4f',
-                      }}
-                      suffix="점"
-                    />
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12} md={8}>
-                  <Card>
-                    <Statistic
-                      title="최고 점수 변동"
-                      value={roundStats.maxScoreChange}
-                      valueStyle={{ color: '#52c41a' }}
-                      suffix="점"
-                    />
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12} md={8}>
-                  <Card>
-                    <Statistic
-                      title="최저 점수 변동"
-                      value={roundStats.minScoreChange}
-                      valueStyle={{ color: '#ff4d4f' }}
                       suffix="점"
                     />
                   </Card>

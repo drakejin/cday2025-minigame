@@ -16,36 +16,15 @@ serve(async (req) => {
 
     const { limit = 50 } = await req.json()
 
-    // Get user stats with character/prompt counts
-    const { data: users, error: queryError } = await supabase
-      .from('profiles')
-      .select(`
-        id,
-        email,
-        created_at,
-        characters:characters(count),
-        prompts:prompt_history(count)
-      `)
-      .order('created_at', { ascending: false })
-      .limit(limit)
+    // Get user stats
+    const { data: users, error: queryError } = await supabase.rpc('get_user_stats', { p_limit: limit })
 
     if (queryError) {
       return errorResponse('DATABASE_ERROR', 500, queryError.message)
     }
 
-    // Transform to match UserStat interface
-    const userStats = users?.map((user: any) => ({
-      userId: user.id,
-      email: user.email,
-      characterCount: user.characters?.[0]?.count || 0,
-      promptCount: user.prompts?.[0]?.count || 0,
-      avgScoreChange: 0, // TODO: Calculate from prompt_history
-      maxScore: 0, // TODO: Calculate from characters
-      createdAt: user.created_at,
-    })) || []
-
     return successResponse({
-      users: userStats,
+      users: keysToCamelCase(users || []),
     })
   } catch (error) {
     return errorResponse('INTERNAL_ERROR', 500, (error as Error).message)

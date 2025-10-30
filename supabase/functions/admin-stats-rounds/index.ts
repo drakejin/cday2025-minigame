@@ -67,13 +67,15 @@ serve(async (req) => {
       ?.sort((a, b) => b.total_score_gained - a.total_score_gained)
       .slice(0, 10)
 
-    return successResponse({
-      participantCount: uniqueUsers || 0,
-      promptCount: promptCount || 0,
-      avgScoreChange: averages.total,
-      maxScoreChange: Math.max(...(prompts?.map(p => p.total_score_gained) || [0])),
-      minScoreChange: Math.min(...(prompts?.map(p => p.total_score_gained) || [0])),
-    })
+    return successResponse(keysToCamelCase({
+      round,
+      stats: {
+        total_prompts: promptCount || 0,
+        unique_users: uniqueUsers || 0,
+        average_scores: averages,
+      },
+      top_prompts: topPrompts || [],
+    }))
   } catch (error) {
     return errorResponse('INTERNAL_ERROR', 500, (error as Error).message)
   }
