@@ -15,15 +15,13 @@ serve(async (req) => {
 
     const { search, limit = 50, offset = 0 } = await req.json()
 
-    let query = supabase
-      .from('characters')
-      .select(
-        `
+    let query = supabase.from('characters').select(
+      `
         *,
         prompt_history(count)
       `,
-        { count: 'exact' }
-      )
+      { count: 'exact' }
+    )
 
     // 검색 (캐릭터 이름으로)
     if (search) {

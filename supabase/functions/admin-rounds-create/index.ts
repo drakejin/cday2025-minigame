@@ -26,11 +26,7 @@ serve(async (req) => {
     const endDate = new Date(end_time)
 
     if (startDate >= endDate) {
-      return errorResponse(
-        'INVALID_TIME_RANGE',
-        400,
-        'start_time은 end_time보다 이전이어야 합니다'
-      )
+      return errorResponse('INVALID_TIME_RANGE', 400, 'start_time은 end_time보다 이전이어야 합니다')
     }
 
     // 4. 다음 라운드 번호 계산

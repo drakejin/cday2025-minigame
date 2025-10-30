@@ -15,15 +15,13 @@ serve(async (req) => {
 
     const { user_id, round_number, limit = 50, offset = 0 } = await req.json()
 
-    let query = supabase
-      .from('prompt_history')
-      .select(
-        `
+    let query = supabase.from('prompt_history').select(
+      `
         *,
         characters!inner(name, user_id)
       `,
-        { count: 'exact' }
-      )
+      { count: 'exact' }
+    )
 
     // 필터링
     if (user_id) {

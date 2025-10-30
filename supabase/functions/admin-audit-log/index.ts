@@ -13,8 +13,15 @@ serve(async (req) => {
       return errorResponse(error!, status)
     }
 
-    const { action, admin_id, resource_type, start_date, end_date, limit = 50, offset = 0 } =
-      await req.json()
+    const {
+      action,
+      admin_id,
+      resource_type,
+      start_date,
+      end_date,
+      limit = 50,
+      offset = 0,
+    } = await req.json()
 
     let query = supabase.from('admin_audit_log').select('*', { count: 'exact' })
 
