@@ -2,6 +2,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { handleCors } from '../_shared/cors.ts'
 import { errorResponse, successResponse } from '../_shared/response.ts'
 import { verifyAdmin } from '../_shared/adminAuth.ts'
+import { keysToCamelCase } from '../_shared/camelCase.ts'
 
 serve(async (req) => {
   const corsResponse = handleCors(req)
@@ -48,12 +49,9 @@ serve(async (req) => {
     const { data: authUser } = await supabase.auth.admin.getUserById(user_id)
 
     return successResponse({
-      character: character || null,
-      prompts: prompts || [],
-      stats: {
-        total_prompts: promptCount || 0,
-      },
-      auth: authUser?.user || null,
+      user: keysToCamelCase(character || {}),
+      characters: keysToCamelCase(characters || []),
+      prompts: keysToCamelCase(prompts || []),
     })
   } catch (error) {
     return errorResponse('INTERNAL_ERROR', 500, (error as Error).message)

@@ -117,11 +117,11 @@ export const UserManagement: FC = () => {
     },
     {
       title: '상태',
-      dataIndex: 'is_banned',
-      key: 'is_banned',
+      dataIndex: 'isBanned',
+      key: 'isBanned',
       width: 100,
-      render: (is_banned: boolean) =>
-        is_banned ? (
+      render: (isBanned: boolean) =>
+        isBanned ? (
           <Badge status="error" text={<Tag color="red">제재됨</Tag>} />
         ) : (
           <Badge status="success" text={<Tag color="green">활성</Tag>} />
@@ -140,26 +140,26 @@ export const UserManagement: FC = () => {
     },
     {
       title: '캐릭터 수',
-      dataIndex: 'character_count',
-      key: 'character_count',
+      dataIndex: 'characterCount',
+      key: 'characterCount',
       width: 100,
       align: 'center' as const,
     },
     {
       title: '프롬프트 수',
-      dataIndex: 'prompt_count',
-      key: 'prompt_count',
+      dataIndex: 'promptCount',
+      key: 'promptCount',
       width: 120,
       align: 'center' as const,
     },
     {
       title: '가입일',
-      dataIndex: 'created_at',
-      key: 'created_at',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
       width: 180,
       render: (date: string) => new Date(date).toLocaleString('ko-KR'),
       sorter: (a: AdminUser, b: AdminUser) =>
-        new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
     },
     {
       title: '작업',
@@ -171,7 +171,7 @@ export const UserManagement: FC = () => {
           <Button size="small" onClick={() => handleViewDetail(record.id)}>
             상세
           </Button>
-          {record.is_banned ? (
+          {record.isBanned ? (
             <Button
               size="small"
               type="primary"
@@ -276,7 +276,7 @@ export const UserManagement: FC = () => {
                 {userDetail.user.email}
               </Descriptions.Item>
               <Descriptions.Item label="상태">
-                {userDetail.user.is_banned ? (
+                {userDetail.user.isBanned ? (
                   <Tag color="red">제재됨</Tag>
                 ) : (
                   <Tag color="green">활성</Tag>
@@ -296,18 +296,18 @@ export const UserManagement: FC = () => {
                 </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="가입일" span={2}>
-                {new Date(userDetail.user.created_at).toLocaleString('ko-KR')}
+                {new Date(userDetail.user.createdAt).toLocaleString('ko-KR')}
               </Descriptions.Item>
             </Descriptions>
 
-            {userDetail.user.is_banned && userDetail.user.banned_at && (
+            {userDetail.user.isBanned && userDetail.user.bannedAt && (
               <Card title="제재 정보" size="small">
                 <Descriptions column={1}>
                   <Descriptions.Item label="제재 일시">
-                    {new Date(userDetail.user.banned_at).toLocaleString('ko-KR')}
+                    {new Date(userDetail.user.bannedAt).toLocaleString('ko-KR')}
                   </Descriptions.Item>
                   <Descriptions.Item label="제재 사유">
-                    {userDetail.user.ban_reason || '사유 없음'}
+                    {userDetail.user.banReason || '사유 없음'}
                   </Descriptions.Item>
                 </Descriptions>
               </Card>
@@ -335,14 +335,14 @@ export const UserManagement: FC = () => {
                     { title: '이름', dataIndex: 'name', key: 'name' },
                     {
                       title: '점수',
-                      dataIndex: 'total_score',
-                      key: 'total_score',
+                      dataIndex: 'totalScore',
+                      key: 'totalScore',
                       render: (score: number) => <strong>{score}</strong>,
                     },
                     {
                       title: '생성일',
-                      dataIndex: 'created_at',
-                      key: 'created_at',
+                      dataIndex: 'createdAt',
+                      key: 'createdAt',
                       render: (date: string) => new Date(date).toLocaleDateString('ko-KR'),
                     },
                   ]}
@@ -360,20 +360,20 @@ export const UserManagement: FC = () => {
                   columns={[
                     {
                       title: '라운드',
-                      dataIndex: 'round_number',
-                      key: 'round_number',
+                      dataIndex: 'roundNumber',
+                      key: 'roundNumber',
                       width: 80,
                     },
                     {
                       title: '프롬프트',
-                      dataIndex: 'prompt_text',
-                      key: 'prompt_text',
+                      dataIndex: 'promptText',
+                      key: 'promptText',
                       ellipsis: true,
                     },
                     {
                       title: '점수',
-                      dataIndex: 'score_change',
-                      key: 'score_change',
+                      dataIndex: 'scoreChange',
+                      key: 'scoreChange',
                       width: 80,
                       render: (score: number) => (
                         <span style={{ color: score >= 0 ? '#52c41a' : '#ff4d4f' }}>

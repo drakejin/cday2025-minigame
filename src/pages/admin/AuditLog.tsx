@@ -52,18 +52,18 @@ export const AuditLog: FC = () => {
 
   const filteredLogs = auditData?.logs?.filter((log: AuditLogType) => {
     if (!adminSearch) return true
-    return log.admin_email.toLowerCase().includes(adminSearch.toLowerCase())
+    return log.adminEmail.toLowerCase().includes(adminSearch.toLowerCase())
   })
 
   const columns = [
     {
       title: '시간',
-      dataIndex: 'created_at',
-      key: 'created_at',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
       width: 180,
       render: (date: string) => new Date(date).toLocaleString('ko-KR'),
       sorter: (a: AuditLogType, b: AuditLogType) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       defaultSortOrder: 'ascend' as const,
     },
     {
@@ -79,15 +79,15 @@ export const AuditLog: FC = () => {
     },
     {
       title: '관리자',
-      dataIndex: 'admin_email',
-      key: 'admin_email',
+      dataIndex: 'adminEmail',
+      key: 'adminEmail',
       width: 200,
       ellipsis: true,
     },
     {
       title: '대상 ID',
-      dataIndex: 'target_id',
-      key: 'target_id',
+      dataIndex: 'targetId',
+      key: 'targetId',
       width: 150,
       ellipsis: true,
       render: (id: string | null) => id || '-',
@@ -183,11 +183,11 @@ export const AuditLog: FC = () => {
                     <strong>로그 ID:</strong> {record.id}
                   </div>
                   <div>
-                    <strong>관리자 ID:</strong> {record.admin_id}
+                    <strong>관리자 ID:</strong> {record.adminId}
                   </div>
-                  {record.target_id && (
+                  {record.targetId && (
                     <div>
-                      <strong>대상 ID:</strong> {record.target_id}
+                      <strong>대상 ID:</strong> {record.targetId}
                     </div>
                   )}
                   {record.details && (
@@ -210,13 +210,12 @@ export const AuditLog: FC = () => {
                     </div>
                   )}
                   <div>
-                    <strong>생성 시간:</strong>{' '}
-                    {new Date(record.created_at).toLocaleString('ko-KR')}
+                    <strong>생성 시간:</strong> {new Date(record.createdAt).toLocaleString('ko-KR')}
                   </div>
                 </Space>
               </div>
             ),
-            rowExpandable: (record: AuditLogType) => !!record.details || !!record.target_id,
+            rowExpandable: (record: AuditLogType) => !!record.details || !!record.targetId,
           }}
         />
       </Card>

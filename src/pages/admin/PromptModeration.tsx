@@ -72,45 +72,45 @@ export const PromptModeration: FC = () => {
     if (!searchTerm) return true
     const term = searchTerm.toLowerCase()
     return (
-      prompt.prompt_text.toLowerCase().includes(term) ||
-      prompt.user_email?.toLowerCase().includes(term) ||
-      prompt.character_name?.toLowerCase().includes(term)
+      prompt.promptText.toLowerCase().includes(term) ||
+      prompt.userEmail?.toLowerCase().includes(term) ||
+      prompt.characterName?.toLowerCase().includes(term)
     )
   })
 
   const columns = [
     {
       title: '라운드',
-      dataIndex: 'round_number',
-      key: 'round_number',
+      dataIndex: 'roundNumber',
+      key: 'roundNumber',
       width: 80,
-      sorter: (a: AdminPrompt, b: AdminPrompt) => a.round_number - b.round_number,
+      sorter: (a: AdminPrompt, b: AdminPrompt) => a.roundNumber - b.roundNumber,
     },
     {
       title: '사용자',
-      dataIndex: 'user_email',
-      key: 'user_email',
+      dataIndex: 'userEmail',
+      key: 'userEmail',
       width: 200,
       ellipsis: true,
     },
     {
       title: '캐릭터',
-      dataIndex: 'character_name',
-      key: 'character_name',
+      dataIndex: 'characterName',
+      key: 'characterName',
       width: 150,
       ellipsis: true,
     },
     {
       title: '프롬프트',
-      dataIndex: 'prompt_text',
-      key: 'prompt_text',
+      dataIndex: 'promptText',
+      key: 'promptText',
       ellipsis: true,
       render: (text: string) => <div style={{ maxWidth: 400, whiteSpace: 'pre-wrap' }}>{text}</div>,
     },
     {
       title: '점수',
-      dataIndex: 'score_change',
-      key: 'score_change',
+      dataIndex: 'scoreChange',
+      key: 'scoreChange',
       width: 80,
       render: (score: number) => (
         <span style={{ color: score >= 0 ? '#52c41a' : '#ff4d4f', fontWeight: 'bold' }}>
@@ -118,16 +118,16 @@ export const PromptModeration: FC = () => {
           {score}
         </span>
       ),
-      sorter: (a: AdminPrompt, b: AdminPrompt) => a.score_change - b.score_change,
+      sorter: (a: AdminPrompt, b: AdminPrompt) => a.scoreChange - b.scoreChange,
     },
     {
       title: '제출 시간',
-      dataIndex: 'submitted_at',
-      key: 'submitted_at',
+      dataIndex: 'submittedAt',
+      key: 'submittedAt',
       width: 180,
       render: (date: string) => new Date(date).toLocaleString('ko-KR'),
       sorter: (a: AdminPrompt, b: AdminPrompt) =>
-        new Date(a.submitted_at).getTime() - new Date(b.submitted_at).getTime(),
+        new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime(),
     },
     {
       title: '작업',
@@ -171,9 +171,9 @@ export const PromptModeration: FC = () => {
               style={{ width: 150 }}
             >
               <Select.Option value="all">전체 라운드</Select.Option>
-              {roundsData?.rounds?.map((round: { id: string; round_number: number }) => (
-                <Select.Option key={round.id} value={round.round_number}>
-                  Round {round.round_number}
+              {roundsData?.rounds?.map((round: { id: string; roundNumber: number }) => (
+                <Select.Option key={round.id} value={round.roundNumber}>
+                  Round {round.roundNumber}
                 </Select.Option>
               ))}
             </Select>
@@ -227,10 +227,10 @@ export const PromptModeration: FC = () => {
         {selectedPrompt && (
           <Space direction="vertical" style={{ width: '100%' }} size="middle">
             <div>
-              <strong>사용자:</strong> {selectedPrompt.user_email}
+              <strong>사용자:</strong> {selectedPrompt.userEmail}
             </div>
             <div>
-              <strong>캐릭터:</strong> {selectedPrompt.character_name}
+              <strong>캐릭터:</strong> {selectedPrompt.characterName}
             </div>
             <div>
               <strong>프롬프트:</strong>
@@ -242,14 +242,14 @@ export const PromptModeration: FC = () => {
                   marginTop: 4,
                 }}
               >
-                {selectedPrompt.prompt_text}
+                {selectedPrompt.promptText}
               </div>
             </div>
             <div>
               <strong>점수 변동:</strong>{' '}
-              <span style={{ color: selectedPrompt.score_change >= 0 ? '#52c41a' : '#ff4d4f' }}>
-                {selectedPrompt.score_change >= 0 ? '+' : ''}
-                {selectedPrompt.score_change}
+              <span style={{ color: selectedPrompt.scoreChange >= 0 ? '#52c41a' : '#ff4d4f' }}>
+                {selectedPrompt.scoreChange >= 0 ? '+' : ''}
+                {selectedPrompt.scoreChange}
               </span>
             </div>
             <div>

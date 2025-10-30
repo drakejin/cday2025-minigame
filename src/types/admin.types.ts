@@ -1,58 +1,61 @@
 export interface AdminRound {
   id: string
-  round_number: number
-  start_time: string
-  end_time: string
-  actual_end_time?: string
-  is_active: boolean
+  roundNumber: number
+  startTime: string
+  endTime: string
+  actualEndTime?: string
+  isActive: boolean
   status: 'scheduled' | 'active' | 'completed' | 'cancelled'
-  started_by?: string
-  ended_by?: string
+  startedBy?: string
+  endedBy?: string
   notes?: string
-  created_at: string
+  createdAt: string
 }
+
+// Note: DB columns are snake_case, but Edge Functions convert to camelCase
+// for consistent JavaScript/TypeScript naming conventions
 
 export interface AdminPrompt {
   id: string
-  character_id: string
-  user_id: string
-  prompt_text: string
+  characterId: string
+  userId: string
+  promptText: string
   prompt: string
-  round_number: number
-  strength_gained: number
-  charm_gained: number
-  creativity_gained: number
-  total_score_gained: number
-  score_change: number
-  submitted_at: string
-  created_at: string
-  user_email?: string
-  character_name?: string
+  roundNumber: number
+  strengthGained: number
+  charmGained: number
+  creativityGained: number
+  totalScoreGained: number
+  scoreChange: number
+  submittedAt: string
+  createdAt: string
+  userEmail?: string
+  characterName?: string
   characters?: {
     name: string
-    user_id: string
+    userId: string
   }
 }
 
 export interface AdminUser {
   id: string
-  user_id: string
+  userId: string
   email: string
   name: string
   strength: number
   charm: number
   creativity: number
-  total_score: number
-  is_banned: boolean
-  banned_at?: string
-  ban_reason?: string
+  totalScore: number
+  isBanned: boolean
+  bannedAt?: string
+  banReason?: string
   role: 'user' | 'admin' | 'super_admin'
-  character_count: number
-  prompt_count: number
-  last_submission_round?: number
-  created_at: string
-  updated_at: string
-  prompt_history?: { count: number }[]
+  characterCount: number
+  promptCount: number
+  lastSubmissionRound?: number
+  createdAt: string
+  updatedAt: string
+  promptHistory?: { count: number }[]
 }
 
 export interface AdminUserDetail {
@@ -60,70 +63,70 @@ export interface AdminUserDetail {
   characters: Array<{
     id: string
     name: string
-    total_score: number
-    created_at: string
+    totalScore: number
+    createdAt: string
   }>
   prompts: Array<{
     id: string
-    round_number: number
-    prompt_text: string
-    score_change: number
-    created_at: string
+    roundNumber: number
+    promptText: string
+    scoreChange: number
+    createdAt: string
   }>
 }
 
 export interface AdminStats {
-  total_users: number
-  total_characters: number
-  total_prompts: number
-  total_rounds: number
-  active_round?: {
+  totalUsers: number
+  totalCharacters: number
+  totalPrompts: number
+  totalRounds: number
+  activeRound?: {
     id: string
-    round_number: number
-    start_time: string
-    end_time: string
+    roundNumber: number
+    startTime: string
+    endTime: string
     status: string
-    is_active: boolean
+    isActive: boolean
     participants?: number
-    submission_rate?: number
+    submissionRate?: number
   } | null
-  recent_activity?: {
-    last_1_hour: number
-    last_24_hours: number
+  recentActivity?: {
+    last1Hour: number
+    last24Hours: number
   }
 }
 
 export interface RoundStats {
   round: AdminRound
   stats: {
-    total_prompts: number
-    unique_users: number
-    average_scores: {
+    totalPrompts: number
+    uniqueUsers: number
+    averageScores: {
       strength: number
       charm: number
       creativity: number
       total: number
     }
   }
-  top_prompts: AdminPrompt[]
+  topPrompts: AdminPrompt[]
 }
 
 export interface UserStat {
-  user_id: string
+  userId: string
   email: string
-  character_count: number
-  prompt_count: number
-  avg_score_change: number
-  max_score: number
-  created_at: string
+  characterCount: number
+  promptCount: number
+  avgScoreChange: number
+  maxScore: number
+  createdAt: string
 }
 
 export interface UserStats {
-  total_users: number
-  active_users_7d: number
-  new_users_7d: number
-  total_prompts: number
-  avg_prompts_per_user: string
+  totalUsers: number
+  activeUsers7d: number
+  newUsers7d: number
+  totalPrompts: number
+  avgPromptsPerUser: string
   users: UserStat[]
 }
 
@@ -138,15 +141,15 @@ export type JsonValue =
 
 export interface AuditLog {
   id: string
-  admin_id: string
-  admin_email: string
+  adminId: string
+  adminEmail: string
   action: string
-  resource_type: string
-  resource_id?: string
-  target_id?: string
+  resourceType: string
+  resourceId?: string
+  targetId?: string
   changes?: Record<string, JsonValue>
   details?: Record<string, JsonValue>
-  ip_address?: string
-  user_agent?: string
-  created_at: string
+  ipAddress?: string
+  userAgent?: string
+  createdAt: string
 }

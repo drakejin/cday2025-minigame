@@ -2,6 +2,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { handleCors } from '../_shared/cors.ts'
 import { errorResponse, successResponse } from '../_shared/response.ts'
 import { verifyAdmin } from '../_shared/adminAuth.ts'
+import { keysToCamelCase } from '../_shared/camelCase.ts'
 
 serve(async (req) => {
   const corsResponse = handleCors(req)
@@ -41,7 +42,7 @@ serve(async (req) => {
     }
 
     return successResponse({
-      prompts: prompts || [],
+      prompts: keysToCamelCase(prompts || []),
       total: count || 0,
       limit,
       offset,

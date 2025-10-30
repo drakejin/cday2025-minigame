@@ -130,9 +130,9 @@ export const Statistics: FC = () => {
             loading={!roundsData}
           >
             {roundsData?.rounds?.map(
-              (round: { id: string; round_number: number; status: string }) => (
+              (round: { id: string; roundNumber: number; status: string }) => (
                 <Select.Option key={round.id} value={round.id}>
-                  Round {round.round_number} ({round.status})
+                  Round {round.roundNumber} ({round.status})
                 </Select.Option>
               )
             )}
@@ -235,24 +235,24 @@ export const Statistics: FC = () => {
             },
             {
               title: '캐릭터 수',
-              dataIndex: 'character_count',
-              key: 'character_count',
+              dataIndex: 'characterCount',
+              key: 'characterCount',
               width: 100,
               align: 'center' as const,
-              sorter: (a: UserStat, b: UserStat) => a.character_count - b.character_count,
+              sorter: (a: UserStat, b: UserStat) => a.characterCount - b.characterCount,
             },
             {
               title: '프롬프트 수',
-              dataIndex: 'prompt_count',
-              key: 'prompt_count',
+              dataIndex: 'promptCount',
+              key: 'promptCount',
               width: 120,
               align: 'center' as const,
-              sorter: (a: UserStat, b: UserStat) => a.prompt_count - b.prompt_count,
+              sorter: (a: UserStat, b: UserStat) => a.promptCount - b.promptCount,
             },
             {
               title: '평균 점수 변동',
-              dataIndex: 'avg_score_change',
-              key: 'avg_score_change',
+              dataIndex: 'avgScoreChange',
+              key: 'avgScoreChange',
               width: 140,
               align: 'center' as const,
               render: (score: number) => (
@@ -261,25 +261,25 @@ export const Statistics: FC = () => {
                   {score.toFixed(2)}
                 </span>
               ),
-              sorter: (a: UserStat, b: UserStat) => a.avg_score_change - b.avg_score_change,
+              sorter: (a: UserStat, b: UserStat) => a.avgScoreChange - b.avgScoreChange,
             },
             {
               title: '최고 점수',
-              dataIndex: 'max_score',
-              key: 'max_score',
+              dataIndex: 'maxScore',
+              key: 'maxScore',
               width: 100,
               align: 'center' as const,
               render: (score: number) => <strong>{score}</strong>,
-              sorter: (a: UserStat, b: UserStat) => a.max_score - b.max_score,
+              sorter: (a: UserStat, b: UserStat) => a.maxScore - b.maxScore,
             },
             {
               title: '가입일',
-              dataIndex: 'created_at',
-              key: 'created_at',
+              dataIndex: 'createdAt',
+              key: 'createdAt',
               width: 120,
               render: (date: string) => new Date(date).toLocaleDateString('ko-KR'),
               sorter: (a: UserStat, b: UserStat) =>
-                new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+                new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
             },
           ]}
         />

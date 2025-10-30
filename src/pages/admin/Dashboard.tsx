@@ -87,7 +87,7 @@ export const AdminDashboard: FC = () => {
             <Card>
               <Statistic
                 title="총 사용자"
-                value={stats?.total_users || 0}
+                value={stats?.totalUsers || 0}
                 prefix={<UserOutlined />}
               />
             </Card>
@@ -96,7 +96,7 @@ export const AdminDashboard: FC = () => {
             <Card>
               <Statistic
                 title="총 캐릭터"
-                value={stats?.total_characters || 0}
+                value={stats?.totalCharacters || 0}
                 prefix={<TrophyOutlined />}
               />
             </Card>
@@ -105,7 +105,7 @@ export const AdminDashboard: FC = () => {
             <Card>
               <Statistic
                 title="총 프롬프트"
-                value={stats?.total_prompts || 0}
+                value={stats?.totalPrompts || 0}
                 prefix={<FileTextOutlined />}
               />
             </Card>
@@ -114,49 +114,45 @@ export const AdminDashboard: FC = () => {
             <Card>
               <Statistic
                 title="총 라운드"
-                value={stats?.total_rounds || 0}
+                value={stats?.totalRounds || 0}
                 prefix={<ClockCircleOutlined />}
               />
             </Card>
           </Col>
         </Row>
 
-        {stats?.active_round && (
+        {stats?.activeRound && (
           <Card title="현재 활성 라운드">
             <Row gutter={[16, 16]}>
               <Col xs={24} sm={12}>
-                <Statistic title="라운드 번호" value={stats.active_round.round_number} />
+                <Statistic title="라운드 번호" value={stats.activeRound.roundNumber} />
               </Col>
               <Col xs={24} sm={12}>
-                <Statistic
-                  title="참가자"
-                  value={stats.active_round.participants || 0}
-                  suffix="명"
-                />
+                <Statistic title="참가자" value={stats.activeRound.participants || 0} suffix="명" />
               </Col>
             </Row>
             <Space direction="vertical" style={{ width: '100%', marginTop: 16 }}>
               <div>
                 <Typography.Text strong>시작 시간: </Typography.Text>
                 <Typography.Text>
-                  {new Date(stats.active_round.start_time).toLocaleString('ko-KR')}
+                  {new Date(stats.activeRound.startTime).toLocaleString('ko-KR')}
                 </Typography.Text>
               </div>
               <div>
                 <Typography.Text strong>종료 시간: </Typography.Text>
                 <Typography.Text>
-                  {new Date(stats.active_round.end_time).toLocaleString('ko-KR')}
+                  {new Date(stats.activeRound.endTime).toLocaleString('ko-KR')}
                 </Typography.Text>
               </div>
               <div>
                 <Typography.Text strong>상태: </Typography.Text>
-                <Typography.Text>{stats.active_round.status}</Typography.Text>
+                <Typography.Text>{stats.activeRound.status}</Typography.Text>
               </div>
-              {stats.active_round.submission_rate !== undefined && (
+              {stats.activeRound.submissionRate !== undefined && (
                 <div>
                   <Typography.Text strong>제출률: </Typography.Text>
                   <Typography.Text>
-                    {(stats.active_round.submission_rate * 100).toFixed(1)}%
+                    {(stats.activeRound.submissionRate * 100).toFixed(1)}%
                   </Typography.Text>
                 </div>
               )}
@@ -164,20 +160,20 @@ export const AdminDashboard: FC = () => {
           </Card>
         )}
 
-        {stats?.recent_activity && (
+        {stats?.recentActivity && (
           <Card title="최근 활동">
             <Row gutter={[16, 16]}>
               <Col xs={24} sm={12}>
                 <Statistic
                   title="최근 1시간"
-                  value={stats.recent_activity.last_1_hour}
+                  value={stats.recentActivity.last1Hour}
                   suffix="개 프롬프트"
                 />
               </Col>
               <Col xs={24} sm={12}>
                 <Statistic
                   title="최근 24시간"
-                  value={stats.recent_activity.last_24_hours}
+                  value={stats.recentActivity.last24Hours}
                   suffix="개 프롬프트"
                 />
               </Col>

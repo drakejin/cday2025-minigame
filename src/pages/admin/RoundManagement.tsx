@@ -102,9 +102,9 @@ export const RoundManagement: FC = () => {
   const columns = [
     {
       title: 'Round #',
-      dataIndex: 'round_number',
-      key: 'round_number',
-      sorter: (a: AdminRound, b: AdminRound) => a.round_number - b.round_number,
+      dataIndex: 'roundNumber',
+      key: 'roundNumber',
+      sorter: (a: AdminRound, b: AdminRound) => a.roundNumber - b.roundNumber,
     },
     {
       title: 'Status',
@@ -114,20 +114,20 @@ export const RoundManagement: FC = () => {
     },
     {
       title: 'Start Time',
-      dataIndex: 'start_time',
-      key: 'start_time',
+      dataIndex: 'startTime',
+      key: 'startTime',
       render: (time: string) => dayjs(time).format('YYYY-MM-DD HH:mm'),
     },
     {
       title: 'End Time',
-      dataIndex: 'end_time',
-      key: 'end_time',
+      dataIndex: 'endTime',
+      key: 'endTime',
       render: (time: string) => dayjs(time).format('YYYY-MM-DD HH:mm'),
     },
     {
       title: 'Active',
-      dataIndex: 'is_active',
-      key: 'is_active',
+      dataIndex: 'isActive',
+      key: 'isActive',
       render: (isActive: boolean) => (isActive ? <Tag color="success">Yes</Tag> : <Tag>No</Tag>),
     },
     {

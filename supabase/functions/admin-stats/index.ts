@@ -2,6 +2,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { handleCors } from '../_shared/cors.ts'
 import { successResponse, errorResponse } from '../_shared/response.ts'
 import { verifyAdmin } from '../_shared/adminAuth.ts'
+import { keysToCamelCase } from '../_shared/camelCase.ts'
 
 serve(async (req) => {
   // Handle CORS
@@ -70,12 +71,12 @@ serve(async (req) => {
     ])
 
     return successResponse({
-      total_users: totalUsers || 0,
-      total_characters: totalCharacters || 0,
-      total_prompts: totalPrompts || 0,
-      total_rounds: totalRounds || 0,
-      active_round: currentRound
-        ? {
+      totalUsers: totalUsers || 0,
+      totalCharacters: totalCharacters || 0,
+      totalPrompts: totalPrompts || 0,
+      totalRounds: totalRounds || 0,
+      activeRound: currentRound
+        ? keysToCamelCase({
             id: currentRound.id,
             round_number: currentRound.round_number,
             start_time: currentRound.start_time,
@@ -84,11 +85,11 @@ serve(async (req) => {
             is_active: currentRound.is_active,
             participants: currentRoundStats?.participants || 0,
             submission_rate: currentRoundStats?.submissionRate || 0,
-          }
+          })
         : null,
-      recent_activity: {
-        last_1_hour: last1Hour || 0,
-        last_24_hours: last24Hours || 0,
+      recentActivity: {
+        last1Hour: last1Hour || 0,
+        last24Hours: last24Hours || 0,
       },
     })
   } catch (error) {
