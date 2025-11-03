@@ -65,6 +65,7 @@ serve(
         return errorResponse('ALREADY_SUBMITTED', 400, '이미 이번 라운드에 제출했습니다')
       }
 
+      // FIXME: 스코어 계산 로직 추가
       const scores = {
         strength: Math.floor(Math.random() * 30) + 5,
         charm: Math.floor(Math.random() * 30) + 5,

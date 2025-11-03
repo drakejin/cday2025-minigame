@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
 
 export const gameService = {
   /**
@@ -6,9 +7,6 @@ export const gameService = {
    */
   async getCurrentRound() {
     const { data, error } = await supabase.functions.invoke('get-current-round')
-
-    if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to get current round')
-    return data.data
+    return handleEdgeFunctionResponse(data, error, 'Failed to get current round')
   },
 }

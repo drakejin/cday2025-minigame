@@ -11,7 +11,7 @@ export const adminService = {
       body: { start_time: startTime, end_time: endTime, notes },
     })
     if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to create round')
+    if (!data.success) throw new Error(data.message || data.error || 'Failed to create round')
     return data.data
   },
 
@@ -20,7 +20,7 @@ export const adminService = {
       body: { round_id: roundId },
     })
     if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to start round')
+    if (!data.success) throw new Error(data.message || data.error || 'Failed to start round')
     return data.data
   },
 
@@ -29,7 +29,7 @@ export const adminService = {
       body: { round_id: roundId },
     })
     if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to end round')
+    if (!data.success) throw new Error(data.message || data.error || 'Failed to end round')
     return data.data
   },
 
@@ -38,7 +38,7 @@ export const adminService = {
       body: { round_id: roundId, new_end_time: newEndTime },
     })
     if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to extend round')
+    if (!data.success) throw new Error(data.message || data.error || 'Failed to extend round')
     return data.data
   },
 
@@ -47,7 +47,7 @@ export const adminService = {
       body: { round_id: roundId, reason },
     })
     if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to cancel round')
+    if (!data.success) throw new Error(data.message || data.error || 'Failed to cancel round')
     return data.data
   },
 
@@ -56,7 +56,7 @@ export const adminService = {
       body: { statusFilter, limit, offset },
     })
     if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to list rounds')
+    if (!data.success) throw new Error(data.message || data.error || 'Failed to list rounds')
     return data.data
   },
 
@@ -70,7 +70,7 @@ export const adminService = {
       body: { user_id: userId, round_number: roundNumber, limit, offset },
     })
     if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to list prompts')
+    if (!data.success) throw new Error(data.message || data.error || 'Failed to list prompts')
     return data.data
   },
 
@@ -83,7 +83,7 @@ export const adminService = {
       body: { prompt_id: promptId, reason },
     })
     if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to delete prompt')
+    if (!data.success) throw new Error(data.message || data.error || 'Failed to delete prompt')
     return data.data
   },
 
@@ -93,7 +93,7 @@ export const adminService = {
       body: { search, limit, offset },
     })
     if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to list users')
+    if (!data.success) throw new Error(data.message || data.error || 'Failed to list users')
     return data.data
   },
 
@@ -106,7 +106,7 @@ export const adminService = {
       body: { user_id: userId },
     })
     if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to get user detail')
+    if (!data.success) throw new Error(data.message || data.error || 'Failed to get user detail')
     return data.data
   },
 
@@ -115,7 +115,7 @@ export const adminService = {
       body: { user_id: userId, reason, duration_hours: durationHours },
     })
     if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to ban user')
+    if (!data.success) throw new Error(data.message || data.error || 'Failed to ban user')
     return data.data
   },
 
@@ -124,7 +124,7 @@ export const adminService = {
       body: { user_id: userId },
     })
     if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to unban user')
+    if (!data.success) throw new Error(data.message || data.error || 'Failed to unban user')
     return data.data
   },
 
@@ -132,7 +132,7 @@ export const adminService = {
   async getOverallStats() {
     const { data, error } = await supabase.functions.invoke('admin-stats', {})
     if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to get stats')
+    if (!data.success) throw new Error(data.message || data.error || 'Failed to get stats')
     return data.data
   },
 
@@ -141,7 +141,7 @@ export const adminService = {
       body: { round_number: roundNumber },
     })
     if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to get round stats')
+    if (!data.success) throw new Error(data.message || data.error || 'Failed to get round stats')
     return data.data
   },
 
@@ -150,7 +150,7 @@ export const adminService = {
       body: { limit: filters?.limit || 50 },
     })
     if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to get user stats')
+    if (!data.success) throw new Error(data.message || data.error || 'Failed to get user stats')
     return data.data
   },
 
@@ -166,7 +166,7 @@ export const adminService = {
       body: { round_number: roundNumber },
     })
     if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to get round stats')
+    if (!data.success) throw new Error(data.message || data.error || 'Failed to get round stats')
     return data.data
   },
 
@@ -192,7 +192,7 @@ export const adminService = {
       },
     })
     if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to get audit log')
+    if (!data.success) throw new Error(data.message || data.error || 'Failed to get audit log')
     return data.data
   },
 }

@@ -14,7 +14,11 @@ export const Leaderboard: FC = () => {
 
   return (
     <MainLayout>
-      <LeaderboardList data={leaderboard || []} loading={isLoading} currentUserId={character?.id} />
+      <LeaderboardList
+        data={(leaderboard as any) || []}
+        loading={isLoading}
+        currentUserId={character?.id}
+      />
     </MainLayout>
   )
 }

@@ -1,8 +1,10 @@
+import { useEffect } from 'react'
 import { create } from 'zustand'
 import type { User, Session } from '@supabase/supabase-js'
 import { authService } from '@/services/auth.service'
 import { profileService } from '@/services/profile.service'
 import { supabase } from '@/services/supabase'
+import { env } from '@/config/env'
 import type { Profile } from '@/types/profile.types'
 
 interface AuthState {
@@ -53,104 +55,149 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 }))
 
-let isInitializing = false
-let authListenerSet = false
+// Flag to ensure listener is set up only once
+let authListenerInitialized = false
 
 /**
- * Initialize auth - call this once from App.tsx
+ * Custom hook - use this instead of useAuthStore directly
+ * Automatically checks session and sets up auth listener
  */
-export async function initializeAuth() {
-  if (isInitializing) {
-    console.log('Auth already initializing, skipping...')
-    return
-  }
+export function useAuth() {
+  const store = useAuthStore()
 
-  isInitializing = true
-  console.log('Initializing auth...')
+  useEffect(() => {
+    let mounted = true
 
-  try {
-    console.log('Getting session...')
+    const initialize = async () => {
+      console.log('[useAuth] Initializing...')
 
-    // Use Supabase directly with timeout
-    const { data, error } = await Promise.race([
-      supabase.auth.getSession(),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('getSession timeout')), 5000)
-      ),
-    ]) as any
-
-    console.log('Session response:', { hasData: !!data, hasError: !!error })
-
-    if (error) {
-      console.error('getSession error:', error)
-      useAuthStore.setState({ initialized: true })
-      return
-    }
-
-    const session = data.session
-    console.log('Session:', session ? `Found for ${session.user.email}` : 'None')
-
-    if (session) {
-      console.log('Loading user and profile...')
-
-      // Set session immediately
-      useAuthStore.setState({ session, user: session.user })
-
-      // Fetch profile from DB (non-blocking)
       try {
-        console.log('Fetching profile...')
-        const profile = await profileService.getMyProfile()
-        useAuthStore.setState({ profile, initialized: true })
-        console.log('✅ Auth initialized - User:', session.user.email, 'Role:', profile.role)
-      } catch (profileError) {
-        console.error('Failed to fetch profile:', profileError)
-        useAuthStore.setState({ initialized: true })
-        console.log('✅ Auth initialized (without profile)')
-      }
-    } else {
-      console.log('No session - setting initialized')
-      useAuthStore.setState({ initialized: true })
-    }
+        console.log('[useAuth] Attempting to get session...')
 
-    // Set up auth state listener only once
-    if (!authListenerSet) {
-      authListenerSet = true
-      console.log('Setting up auth state listener...')
+        // Try getSession with shorter timeout
+        let result: any
+        try {
+          result = await Promise.race([
+            supabase.auth.getSession(),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('getSession timeout')), 3000)
+            ),
+          ])
+          console.log('[useAuth] getSession succeeded')
+        } catch (timeoutError) {
+          console.warn('[useAuth] getSession timed out, trying localStorage fallback')
 
-      supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email)
+          // Fallback: read directly from localStorage
+          const storageKey = `sb-${env.supabase.url.split('//')[1].split('.')[0]}-auth-token`
+          const storedSession = localStorage.getItem(storageKey)
 
-        // Skip INITIAL_SESSION to avoid duplicate profile fetch
-        if (event === 'INITIAL_SESSION') {
-          console.log('Skipping INITIAL_SESSION (already handled)')
+          if (storedSession) {
+            console.log('[useAuth] Found session in localStorage')
+            const parsed = JSON.parse(storedSession)
+            result = { data: parsed, error: null }
+          } else {
+            console.log('[useAuth] No session in localStorage')
+            result = { data: { session: null }, error: null }
+          }
+        }
+
+        console.log('[useAuth] Session check result:', {
+          hasData: !!result.data,
+          hasError: !!result.error,
+          hasSession: !!result.data?.session,
+        })
+
+        if (!mounted) {
+          console.log('[useAuth] Component unmounted, aborting')
           return
         }
 
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        if (result.error) {
+          console.error('[useAuth] getSession error:', result.error)
+          if (mounted) {
+            useAuthStore.setState({ initialized: true })
+          }
+          return
+        }
+
+        const { data } = result
+
+        if (data.session) {
+          console.log('[useAuth] Session found:', data.session.user.email)
+          useAuthStore.setState({ session: data.session, user: data.session.user })
+
+          try {
+            console.log('[useAuth] Fetching profile...')
+            const profile = await profileService.getMyProfile()
+            console.log('[useAuth] Profile fetched:', profile.email)
+            if (mounted) {
+              useAuthStore.setState({ profile, initialized: true })
+              console.log('[useAuth] ✅ Initialization complete')
+            }
+          } catch (error) {
+            console.error('[useAuth] Profile fetch failed:', error)
+            if (mounted) {
+              useAuthStore.setState({ initialized: true })
+            }
+          }
+        } else {
+          console.log('[useAuth] No session found')
+          if (mounted) {
+            useAuthStore.setState({ initialized: true })
+            console.log('[useAuth] ✅ Initialization complete (no session)')
+          }
+        }
+      } catch (error) {
+        console.error('[useAuth] Fatal error during initialization:', error)
+        if (mounted) {
+          useAuthStore.setState({ initialized: true })
+        }
+      }
+    }
+
+    // Set up auth state listener only once
+    if (!authListenerInitialized) {
+      authListenerInitialized = true
+      console.log('[useAuth] Setting up auth listener')
+
+      const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log('[Auth] State changed:', event, session?.user?.email)
+
+        if (event === 'INITIAL_SESSION') {
+          return
+        }
+
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
           if (session) {
-            // Update session and user immediately
             useAuthStore.setState({ session, user: session.user })
 
-            // Fetch profile asynchronously (don't block auth)
             try {
               const profile = await profileService.getMyProfile()
               useAuthStore.setState({ profile })
-              console.log('Profile refreshed:', profile.email, 'Role:', profile.role)
-            } catch (profileError) {
-              console.error('Failed to fetch profile on auth change:', profileError)
-              // Profile fetch failed, but user is still authenticated
+            } catch (error) {
+              console.error('[Auth] Profile refresh failed:', error)
             }
           }
         } else if (event === 'SIGNED_OUT') {
-          console.log('User signed out')
           useAuthStore.setState({ session: null, user: null, profile: null })
         }
       })
+
+      // Cleanup on app unmount (practically never happens)
+      return () => {
+        authListener?.subscription.unsubscribe()
+      }
     }
-  } catch (error) {
-    console.error('Auth init error:', error)
-    useAuthStore.setState({ initialized: true })
-  } finally {
-    isInitializing = false
-  }
+
+    // Initialize if not yet initialized
+    if (!store.initialized) {
+      initialize()
+    }
+
+    return () => {
+      mounted = false
+    }
+  }, [store.initialized])
+
+  return store
 }

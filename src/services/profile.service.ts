@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
 import type { Profile } from '@/types/profile.types'
 
 let profileCache: { profile: Profile; timestamp: number } | null = null
@@ -21,17 +22,20 @@ export const profileService = {
     console.log('Fetching fresh profile from API...')
     const { data, error } = await supabase.functions.invoke('get-my-profile')
 
-    if (error) throw error
-    if (!data?.success) throw new Error(data?.error || 'Failed to fetch profile')
+    const result = handleEdgeFunctionResponse<{ profile: Profile }>(
+      data,
+      error,
+      'Failed to fetch profile'
+    )
 
     // Cache the profile
     profileCache = {
-      profile: data.data.profile,
+      profile: result.profile,
       timestamp: Date.now(),
     }
 
     console.log('Profile fetched and cached')
-    return data.data.profile
+    return result.profile
   },
 
   /**
@@ -45,12 +49,11 @@ export const profileService = {
       },
     })
 
-    if (error) throw error
-    if (!data?.success) throw new Error(data?.error || 'Failed to update profile')
+    const result = handleEdgeFunctionResponse(data, error, 'Failed to update profile')
 
     // Clear cache after update
     profileCache = null
 
-    return data.data
+    return result
   },
 }

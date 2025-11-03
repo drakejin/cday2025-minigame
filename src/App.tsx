@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from 'react'
+import { Suspense } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { ConfigProvider, Spin } from 'antd'
@@ -9,7 +9,6 @@ import { AuthGuard } from './components/common/AuthGuard'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { GlobalStyles } from './styles/globalStyles'
 import { appTheme } from './styles/theme'
-import { initializeAuth } from './store/authStore'
 import { Landing } from './pages/user/Landing'
 import { Login } from './pages/user/Login'
 import { AuditLog } from './pages/admin/AuditLog'
@@ -76,7 +75,6 @@ const PageLoader = () => (
   </div>
 )
 
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -89,19 +87,6 @@ const queryClient = new QueryClient({
 })
 
 function App() {
-  // Initialize auth once on app mount
-  useEffect(() => {
-    let mounted = true
-
-    if (mounted) {
-      initializeAuth()
-    }
-
-    return () => {
-      mounted = false
-    }
-  }, [])
-
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>

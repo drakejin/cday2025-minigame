@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
 
 export const promptService = {
   /**
@@ -11,10 +12,8 @@ export const promptService = {
         prompt,
       },
     })
-
-    if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to submit prompt')
-    return data.data
+    console.log('submitPrompt response:', data, error)
+    return handleEdgeFunctionResponse(data, error, 'Failed to submit prompt')
   },
 
   /**
@@ -25,8 +24,11 @@ export const promptService = {
       body: { limit, offset },
     })
 
-    if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to get prompt history')
-    return data.data.data
+    const result = handleEdgeFunctionResponse<{ data: any }>(
+      data,
+      error,
+      'Failed to get prompt history'
+    )
+    return result.data
   },
 }

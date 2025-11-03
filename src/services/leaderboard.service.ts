@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
 
 export const leaderboardService = {
   /**
@@ -9,9 +10,12 @@ export const leaderboardService = {
       body: { limit, offset },
     })
 
-    if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to get leaderboard')
-    return data.data.data
+    const result = handleEdgeFunctionResponse<{ data: unknown }>(
+      data,
+      error,
+      'Failed to get leaderboard'
+    )
+    return result.data
   },
 
   /**
@@ -22,8 +26,6 @@ export const leaderboardService = {
       body: { character_id: characterId },
     })
 
-    if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to get rank')
-    return data.data
+    return handleEdgeFunctionResponse(data, error, 'Failed to get rank')
   },
 }

@@ -3,6 +3,7 @@ import { Space } from 'antd'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { RoundTimer } from '@/components/game/RoundTimer'
 import { CharacterCard } from '@/components/character/CharacterCard'
+import { CharacterCreationForm } from '@/components/character/CharacterCreationForm'
 import { PromptInput } from '@/components/character/PromptInput'
 import { LeaderboardList } from '@/components/leaderboard/LeaderboardList'
 import { useMyCharacter } from '@/hooks/queries/useCharacterQuery'
@@ -28,15 +29,17 @@ export const Dashboard: FC = () => {
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <RoundTimer />
 
-        {character && (
+        {character ? (
           <>
             <CharacterCard character={character} />
             <PromptInput />
           </>
+        ) : (
+          <CharacterCreationForm />
         )}
 
         <LeaderboardList
-          data={leaderboard || []}
+          data={(leaderboard as any) || []}
           loading={leaderboardLoading}
           currentUserId={character?.id}
         />

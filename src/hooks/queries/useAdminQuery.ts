@@ -17,8 +17,15 @@ export const useCreateRound = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ startTime, endTime, notes }: { startTime: string; endTime: string; notes?: string }) =>
-      adminService.createRound(startTime, endTime, notes),
+    mutationFn: ({
+      startTime,
+      endTime,
+      notes,
+    }: {
+      startTime: string
+      endTime: string
+      notes?: string
+    }) => adminService.createRound(startTime, endTime, notes),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.rounds })
       queryClient.invalidateQueries({ queryKey: queryKeys.round.all })
@@ -78,10 +85,21 @@ export const useExtendRound = () => {
 /**
  * Admin Prompts Queries
  */
-export const useAdminPrompts = (filters?: { userId?: string; roundNumber?: number; limit?: number; offset?: number }) => {
+export const useAdminPrompts = (filters?: {
+  userId?: string
+  roundNumber?: number
+  limit?: number
+  offset?: number
+}) => {
   return useQuery({
     queryKey: queryKeys.admin.prompts(filters),
-    queryFn: () => adminService.listPrompts(filters?.userId, filters?.roundNumber, filters?.limit, filters?.offset),
+    queryFn: () =>
+      adminService.listPrompts(
+        filters?.userId,
+        filters?.roundNumber,
+        filters?.limit,
+        filters?.offset
+      ),
     staleTime: 1000 * 30,
   })
 }

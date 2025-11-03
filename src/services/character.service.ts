@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
 
 export const characterService = {
   /**
@@ -6,10 +7,7 @@ export const characterService = {
    */
   async getMyCharacter() {
     const { data, error } = await supabase.functions.invoke('get-my-character')
-
-    if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to get character')
-    return data.data
+    return handleEdgeFunctionResponse(data, error, 'Failed to get character')
   },
 
   /**
@@ -19,10 +17,7 @@ export const characterService = {
     const { data, error } = await supabase.functions.invoke('create-character', {
       body: { name },
     })
-
-    if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to create character')
-    return data.data
+    return handleEdgeFunctionResponse(data, error, 'Failed to create character')
   },
 
   /**
@@ -32,9 +27,6 @@ export const characterService = {
     const { data, error } = await supabase.functions.invoke('update-character-name', {
       body: { character_id: characterId, name },
     })
-
-    if (error) throw error
-    if (!data.success) throw new Error(data.error || 'Failed to update character')
-    return data.data
+    return handleEdgeFunctionResponse(data, error, 'Failed to update character')
   },
 }

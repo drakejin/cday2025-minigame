@@ -2,7 +2,7 @@ import type { FC } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import { Alert, Card, Space, Typography } from 'antd'
 import { LockOutlined } from '@ant-design/icons'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/store/authStore'
 import { Loading } from './Loading'
 
 const { Title, Text } = Typography
@@ -12,27 +12,39 @@ const { Title, Text } = Typography
  * Checks if user is authenticated and has admin role from DB profile
  */
 export const AdminGuard: FC = () => {
-  const { user, profile, initialized } = useAuthStore()
+  const { user, profile, initialized } = useAuth()
+
+  console.log('[AdminGuard]', {
+    user: !!user,
+    profile: !!profile,
+    initialized,
+    role: profile?.role,
+  })
 
   // Wait for auth initialization
   if (!initialized) {
+    console.log('[AdminGuard] Waiting for initialization...')
     return <Loading fullscreen tip="권한 확인 중..." />
   }
 
   // Redirect to login if not authenticated
   if (!user) {
+    console.log('[AdminGuard] No user, redirecting to login')
     return <Navigate to="/login" replace />
   }
 
   // Wait for profile to load
   if (!profile) {
+    console.log('[AdminGuard] No profile yet, showing loading...')
     return <Loading fullscreen tip="프로필 로딩 중..." />
   }
 
   // Check if user is admin from DB profile
   const isAdmin = profile.role === 'admin'
+  console.log('[AdminGuard] Role check:', { role: profile.role, isAdmin })
 
   if (!isAdmin) {
+    console.log('[AdminGuard] Access denied - not an admin')
     return (
       <div
         style={{
@@ -62,5 +74,6 @@ export const AdminGuard: FC = () => {
     )
   }
 
+  console.log('[AdminGuard] Access granted - rendering admin route')
   return <Outlet />
 }
