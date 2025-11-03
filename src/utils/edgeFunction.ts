@@ -15,7 +15,7 @@ export function extractEdgeFunctionError(error: unknown): string {
 
     // Log error structure for debugging
     console.log('[extractEdgeFunctionError] Error keys:', Object.keys(errorObj))
-    console.log('[extractEdgeFunctionError] Error context:', errorObj.context)
+    console.log('[extractEdgeFunctionError] Error context:', errorObj.context.body)
     console.log('[extractEdgeFunctionError] Error message:', errorObj.message)
 
     // Check if context exists and contains response data

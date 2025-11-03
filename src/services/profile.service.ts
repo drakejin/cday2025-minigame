@@ -20,7 +20,16 @@ export const profileService = {
     }
 
     console.log('Fetching fresh profile from API...')
-    const { data, error } = await supabase.functions.invoke('get-my-profile')
+
+    // Add timeout to Edge Function call
+    const invokePromise = supabase.functions.invoke('get-my-profile')
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('get-my-profile timeout after 5s')), 5000)
+    )
+
+    const { data, error } = (await Promise.race([invokePromise, timeoutPromise])) as any
+
+    console.log('get-my-profile response:', { hasData: !!data, hasError: !!error })
 
     const result = handleEdgeFunctionResponse<{ profile: Profile }>(
       data,

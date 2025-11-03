@@ -89,12 +89,37 @@ export function useAuth() {
 
           // Fallback: read directly from localStorage
           const storageKey = `sb-${env.supabase.url.split('//')[1].split('.')[0]}-auth-token`
+          console.log('[useAuth] Looking for key:', storageKey)
           const storedSession = localStorage.getItem(storageKey)
 
           if (storedSession) {
-            console.log('[useAuth] Found session in localStorage')
-            const parsed = JSON.parse(storedSession)
-            result = { data: parsed, error: null }
+            console.log(
+              '[useAuth] Found session in localStorage, raw:',
+              storedSession.substring(0, 100)
+            )
+            try {
+              const parsed = JSON.parse(storedSession)
+              console.log('[useAuth] Parsed session:', {
+                hasSession: !!parsed.session,
+                hasAccessToken: !!parsed.access_token,
+                hasUser: !!parsed.user,
+                keys: Object.keys(parsed),
+              })
+
+              // Check different possible structures
+              if (parsed.session) {
+                result = { data: { session: parsed.session }, error: null }
+              } else if (parsed.access_token && parsed.user) {
+                // Old format - convert to new format
+                result = { data: { session: parsed }, error: null }
+              } else {
+                console.warn('[useAuth] Unknown localStorage session format')
+                result = { data: { session: null }, error: null }
+              }
+            } catch (parseError) {
+              console.error('[useAuth] Failed to parse localStorage session:', parseError)
+              result = { data: { session: null }, error: null }
+            }
           } else {
             console.log('[useAuth] No session in localStorage')
             result = { data: { session: null }, error: null }
@@ -163,22 +188,23 @@ export function useAuth() {
       const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
         console.log('[Auth] State changed:', event, session?.user?.email)
 
-        if (event === 'INITIAL_SESSION') {
-          return
-        }
-
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
           if (session) {
+            console.log('[Auth] Updating session and user:', session.user.email)
             useAuthStore.setState({ session, user: session.user })
 
             try {
+              console.log('[Auth] Fetching profile for:', session.user.email)
               const profile = await profileService.getMyProfile()
-              useAuthStore.setState({ profile })
+              useAuthStore.setState({ profile, initialized: true })
+              console.log('[Auth] ✅ Profile loaded:', profile.email, 'Role:', profile.role)
             } catch (error) {
               console.error('[Auth] Profile refresh failed:', error)
+              useAuthStore.setState({ initialized: true })
             }
           }
         } else if (event === 'SIGNED_OUT') {
+          console.log('[Auth] User signed out')
           useAuthStore.setState({ session: null, user: null, profile: null })
         }
       })

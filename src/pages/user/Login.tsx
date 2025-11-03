@@ -2,19 +2,21 @@ import { type FC, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card, Typography, Spin } from 'antd'
 import { LoginForm } from '@/components/auth/LoginForm'
-import { useAuthStore } from '@/store/authStore'
+import { useAuth } from '@/store/authStore'
 
 const { Title } = Typography
 
 export const Login: FC = () => {
   const navigate = useNavigate()
-  const user = useAuthStore((state) => state.user)
-  const initialized = useAuthStore((state) => state.initialized)
-  const isLoading = useAuthStore((state) => state.isLoading)
+  const { user, initialized, isLoading } = useAuth()
+
+  console.log('[Login] State:', { user: !!user, initialized, isLoading })
 
   // Redirect to dashboard if already logged in
   useEffect(() => {
+    console.log('[Login] useEffect check:', { initialized, user: !!user })
     if (initialized && user) {
+      console.log('[Login] User logged in, redirecting to dashboard')
       navigate('/dashboard', { replace: true })
     }
   }, [initialized, user, navigate])
