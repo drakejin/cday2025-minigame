@@ -1,10 +1,10 @@
 import { type FC, useState } from 'react'
-import { Card, Input, Button, Space, Typography, Alert } from 'antd'
-import { SendOutlined } from '@ant-design/icons'
+import { Input, Button, Space, Typography, Alert, Tag } from 'antd'
+import { SendOutlined, EditOutlined } from '@ant-design/icons'
 import { usePromptSubmit } from '@/hooks/usePromptSubmit'
 
 const { TextArea } = Input
-const { Text } = Typography
+const { Text, Title } = Typography
 
 export const PromptInput: FC = () => {
   const [prompt, setPrompt] = useState('')
@@ -20,13 +20,30 @@ export const PromptInput: FC = () => {
   }
 
   return (
-    <Card
-      title="프롬프트 제출"
-      style={{ marginBottom: 16 }}
-      role="region"
-      aria-label="프롬프트 제출 영역"
+    <div
+      style={{
+        background: '#fff',
+        border: '1px solid #e0e0e0',
+        borderRadius: 8,
+        padding: '16px',
+      }}
     >
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Space>
+            <EditOutlined style={{ fontSize: 20, color: '#1890ff' }} />
+            <Title level={4} style={{ margin: 0 }}>
+              프롬프트 제출
+            </Title>
+          </Space>
+          {hasSubmittedThisRound && (
+            <Tag color="success" style={{ margin: 0 }}>
+              제출 완료
+            </Tag>
+          )}
+        </div>
+
         {hasSubmittedThisRound ? (
           <Alert message="이번 라운드에 이미 제출했습니다" type="info" showIcon role="status" />
         ) : (
@@ -41,14 +58,23 @@ export const PromptInput: FC = () => {
                 disabled={!canSubmit}
                 aria-label="프롬프트 입력"
                 aria-describedby="prompt-char-count"
+                style={{ fontSize: 14 }}
               />
-              <Text
-                type="secondary"
-                style={{ display: 'block', marginTop: 8 }}
-                id="prompt-char-count"
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginTop: 8,
+                }}
               >
-                {prompt.length}/30자
-              </Text>
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  캐릭터를 성장시킬 프롬프트를 입력하세요
+                </Text>
+                <Text type="secondary" style={{ fontSize: 12 }} id="prompt-char-count">
+                  {prompt.length}/30자
+                </Text>
+              </div>
             </div>
 
             {error && <Alert message={error} type="error" showIcon role="alert" />}
@@ -68,6 +94,6 @@ export const PromptInput: FC = () => {
           </>
         )}
       </Space>
-    </Card>
+    </div>
   )
 }

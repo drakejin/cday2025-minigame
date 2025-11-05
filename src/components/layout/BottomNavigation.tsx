@@ -10,7 +10,7 @@ export const BottomNavigation: FC = () => {
   const location = useLocation()
 
   const menuItems = [
-    { key: '/dashboard', icon: <HomeOutlined />, label: '홈' },
+    { key: '/dashboard', icon: <HomeOutlined />, label: '게임' },
     { key: '/leaderboard', icon: <TrophyOutlined />, label: '순위' },
     { key: '/history', icon: <HistoryOutlined />, label: '히스토리' },
     { key: '/profile', icon: <UserOutlined />, label: '프로필' },

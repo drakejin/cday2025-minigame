@@ -19,7 +19,7 @@ export const LeaderboardList: FC<LeaderboardListProps> = ({
 }) => {
   return (
     <>
-      <Title level={2}>리더보드</Title>
+      <Title level={2}>순위</Title>
       <List
         loading={loading}
         dataSource={data}
