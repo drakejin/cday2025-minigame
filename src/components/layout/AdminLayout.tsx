@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FC, ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
+  AppstoreOutlined,
   AuditOutlined,
   ClockCircleOutlined,
   DashboardOutlined,
@@ -13,7 +14,7 @@ import {
   TrophyOutlined,
   UserOutlined,
 } from '@ant-design/icons'
-import { Button, Dropdown, Layout, Menu, Space, Typography } from 'antd'
+import { Avatar, Button, Dropdown, Layout, Menu, Space, Tag, Typography } from 'antd'
 import type { MenuProps } from 'antd'
 import { useAuthStore } from '@/store/authStore'
 
@@ -27,7 +28,7 @@ interface AdminLayoutProps {
 export const AdminLayout: FC<AdminLayoutProps> = ({ children }) => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, signOut } = useAuthStore()
+  const { user, profile, signOut } = useAuthStore()
   const [collapsed, setCollapsed] = useState(false)
 
   const menuItems = [
@@ -70,9 +71,9 @@ export const AdminLayout: FC<AdminLayoutProps> = ({ children }) => {
 
   const userMenuItems: MenuProps['items'] = [
     {
-      key: 'dashboard',
-      icon: <DashboardOutlined />,
-      label: '사용자 대시보드',
+      key: 'service',
+      icon: <AppstoreOutlined />,
+      label: '서비스 페이지',
       onClick: () => navigate('/dashboard'),
     },
     {
@@ -85,6 +86,28 @@ export const AdminLayout: FC<AdminLayoutProps> = ({ children }) => {
       onClick: handleLogout,
     },
   ]
+
+  const getRoleLabel = (role?: string) => {
+    switch (role) {
+      case 'admin':
+        return 'Admin'
+      case 'super_admin':
+        return 'Super Admin'
+      default:
+        return 'User'
+    }
+  }
+
+  const getRoleColor = (role?: string) => {
+    switch (role) {
+      case 'super_admin':
+        return 'red'
+      case 'admin':
+        return 'blue'
+      default:
+        return 'default'
+    }
+  }
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -154,11 +177,38 @@ export const AdminLayout: FC<AdminLayoutProps> = ({ children }) => {
             />
           </Space>
 
-          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-            <Button type="text" icon={<UserOutlined />}>
-              {user?.email}
+          <Space size="middle">
+            <Button
+              type="default"
+              icon={<AppstoreOutlined />}
+              onClick={() => navigate('/dashboard')}
+            >
+              서비스 페이지
             </Button>
-          </Dropdown>
+
+            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+              <Button type="text" style={{ height: 'auto', padding: '4px 12px' }}>
+                <Space>
+                  <Avatar
+                    size="small"
+                    src={profile?.avatarUrl}
+                    icon={!profile?.avatarUrl && <UserOutlined />}
+                  />
+                  <Space direction="vertical" size={0} style={{ alignItems: 'flex-start' }}>
+                    <Space size={4}>
+                      <span style={{ fontWeight: 500 }}>
+                        {profile?.displayName || user?.email?.split('@')[0] || 'User'}
+                      </span>
+                      <Tag color={getRoleColor(profile?.role)} style={{ margin: 0 }}>
+                        {getRoleLabel(profile?.role)}
+                      </Tag>
+                    </Space>
+                    <span style={{ fontSize: '12px', color: '#8c8c8c' }}>{user?.email}</span>
+                  </Space>
+                </Space>
+              </Button>
+            </Dropdown>
+          </Space>
         </Header>
 
         <Content
