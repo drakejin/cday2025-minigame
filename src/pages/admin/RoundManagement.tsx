@@ -20,7 +20,7 @@ import {
   CloseCircleOutlined,
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
-import { MainLayout } from '@/components/layout/MainLayout'
+import { AdminLayout } from '@/components/layout/AdminLayout'
 import type { AdminRound } from '@/types'
 import {
   useAdminRounds,
@@ -180,7 +180,7 @@ export const RoundManagement: FC = () => {
   }
 
   return (
-    <MainLayout>
+    <AdminLayout>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Title level={2}>Round Management</Title>
@@ -234,6 +234,6 @@ export const RoundManagement: FC = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </MainLayout>
+    </AdminLayout>
   )
 }

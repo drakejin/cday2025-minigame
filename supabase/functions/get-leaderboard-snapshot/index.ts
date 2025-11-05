@@ -4,7 +4,7 @@ import { errorResponse, successResponse } from '../_shared/response.ts'
 import { withLogging } from '../_shared/withLogging.ts'
 
 serve(
-  withLogging('get-past-leaderboard', async (req, logger) => {
+  withLogging('get-leaderboard-snapshot', async (req, logger) => {
     try {
       const { roundNumber, limit = 100, offset = 0 } = await req.json()
       logger.setRequestBody({ roundNumber, limit, offset })

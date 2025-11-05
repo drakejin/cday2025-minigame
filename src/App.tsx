@@ -11,6 +11,7 @@ import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { GlobalStyles } from './styles/globalStyles'
 import { appTheme } from './styles/theme'
 import { Home } from './pages/user/Home'
+import { AdminLeaderboard } from './pages/admin/AdminLeaderboard'
 import { AuditLog } from './pages/admin/AuditLog'
 import { AdminDashboard } from './pages/admin/Dashboard'
 import { PromptModeration } from './pages/admin/PromptModeration'
@@ -74,6 +75,7 @@ function App() {
                   {/* Admin Routes - Require Admin Role */}
                   <Route element={<AdminGuard />}>
                     <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/admin/leaderboard" element={<AdminLeaderboard />} />
                     <Route path="/admin/rounds" element={<RoundManagement />} />
                     <Route path="/admin/prompts" element={<PromptModeration />} />
                     <Route path="/admin/users" element={<UserManagement />} />

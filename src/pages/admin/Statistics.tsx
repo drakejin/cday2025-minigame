@@ -3,7 +3,7 @@ import type { FC } from 'react'
 import { useState } from 'react'
 import { Card, Col, Row, Select, Space, Statistic, Table, Typography } from 'antd'
 import { useQuery } from '@tanstack/react-query'
-import { MainLayout } from '@/components/layout/MainLayout'
+import { AdminLayout } from '@/components/layout/AdminLayout'
 import { adminService } from '@/services/admin.service'
 import type { UserStat } from '@/types/admin.types'
 
@@ -41,8 +41,8 @@ export const Statistics: FC = () => {
   })
 
   return (
-    <MainLayout>
-      <div style={{ padding: 24 }}>
+    <AdminLayout>
+      <div>
         <Title level={2}>통계 및 분석</Title>
 
         {/* Overall Statistics */}
@@ -238,6 +238,6 @@ export const Statistics: FC = () => {
           />
         </Card>
       </div>
-    </MainLayout>
+    </AdminLayout>
   )
 }

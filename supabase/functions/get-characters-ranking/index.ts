@@ -4,7 +4,7 @@ import { errorResponse, successResponse } from '../_shared/response.ts'
 import { withLogging } from '../_shared/withLogging.ts'
 
 serve(
-  withLogging('get-leaderboard', async (req, logger) => {
+  withLogging('get-characters-ranking', async (req, logger) => {
     try {
       const supabase = createSupabaseClient()
       const url = new URL(req.url)
