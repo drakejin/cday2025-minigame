@@ -5,12 +5,11 @@ export const promptService = {
   /**
    * Submit prompt (Edge Function)
    */
-  async submitPrompt(characterId: string, prompt: string, trialId?: string) {
+  async submitPrompt(characterId: string, prompt: string) {
     const { data, error } = await supabase.functions.invoke('submit-prompt', {
       body: {
         character_id: characterId,
         prompt,
-        trial_id: trialId,
       },
     })
     console.log('submitPrompt response:', data, error)

@@ -20,12 +20,10 @@ export const useSubmitPrompt = () => {
     mutationFn: ({
       characterId,
       prompt,
-      trialId,
     }: {
       characterId: string
       prompt: string
-      trialId?: string
-    }) => promptService.submitPrompt(characterId, prompt, trialId),
+    }) => promptService.submitPrompt(characterId, prompt),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.character.all })
       queryClient.invalidateQueries({ queryKey: queryKeys.prompts.all })

@@ -3,20 +3,18 @@ export interface Character {
   user_id: string
   name: string
   current_prompt: string
-  total_score: number
-  strength: number
-  charm: number
-  creativity: number
   is_active: boolean
   created_at: string
   updated_at: string
 }
 
+// Aggregated stats from prompt_history
 export interface CharacterStats {
-  strength: number
-  charm: number
-  creativity: number
-  totalScore: number
+  str: number
+  dex: number
+  con: number
+  int: number
+  total: number
 }
 
 export interface CreateCharacterData {
