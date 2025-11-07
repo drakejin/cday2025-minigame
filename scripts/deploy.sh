@@ -90,6 +90,9 @@ echo ""
 echo "${BLUE}📦 Step 3: Deploying Edge Functions to Supabase${NC}"
 echo ""
 
+# Validate .env formatting and required keys
+bash "$SCRIPT_DIR/check-env.sh"
+
 bash "$SCRIPT_DIR/deploy-edge-functions.sh"
 
 # ==================== Step 4: Deploy Frontend to Vercel ====================

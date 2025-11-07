@@ -6,7 +6,8 @@ export const realtimeService = {
    * Subscribe to leaderboard updates
    */
   subscribeToLeaderboard(callback: () => void): RealtimeChannel {
-    return supabase
+    // Subscribe to both characters and trial_results changes to keep leaderboard fresh
+    const channel = supabase
       .channel('leaderboard-updates')
       .on(
         'postgres_changes',
@@ -17,7 +18,17 @@ export const realtimeService = {
         },
         callback
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'trial_results',
+        },
+        callback
+      )
       .subscribe()
+    return channel
   },
 
   /**

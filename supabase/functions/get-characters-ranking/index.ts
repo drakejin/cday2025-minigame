@@ -11,55 +11,61 @@ serve(
       const limit = parseInt(url.searchParams.get('limit') || '100')
       const offset = parseInt(url.searchParams.get('offset') || '0')
 
-      const {
-        data: characters,
-        error,
-        count,
-      } = await supabase
-        .from('characters')
-        .select(
-          `
-          id,
-          name,
-          current_prompt,
-          total_score,
-          strength,
-          charm,
-          creativity,
-          profiles:user_id (
-            display_name,
-            avatar_url
-          )
-        `,
-          { count: 'exact' }
-        )
-        .eq('is_active', true)
-        .order('total_score', { ascending: false })
+      // Aggregate from trial_results (weighted_total)
+      const { data: aggregated, error } = await supabase
+        .from('v_weighted_scores')
+        .select('character_id, weighted_total')
+        .order('weighted_total', { ascending: false })
         .range(offset, offset + limit - 1)
+
+      const { data: allCount } = await supabase
+        .from('v_weighted_scores')
+        .select('character_id', { count: 'exact', head: true })
 
       if (error) {
         logger.logError(500, error.message)
         return errorResponse('DATABASE_ERROR', 500, error.message)
       }
 
+      // Fetch character/profile info for the page of results
+      const ids = (aggregated || []).map((r: any) => r.character_id)
+      let characters: any[] = []
+      if (ids.length > 0) {
+        const { data: chars } = await supabase
+          .from('characters')
+          .select(
+            `
+            id,
+            name,
+            current_prompt,
+            profiles:user_id (
+              display_name,
+              avatar_url
+            )
+          `
+          )
+          .in('id', ids)
+        characters = chars || []
+      }
+
       const leaderboard =
-        characters?.map((char: any, index: number) => ({
-          rank: offset + index + 1,
-          character_id: char.id,
-          character_name: char.name,
-          display_name: char.profiles?.display_name || 'Unknown',
-          avatar_url: char.profiles?.avatar_url || null,
-          total_score: char.total_score,
-          strength: char.strength,
-          charm: char.charm,
-          creativity: char.creativity,
-          current_prompt: char.current_prompt,
-        })) || []
+        aggregated?.map((row: any, index: number) => {
+          const char = characters.find((c: any) => c.id === row.character_id)
+          return {
+            rank: offset + index + 1,
+            character_id: row.character_id,
+            character_name: char?.name || 'Unknown',
+            display_name: char?.profiles?.display_name || 'Unknown',
+            avatar_url: char?.profiles?.avatar_url || null,
+            weighted_total: row.weighted_total,
+            current_prompt: char?.current_prompt || null,
+          }
+        }) || []
 
       const responseData = {
         data: leaderboard,
         pagination: {
-          total: count || 0,
+          total: allCount || 0,
           limit,
           offset,
         },

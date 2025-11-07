@@ -34,7 +34,7 @@ serve(
 
       const { data: myCharacter, error: charError } = await supabase
         .from('characters')
-        .select('total_score, strength, charm, creativity')
+        .select('id')
         .eq('id', character_id)
         .eq('is_active', true)
         .single()
@@ -44,32 +44,36 @@ serve(
         return errorResponse('CHARACTER_NOT_FOUND', 404)
       }
 
-      const { count: totalParticipants } = await supabase
-        .from('characters')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true)
+      // Weighted totals from view
+      const { data: myScoreRow } = await supabase
+        .from('v_weighted_scores')
+        .select('character_id, weighted_total')
+        .eq('character_id', character_id)
+        .maybeSingle()
 
-      const { count: higherRanks } = await supabase
-        .from('characters')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true)
-        .gt('total_score', myCharacter.total_score)
+      const myWeighted = myScoreRow?.weighted_total || 0
 
-      const rank = (higherRanks || 0) + 1
+      const { data: higherRows } = await supabase
+        .from('v_weighted_scores')
+        .select('character_id, weighted_total')
+        .gt('weighted_total', myWeighted)
+
+      const { data: totalRows } = await supabase
+        .from('v_weighted_scores')
+        .select('character_id')
+
+      const higherCount = higherRows?.length || 0
+      const totalParticipants = totalRows?.length || 0
+      const rank = higherCount + 1
       const percentile = totalParticipants
         ? ((totalParticipants - rank + 1) / totalParticipants) * 100
         : 0
 
       const responseData = {
         rank,
-        total_participants: totalParticipants || 0,
+        total_participants: totalParticipants,
         percentile: Math.round(percentile * 10) / 10,
-        character: {
-          total_score: myCharacter.total_score,
-          strength: myCharacter.strength,
-          charm: myCharacter.charm,
-          creativity: myCharacter.creativity,
-        },
+        character: { weighted_total: myWeighted },
       }
 
       logger.logSuccess(200, responseData)

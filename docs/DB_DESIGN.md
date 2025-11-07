@@ -150,7 +150,91 @@ CREATE INDEX idx_prompt_history_is_deleted ON prompt_history(is_deleted) WHERE i
 
 **중요:** `unique_prompt_per_round` - 캐릭터는 라운드당 1번만 제출 가능
 
-### 6. leaderboard_snapshots
+### 6. character_plans
+캐릭터 성장 계획 (Lv1~Lv3 스탯/스킬, 단일 플랜)
+
+```sql
+CREATE TABLE character_plans (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  character_id UUID NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+  lv1_str INTEGER NOT NULL,
+  lv1_dex INTEGER NOT NULL,
+  lv1_con INTEGER NOT NULL,
+  lv1_int INTEGER NOT NULL,
+  lv1_skill TEXT,
+  lv2_str INTEGER NOT NULL,
+  lv2_dex INTEGER NOT NULL,
+  lv2_con INTEGER NOT NULL,
+  lv2_int INTEGER NOT NULL,
+  lv2_skill TEXT,
+  lv3_str INTEGER NOT NULL,
+  lv3_dex INTEGER NOT NULL,
+  lv3_con INTEGER NOT NULL,
+  lv3_int INTEGER NOT NULL,
+  lv3_skill TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  CONSTRAINT uq_character_plan UNIQUE (character_id)
+);
+```
+
+제약(요지):
+- 각 스탯 최대 20
+- Lv2 = Lv1 + 1 + 1 (서로 다른 2스탯)
+- Lv3 = Lv2 + 1 + 1 (서로 다른 2스탯)
+- 플랜 변경 시 관련 시련 결과 `needs_revalidation = true`
+
+### 7. trials
+라운드별 시련 정의(1~3번, 레벨/가중치)
+
+```sql
+CREATE TABLE trials (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  round_id UUID NOT NULL REFERENCES game_rounds(id) ON DELETE CASCADE,
+  trial_no SMALLINT NOT NULL CHECK (trial_no IN (1,2,3)),
+  level SMALLINT NOT NULL CHECK (level IN (1,2,3)),
+  weight_multiplier SMALLINT NOT NULL CHECK (weight_multiplier IN (1,2,3,4)),
+  status VARCHAR(20) NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled','active','completed','cancelled')),
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  CONSTRAINT uq_trial_per_round UNIQUE (round_id, trial_no)
+);
+```
+
+### 8. trial_results
+시련별 평가 결과(원점수/가중 합계)
+
+```sql
+CREATE TABLE trial_results (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  trial_id UUID NOT NULL REFERENCES trials(id) ON DELETE CASCADE,
+  character_id UUID NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  prompt_history_id UUID NOT NULL REFERENCES prompt_history(id) ON DELETE CASCADE,
+  score_strength INTEGER NOT NULL DEFAULT 0,
+  score_dexterity INTEGER NOT NULL DEFAULT 0,
+  score_constitution INTEGER NOT NULL DEFAULT 0,
+  score_intelligence INTEGER NOT NULL DEFAULT 0,
+  total_score INTEGER NOT NULL DEFAULT 0,
+  weighted_total INTEGER NOT NULL DEFAULT 0,
+  needs_revalidation BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  CONSTRAINT uq_result_per_trial UNIQUE (trial_id, character_id)
+);
+```
+
+### 9. v_weighted_scores (VIEW)
+시련 결과의 가중 총합 기준 리더보드 집계 뷰
+
+```sql
+CREATE OR REPLACE VIEW v_weighted_scores AS
+SELECT character_id, SUM(weighted_total) AS weighted_total
+FROM trial_results
+GROUP BY character_id;
+```
+
+### 10. leaderboard_snapshots
 라운드별 순위 스냅샷
 
 ```sql
@@ -172,7 +256,7 @@ CREATE TABLE leaderboard_snapshots (
 CREATE INDEX idx_leaderboard_round_rank ON leaderboard_snapshots(round_number, rank);
 ```
 
-### 7. admin_audit_log
+### 11. admin_audit_log
 Admin 행동 추적 로그
 
 ```sql
@@ -246,6 +330,8 @@ CREATE TRIGGER on_auth_user_created
 ```sql
 ALTER PUBLICATION supabase_realtime ADD TABLE characters;
 ALTER PUBLICATION supabase_realtime ADD TABLE game_rounds;
+ALTER PUBLICATION supabase_realtime ADD TABLE trials;
+ALTER PUBLICATION supabase_realtime ADD TABLE trial_results;
 ```
 
 ---

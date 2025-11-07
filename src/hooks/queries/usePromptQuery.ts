@@ -20,8 +20,15 @@ export const useSubmitPrompt = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ characterId, prompt }: { characterId: string; prompt: string }) =>
-      promptService.submitPrompt(characterId, prompt),
+    mutationFn: ({
+      characterId,
+      prompt,
+      trialId,
+    }: {
+      characterId: string
+      prompt: string
+      trialId?: string
+    }) => promptService.submitPrompt(characterId, prompt, trialId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.character.all })
       queryClient.invalidateQueries({ queryKey: queryKeys.prompts.all })

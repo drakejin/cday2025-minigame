@@ -112,13 +112,14 @@ Authorization: Bearer <access_token>
 ### 2. Prompt APIs
 
 #### POST /submit-prompt
-프롬프트 제출 및 AI 평가
+프롬프트 제출 및 시련 평가
 
 **Request:**
 ```json
 {
   "character_id": "uuid",
-  "prompt": "불꽃을 다루는 마법사"
+  "prompt": "불꽃을 다루는 마법사",
+  "trial_id": "uuid" // (optional) 지정 시 해당 시련으로 평가, 없으면 활성 라운드의 Trial #1
 }
 ```
 
@@ -127,19 +128,16 @@ Authorization: Bearer <access_token>
 {
   "success": true,
   "data": {
-    "prompt_id": "uuid",
+    "prompt_history_id": "uuid",
     "round_number": 5,
+    "trial_id": "uuid",
     "scores": {
-      "strength": 15,
-      "charm": 20,
-      "creativity": 25,
-      "total": 60
-    },
-    "character": {
-      "total_score": 210,
-      "strength": 65,
-      "charm": 65,
-      "creativity": 80
+      "strength": 12,
+      "dexterity": 14,
+      "constitution": 11,
+      "intelligence": 18,
+      "total": 55,
+      "weighted_total": 110
     }
   }
 }
@@ -186,7 +184,58 @@ Authorization: Bearer <access_token>
 
 ---
 
-### 3. Game Round APIs
+### 3. Trials & Plan APIs
+
+#### GET /get-round-trials
+활성 라운드의 시련 목록
+
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "round_id": "uuid",
+    "trials": [
+      { "id": "uuid", "trial_no": 1, "level": 1, "weight_multiplier": 1, "status": "scheduled" }
+    ]
+  }
+}
+```
+
+#### GET /get-my-trials
+내 시련 결과 조회
+
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "trials": [
+      {
+        "id": "uuid",
+        "trial_id": "uuid",
+        "round_number": 5,
+        "trial_no": 2,
+        "level": 2,
+        "total_score": 60,
+        "weighted_total": 120,
+        "created_at": "2025-01-15T11:30:00Z"
+      }
+    ]
+  }
+}
+```
+
+#### GET /get-my-plan
+내 캐릭터의 성장 계획 조회
+
+#### POST /upsert-plan
+성장 계획 저장 (Lv1~Lv3)
+- 제약: 각 스탯 ≤ 20, Lv2=Lv1+1+1, Lv3=Lv2+1+1
+
+---
+
+### 4. Game Round APIs
 
 #### GET /get-current-round
 현재 활성 라운드 조회
@@ -236,7 +285,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-### 4. Leaderboard APIs
+### 5. Leaderboard APIs
 
 #### GET /get-leaderboard
 현재 리더보드 조회
@@ -256,10 +305,7 @@ Authorization: Bearer <access_token>
       "character_name": "용사 김철수",
       "display_name": "김철수",
       "avatar_url": "https://...",
-      "total_score": 500,
-      "strength": 180,
-      "charm": 160,
-      "creativity": 160,
+      "weighted_total": 500,
       "current_prompt": "불꽃을 다루는 마법사"
     }
   ],
@@ -332,7 +378,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-### 5. Profile APIs
+### 6. Profile APIs
 
 #### GET /get-my-profile
 내 프로필 조회
@@ -377,7 +423,7 @@ Authorization: Bearer <access_token>
 
 ## Admin Edge Functions
 
-### 6. Round Management
+### 7. Round Management
 
 #### POST /admin-rounds-create
 라운드 생성
@@ -519,7 +565,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-### 7. Prompt Moderation
+### 8. Prompt Moderation
 
 #### GET /admin-prompts-list
 프롬프트 목록 조회 (필터링, 검색)
@@ -580,7 +626,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-### 8. User Management
+### 9. User Management
 
 #### GET /admin-users-list
 사용자 검색/목록
@@ -680,7 +726,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-### 9. Statistics
+### 10. Statistics
 
 #### GET /admin-stats
 전체 통계 조회
@@ -749,7 +795,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-### 10. Audit Log
+### 11. Audit Log
 
 #### GET /admin-audit-log
 관리자 행동 로그 조회
@@ -810,38 +856,48 @@ Authorization: Bearer <access_token>
 
 ---
 
-## 전체 Edge Functions 목록 (26개)
+## 전체 Edge Functions 목록
 
-### User Functions (11개)
+### User Functions
 1. `get-my-character` - 내 캐릭터 조회
 2. `create-character` - 캐릭터 생성
 3. `update-character-name` - 캐릭터 이름 수정
-4. `submit-prompt` - 프롬프트 제출 ✅
-5. `get-my-prompts` - 내 프롬프트 히스토리
-6. `get-current-round` - 현재 라운드
-7. `get-round-info` - 라운드 정보
-8. `get-leaderboard` - 현재 리더보드
-9. `get-past-leaderboard` - 과거 리더보드
-10. `get-my-rank` - 내 순위 ✅
-11. `update-profile` - 프로필 수정
+4. `submit-prompt` - 프롬프트 제출/시련 평가
+5. `get-round-trials` - 활성 라운드 시련 목록
+6. `get-my-trials` - 내 시련 결과
+7. `get-my-plan` - 플랜 조회
+8. `upsert-plan` - 플랜 저장
+9. `get-current-round` - 현재 라운드
+10. `get-round-info` - 라운드 정보
+11. `get-leaderboard` - 리더보드(가중 총합 기준)
+12. `get-past-leaderboard` - 과거 리더보드
+13. `get-my-rank` - 내 순위(가중 총합 기준)
+14. `get-my-prompts` - 내 프롬프트 히스토리
+15. `update-profile` - 프로필 수정
 
-### Admin Functions (15개)
+### Admin Functions
 12. `admin-rounds-create` - 라운드 생성
 13. `admin-rounds-start` - 라운드 시작
 14. `admin-rounds-end` - 라운드 종료
 15. `admin-rounds-extend` - 라운드 연장
 16. `admin-rounds-cancel` - 라운드 취소
 17. `admin-rounds-list` - 라운드 목록
-18. `admin-prompts-list` - 프롬프트 목록
-19. `admin-prompts-delete` - 프롬프트 삭제
-20. `admin-users-list` - 사용자 목록
-21. `admin-users-detail` - 사용자 상세
-22. `admin-users-ban` - 사용자 제재
-23. `admin-users-unban` - 제재 해제
-24. `admin-stats` - 전체 통계
-25. `admin-stats-rounds` - 라운드별 통계
-26. `admin-stats-users` - 사용자 통계
-27. `admin-audit-log` - 감사 로그
+18. `admin-trials-create` - 시련 생성/업서트
+19. `admin-trials-update` - 시련 수정
+20. `admin-trials-delete` - 시련 삭제
+21. `admin-trials-list` - 라운드 시련 목록
+22. `admin-prompts-list` - 프롬프트 목록
+23. `admin-prompts-delete` - 프롬프트 삭제
+24. `evaluate-trial` - 시련 재평가(단건, 유틸)
+25. `re-evaluate-stale` - 플랜 변경 등으로 Stale 표시된 결과 일괄 재평가
+26. `admin-users-list` - 사용자 목록
+27. `admin-users-detail` - 사용자 상세
+28. `admin-users-ban` - 사용자 제재
+29. `admin-users-unban` - 제재 해제
+30. `admin-stats` - 전체 통계
+31. `admin-stats-rounds` - 라운드별 통계
+32. `admin-stats-users` - 사용자 통계
+33. `admin-audit-log` - 감사 로그
 
 ---
 

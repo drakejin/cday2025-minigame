@@ -30,6 +30,9 @@ fi
 
 export SUPABASE_ACCESS_TOKEN=$VITE_SUPABASE_ACCESS_TOKEN
 
+# Fix TLS certificate issues on some environments (UnknownIssuer)
+export DENO_TLS_CA_STORE=system
+
 # Link project
 echo "${BLUE}Linking to Supabase project: $SUPABASE_PROJECT_REF${NC}"
 npx supabase link --project-ref "$SUPABASE_PROJECT_REF" || {
@@ -57,7 +60,7 @@ for dir in supabase/functions/*/; do
   TOTAL=$((TOTAL + 1))
 
   echo "Deploying $func_name..."
-  if npx supabase functions deploy "$func_name" --no-verify-jwt 2>&1; then
+  if npx supabase functions deploy "$func_name" --no-verify-jwt --debug 2>&1; then
     echo "${GREEN}✅ $func_name deployed successfully${NC}"
     SUCCESS=$((SUCCESS + 1))
   else

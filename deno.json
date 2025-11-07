@@ -1,0 +1,20 @@
+{
+  "lock": false,
+  "compilerOptions": {
+    "strict": true
+  },
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 100
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  },
+  "tasks": {
+    "vendor:functions": "deno vendor supabase/functions/**/*.ts"
+  }
+}
+
+

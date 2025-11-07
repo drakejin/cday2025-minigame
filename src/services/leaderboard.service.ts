@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
-import type { LeaderboardResponse } from '@/types'
+import type { LeaderboardResponse, LeaderboardEntry } from '@/types'
 
 export const leaderboardService = {
   /**
@@ -11,22 +11,28 @@ export const leaderboardService = {
       body: { limit, offset },
     })
 
-    return handleEdgeFunctionResponse<LeaderboardResponse>(
-      data,
-      error,
-      'Failed to get characters ranking'
-    )
-  },
+    const raw = handleEdgeFunctionResponse<{
+      data: any[]
+      pagination: { total: number; limit: number; offset: number }
+    }>(data, error, 'Failed to get leaderboard')
 
-  /**
-   * Get past round leaderboard snapshot (Edge Function)
-   */
-  async getPastLeaderboard(roundNumber: number, limit = 100, offset = 0) {
-    const { data, error } = await supabase.functions.invoke('get-leaderboard-snapshot', {
-      body: { roundNumber, limit, offset },
-    })
+    const mapped: LeaderboardEntry[] = (raw.data || []).map((item: any) => ({
+      rank: item.rank,
+      character_id: item.character_id,
+      character_name: item.character_name,
+      display_name: item.display_name,
+      avatar_url: item.avatar_url,
+      total_score: item.weighted_total ?? 0,
+      strength: 0,
+      charm: 0,
+      creativity: 0,
+      current_prompt: item.current_prompt || '',
+    }))
 
-    return handleEdgeFunctionResponse(data, error, 'Failed to get leaderboard snapshot')
+    return {
+      data: mapped,
+      pagination: raw.pagination,
+    }
   },
 
   /**

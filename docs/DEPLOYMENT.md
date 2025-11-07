@@ -53,14 +53,15 @@ yarn build
 
 ## 🚀 Deployment Steps
 
-### Step 1: Deploy Edge Functions (27개)
+### Step 1: Deploy Edge Functions
 
 ```bash
 # 환경 변수 설정
 export SUPABASE_ACCESS_TOKEN=$VITE_SUPABASE_ACCESS_TOKEN
 
 # 자동 배포 스크립트 실행
-./deploy-edge-functions.sh
+./scripts/check-env.sh
+./scripts/deploy-edge-functions.sh
 ```
 
 **또는 수동 배포:**
@@ -242,6 +243,14 @@ supabase link --project-ref [YOUR-PROJECT-REF]
 # 개별 함수 재배포
 supabase functions deploy [function-name] --no-verify-jwt
 ```
+
+#### TLS UnknownIssuer (deno.land 인증서)
+- 로컬/사내 환경의 루트 인증서 문제일 수 있습니다.
+- 스크립트에서 `DENO_TLS_CA_STORE=system` 환경변수를 설정하여 시스템 루트 신뢰를 사용합니다.
+- 사설 CA 사용 환경이라면 OS 신뢰 저장소에 해당 CA를 설치해야 합니다.
+
+#### Decorator/deno.json 경고
+- 리포 루트에 `deno.json`을 추가했습니다. 필요한 경우 `deno vendor supabase/functions/**/*.ts`로 의존성을 벤더링하여 네트워크 의존성을 줄일 수 있습니다.
 
 ### Issue: Vercel 빌드 실패
 - Environment variables 확인

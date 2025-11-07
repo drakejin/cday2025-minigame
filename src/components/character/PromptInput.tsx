@@ -1,7 +1,8 @@
 import { type FC, useState } from 'react'
-import { Input, Button, Space, Typography, Alert, Tag } from 'antd'
+import { Input, Button, Space, Typography, Alert, Tag, Select } from 'antd'
 import { SendOutlined, EditOutlined } from '@ant-design/icons'
 import { usePromptSubmit } from '@/hooks/usePromptSubmit'
+import { useActiveRoundTrials } from '@/hooks/queries/useTrialsQuery'
 
 const { TextArea } = Input
 const { Text, Title } = Typography
@@ -17,11 +18,13 @@ export const PromptInput: FC = () => {
     currentRound,
     nextRound,
   } = usePromptSubmit()
+  const { data: trialData } = useActiveRoundTrials()
+  const [selectedTrialId, setSelectedTrialId] = useState<string | undefined>(undefined)
 
   const handleSubmit = async () => {
     if (!prompt.trim() || prompt.length > 30) return
 
-    const success = await submitPrompt(prompt)
+    const success = await submitPrompt(prompt, selectedTrialId)
     if (success) {
       setPrompt('')
     }
@@ -130,6 +133,23 @@ export const PromptInput: FC = () => {
         {/* Input Form (only for active round) */}
         {state.type === 'active' && (
           <>
+            {/* Trial selector (if trials exist) */}
+            {trialData?.trials && trialData.trials.length > 0 && (
+              <div>
+                <Typography.Text strong>시련 선택</Typography.Text>
+                <Select
+                  style={{ width: '100%', marginTop: 8 }}
+                  placeholder="시련을 선택하세요"
+                  options={trialData.trials.map((t) => ({
+                    label: `시련 ${t.trial_no} (Lv.${t.level}, x${t.weight_multiplier})`,
+                    value: t.id,
+                  }))}
+                  value={selectedTrialId}
+                  onChange={setSelectedTrialId}
+                />
+              </div>
+            )}
+
             <div>
               <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
                 {state.message}
