@@ -1,4 +1,3 @@
-import { FunctionRegion } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
 import type { Profile } from '@/types/profile.types'
@@ -23,9 +22,7 @@ export const profileService = {
     console.log('Fetching fresh profile from API...')
 
     // Add timeout to prevent infinite loading (10 seconds)
-    const invokePromise = supabase.functions.invoke('get-my-profile', {
-      region: FunctionRegion.ApNortheast2,
-    })
+    const invokePromise = supabase.functions.invoke('get-my-profile', {})
     const timeoutPromise = new Promise<never>((_, reject) =>
       setTimeout(() => reject(new Error('get-my-profile timeout after 10s')), 10000)
     )
@@ -65,7 +62,6 @@ export const profileService = {
         display_name: updates.displayName,
         avatar_url: updates.avatarUrl,
       },
-      region: FunctionRegion.ApNortheast2,
     })
 
     const result = handleEdgeFunctionResponse(data, error, 'Failed to update profile')

@@ -1,4 +1,3 @@
-import { FunctionRegion } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 
 /**
@@ -10,7 +9,6 @@ export const adminService = {
   async createRound(startTime: string, endTime: string, trialText?: string, trialNo?: number) {
     const { data, error } = await supabase.functions.invoke('admin-rounds-create', {
       body: { start_time: startTime, end_time: endTime, trial_text: trialText, trial_no: trialNo },
-      region: FunctionRegion.ApNortheast2,
     })
     if (error) throw error
     if (!data.success) throw new Error(data.message || data.error || 'Failed to create round')
@@ -20,7 +18,6 @@ export const adminService = {
   async startRound(roundId: string) {
     const { data, error } = await supabase.functions.invoke('admin-rounds-start', {
       body: { round_id: roundId },
-      region: FunctionRegion.ApNortheast2,
     })
     if (error) throw error
     if (!data.success) throw new Error(data.message || data.error || 'Failed to start round')
@@ -30,7 +27,6 @@ export const adminService = {
   async endRound(roundId: string) {
     const { data, error } = await supabase.functions.invoke('admin-rounds-end', {
       body: { round_id: roundId },
-      region: FunctionRegion.ApNortheast2,
     })
     if (error) throw error
     if (!data.success) throw new Error(data.message || data.error || 'Failed to end round')
@@ -40,7 +36,6 @@ export const adminService = {
   async extendRound(roundId: string, newEndTime: string) {
     const { data, error } = await supabase.functions.invoke('admin-rounds-extend', {
       body: { round_id: roundId, new_end_time: newEndTime },
-      region: FunctionRegion.ApNortheast2,
     })
     if (error) throw error
     if (!data.success) throw new Error(data.message || data.error || 'Failed to extend round')
@@ -50,7 +45,6 @@ export const adminService = {
   async cancelRound(roundId: string, reason?: string) {
     const { data, error } = await supabase.functions.invoke('admin-rounds-cancel', {
       body: { round_id: roundId, reason },
-      region: FunctionRegion.ApNortheast2,
     })
     if (error) throw error
     if (!data.success) throw new Error(data.message || data.error || 'Failed to cancel round')
@@ -60,7 +54,6 @@ export const adminService = {
   async listRounds(statusFilter?: string, limit = 50, offset = 0) {
     const { data, error } = await supabase.functions.invoke('admin-rounds-list', {
       body: { statusFilter, limit, offset },
-      region: FunctionRegion.ApNortheast2,
     })
     if (error) throw error
     if (!data.success) throw new Error(data.message || data.error || 'Failed to list rounds')
@@ -70,7 +63,6 @@ export const adminService = {
   async evaluateRound(roundId: string) {
     const { data, error } = await supabase.functions.invoke('admin-round-evaluator', {
       body: { round_id: roundId },
-      region: FunctionRegion.ApNortheast2,
     })
     if (error) throw error
     if (!data.success) throw new Error(data.message || data.error || 'Failed to evaluate round')
@@ -81,7 +73,6 @@ export const adminService = {
   async listPrompts(userId?: string, roundNumber?: number, limit = 50, offset = 0) {
     const { data, error } = await supabase.functions.invoke('admin-prompts-list', {
       body: { user_id: userId, round_number: roundNumber, limit, offset },
-      region: FunctionRegion.ApNortheast2,
     })
     if (error) throw error
     if (!data.success) throw new Error(data.message || data.error || 'Failed to list prompts')
@@ -91,7 +82,6 @@ export const adminService = {
   async deletePrompt(promptId: string, reason: string) {
     const { data, error } = await supabase.functions.invoke('admin-prompts-delete', {
       body: { prompt_id: promptId, reason },
-      region: FunctionRegion.ApNortheast2,
     })
     if (error) throw error
     if (!data.success) throw new Error(data.message || data.error || 'Failed to delete prompt')
@@ -102,7 +92,6 @@ export const adminService = {
   async listUsers(search?: string, limit = 50, offset = 0) {
     const { data, error } = await supabase.functions.invoke('admin-users-list', {
       body: { search, limit, offset },
-      region: FunctionRegion.ApNortheast2,
     })
     if (error) throw error
     if (!data.success) throw new Error(data.message || data.error || 'Failed to list users')
@@ -112,7 +101,6 @@ export const adminService = {
   async getUserDetail(userId: string) {
     const { data, error } = await supabase.functions.invoke('admin-users-detail', {
       body: { user_id: userId },
-      region: FunctionRegion.ApNortheast2,
     })
     if (error) throw error
     if (!data.success) throw new Error(data.message || data.error || 'Failed to get user detail')
@@ -122,7 +110,6 @@ export const adminService = {
   async banUser(userId: string, reason: string, durationHours?: number) {
     const { data, error } = await supabase.functions.invoke('admin-users-ban', {
       body: { user_id: userId, reason, duration_hours: durationHours },
-      region: FunctionRegion.ApNortheast2,
     })
     if (error) throw error
     if (!data.success) throw new Error(data.message || data.error || 'Failed to ban user')
@@ -132,7 +119,6 @@ export const adminService = {
   async unbanUser(userId: string) {
     const { data, error } = await supabase.functions.invoke('admin-users-unban', {
       body: { user_id: userId },
-      region: FunctionRegion.ApNortheast2,
     })
     if (error) throw error
     if (!data.success) throw new Error(data.message || data.error || 'Failed to unban user')
@@ -141,9 +127,7 @@ export const adminService = {
 
   // ==================== Statistics ====================
   async getOverallStats() {
-    const { data, error } = await supabase.functions.invoke('admin-stats', {
-      region: FunctionRegion.ApNortheast2,
-    })
+    const { data, error } = await supabase.functions.invoke('admin-stats', {})
     if (error) throw error
     if (!data.success) throw new Error(data.message || data.error || 'Failed to get stats')
     return data.data
@@ -155,7 +139,6 @@ export const adminService = {
     const roundNumber = Number.parseInt(roundId, 10)
     const { data, error } = await supabase.functions.invoke('admin-stats-rounds', {
       body: { round_number: roundNumber },
-      region: FunctionRegion.ApNortheast2,
     })
     if (error) throw error
     if (!data.success) throw new Error(data.message || data.error || 'Failed to get round stats')
@@ -182,7 +165,6 @@ export const adminService = {
         limit: filters?.limit || 50,
         offset: filters?.offset || 0,
       },
-      region: FunctionRegion.ApNortheast2,
     })
     if (error) throw error
     if (!data.success) throw new Error(data.message || data.error || 'Failed to get audit log')

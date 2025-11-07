@@ -1,4 +1,3 @@
-import { FunctionRegion } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
 import type { CurrentRound } from '@/types/game.types'
@@ -13,9 +12,7 @@ export const gameService = {
    * Get current active round (Edge Function)
    */
   async getCurrentRound(): Promise<GetCurrentRoundResponse> {
-    const { data, error } = await supabase.functions.invoke('get-current-round', {
-      region: FunctionRegion.ApNortheast2,
-    })
+    const { data, error } = await supabase.functions.invoke('get-current-round', {})
     return handleEdgeFunctionResponse<GetCurrentRoundResponse>(
       data,
       error,

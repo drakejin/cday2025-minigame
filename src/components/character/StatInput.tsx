@@ -1,6 +1,6 @@
 import type { FC } from 'react'
 import { Card, Typography, Alert, Space } from 'antd'
-import { useCurrentRound } from '@/hooks/queries/useRoundQuery'
+import { useCurrentRound } from '@/hooks/queries/useGameQuery'
 
 const { Title, Text } = Typography
 
@@ -20,13 +20,13 @@ const TRIAL_CONFIGS = [
 ]
 
 export const StatInput: FC = () => {
-  const { data: currentRound } = useCurrentRound()
+  const { data } = useCurrentRound()
 
-  if (!currentRound?.trial_no) {
+  if (!data?.currentRound?.trial_no) {
     return null
   }
 
-  const { trial_no } = currentRound
+  const { trial_no } = data.currentRound
 
   return (
     <Card
@@ -49,7 +49,7 @@ export const StatInput: FC = () => {
           const config = TRIAL_CONFIGS[i]
           return (
             <Alert
-              key={i + 1}
+              key={config.title}
               message={config.title}
               description={config.description}
               type="info"

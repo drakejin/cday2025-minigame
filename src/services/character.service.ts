@@ -1,4 +1,3 @@
-import { FunctionRegion } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
 import type { Character } from '@/types/character.types'
@@ -17,7 +16,6 @@ export const characterService = {
    */
   async getMyCharacter(): Promise<CharacterWithSubmission | null> {
     const { data, error } = await supabase.functions.invoke('get-my-character', {
-      region: FunctionRegion.ApNortheast2,
     })
     return handleEdgeFunctionResponse<CharacterWithSubmission | null>(
       data,
@@ -32,7 +30,6 @@ export const characterService = {
   async createCharacter(name: string): Promise<Character> {
     const { data, error } = await supabase.functions.invoke('create-character', {
       body: { name },
-      region: FunctionRegion.ApNortheast2,
     })
     return handleEdgeFunctionResponse<Character>(data, error, 'Failed to create character')
   },
@@ -43,7 +40,6 @@ export const characterService = {
   async updateCharacterName(characterId: string, name: string): Promise<Character> {
     const { data, error } = await supabase.functions.invoke('update-character-name', {
       body: { character_id: characterId, name },
-      region: FunctionRegion.ApNortheast2,
     })
     return handleEdgeFunctionResponse<Character>(data, error, 'Failed to update character')
   },
