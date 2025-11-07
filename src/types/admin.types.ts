@@ -8,7 +8,7 @@ export interface AdminRound {
   status: 'scheduled' | 'active' | 'completed' | 'cancelled'
   startedBy?: string
   endedBy?: string
-  notes?: string
+  trialText?: string
   createdAt: string
 }
 

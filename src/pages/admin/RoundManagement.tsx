@@ -207,7 +207,7 @@ export const RoundManagement: FC = () => {
         {
           startTime: values.dateRange[0].toISOString(),
           endTime: values.dateRange[1].toISOString(),
-          notes: values.notes,
+          trialText: values.trialText,
         },
         {
           onSuccess: () => {
@@ -277,8 +277,8 @@ export const RoundManagement: FC = () => {
               placeholder={['Start Time', 'End Time']}
             />
           </Form.Item>
-          <Form.Item name="notes" label="Notes (Optional)">
-            <Input.TextArea rows={3} placeholder="Add any notes for this round..." />
+          <Form.Item name="trialText" label="시련 텍스트 (Optional)">
+            <Input.TextArea rows={3} placeholder="시련에 대한 설명을 입력하세요..." />
           </Form.Item>
         </Form>
       </Modal>

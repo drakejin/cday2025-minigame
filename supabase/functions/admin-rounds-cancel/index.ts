@@ -28,7 +28,7 @@ serve(
         .update({
           is_active: false,
           status: 'cancelled',
-          notes: reason || 'Admin cancelled',
+          trial_text: reason || 'Admin cancelled',
         })
         .eq('id', round_id)
         .in('status', ['scheduled', 'active'])

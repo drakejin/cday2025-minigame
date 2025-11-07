@@ -8,7 +8,7 @@ export interface GameRound {
   status: 'scheduled' | 'active' | 'completed' | 'cancelled'
   started_by?: string
   ended_by?: string
-  notes?: string
+  trial_text?: string
   created_at: string
 }
 

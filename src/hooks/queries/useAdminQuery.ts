@@ -20,12 +20,12 @@ export const useCreateRound = () => {
     mutationFn: ({
       startTime,
       endTime,
-      notes,
+      trialText,
     }: {
       startTime: string
       endTime: string
-      notes?: string
-    }) => adminService.createRound(startTime, endTime, notes),
+      trialText?: string
+    }) => adminService.createRound(startTime, endTime, trialText),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.rounds })
       queryClient.invalidateQueries({ queryKey: queryKeys.round.all })
