@@ -96,8 +96,9 @@ export const Home: FC = () => {
   }
 
   // Check if user has already submitted this round
-  const hasSubmittedThisRound = character?.last_submission_round === currentRound?.round_number
-
+  // 비회원은 제출한 적이 없으므로 false
+  const hasSubmittedThisRound =
+    user && character ? character.last_submission_round === currentRound?.round_number : false
   return (
     <div style={{ minHeight: '100vh', padding: '16px', background: '#f0f2f5' }}>
       <Space
@@ -129,8 +130,34 @@ export const Home: FC = () => {
           />
         )}
 
+        {/* Login Section for Non-authenticated Users */}
+        {!user && (
+          <Card
+            title="로그인하고 게임 시작하기"
+            style={{ background: '#fff7e6', borderColor: '#ffd591' }}
+          >
+            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+              <Alert
+                message="Google 계정으로 로그인하세요"
+                description="로그인하면 캐릭터를 생성하고 프롬프트를 제출하여 게임에 참가할 수 있습니다."
+                type="warning"
+                showIcon
+              />
+              <Button
+                type="primary"
+                size="large"
+                block
+                onClick={() => setShowLoginModal(true)}
+                style={{ height: 48, fontSize: 16 }}
+              >
+                Google로 로그인하기
+              </Button>
+            </Space>
+          </Card>
+        )}
+
         {/* Quick Join Section */}
-        {currentRound && !hasSubmittedThisRound && (
+        {currentRound && !hasSubmittedThisRound && user && (
           <Card
             title="바로 게임 참가하기"
             style={{ background: '#e6f4ff', borderColor: '#91caff' }}
@@ -179,11 +206,7 @@ export const Home: FC = () => {
                 size="large"
                 style={{ height: 48, fontSize: 16 }}
               >
-                {!user
-                  ? '로그인하고 시작하기'
-                  : character
-                    ? '프롬프트 제출'
-                    : '캐릭터 생성 & 프롬프트 제출'}
+                {character ? '프롬프트 제출' : '캐릭터 생성 & 프롬프트 제출'}
               </Button>
             </Space>
           </Card>
