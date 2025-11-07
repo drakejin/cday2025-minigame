@@ -38,17 +38,24 @@ export const Dashboard: FC = () => {
     }
 
     const loadPlan = async () => {
-      const { data: plan } = await supabase
-        .from('character_plans')
-        .select('*')
-        .eq('character_id', character.id)
-        .maybeSingle()
+      console.log('Loading plan for character:', character.id)
+      const { data, error } = await supabase.functions.invoke('get-my-character-plan')
+      
+      if (error) {
+        console.error('Error loading plan:', error)
+        setTrialData({})
+        setIsLoadingPlan(false)
+        return
+      }
+      
+      const plan = data
+      console.log('Plan loaded:', plan)
 
       if (plan) {
         const loaded: Record<number, TrialData> = {}
 
         // Load trial 1
-        if (plan.lv1_str) {
+        if (plan.lv1_str !== null && plan.lv1_str !== undefined) {
           loaded[1] = {
             baseStats: {
               str: plan.lv1_str,
@@ -86,13 +93,18 @@ export const Dashboard: FC = () => {
           }
         }
 
+        console.log('Loaded trial data:', loaded)
         setTrialData(loaded)
+      } else {
+        console.log('No plan found, setting empty')
+        setTrialData({})
       }
       setIsLoadingPlan(false)
     }
 
+    setIsLoadingPlan(true)
     loadPlan()
-  }, [character?.id])
+  }, [character?.id, character?.updated_at])
 
   if (characterLoading || isLoadingPlan) {
     return <Loading fullscreen tip="로딩 중..." />
@@ -130,7 +142,15 @@ export const Dashboard: FC = () => {
               </Space>
             </div>
             <StatInput trialData={trialData} setTrialData={setTrialData} />
-            <PromptInput trialData={trialData} prompt={prompt} />
+            <PromptInput
+              trialData={trialData}
+              prompt={prompt}
+              onSubmitSuccess={() => {
+                setPrompt('')
+                // Force reload by updating character query
+                window.location.reload()
+              }}
+            />
           </>
         ) : (
           <CharacterCreationForm />

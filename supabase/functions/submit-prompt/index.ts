@@ -171,7 +171,7 @@ serve(
       }
 
       // Update character_plans and current_prompt
-      await Promise.all([
+      const [planResult, characterResult] = await Promise.all([
         supabase.from('character_plans').upsert({
           character_id,
           ...planData,
@@ -181,6 +181,16 @@ serve(
           .update({ current_prompt: prompt.trim() })
           .eq('id', character_id),
       ])
+
+      if (planResult.error) {
+        logger.logError(500, `character_plans upsert 실패: ${planResult.error.message}`)
+        return errorResponse('PLAN_UPSERT_FAILED', 500, planResult.error.message)
+      }
+
+      if (characterResult.error) {
+        logger.logError(500, `current_prompt 업데이트 실패: ${characterResult.error.message}`)
+        return errorResponse('CHARACTER_UPDATE_FAILED', 500, characterResult.error.message)
+      }
 
       const { data: promptHistory, error: historyError } = await supabase
         .from('prompt_history')

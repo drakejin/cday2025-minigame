@@ -6,10 +6,11 @@ import type { TrialData } from '@/pages/user/Dashboard'
 
 const { Text, Title } = Typography
 
-export const PromptInput: FC<{ trialData: Record<number, TrialData>; prompt: string }> = ({
-  trialData,
-  prompt,
-}) => {
+export const PromptInput: FC<{
+  trialData: Record<number, TrialData>
+  prompt: string
+  onSubmitSuccess?: () => void
+}> = ({ trialData, prompt, onSubmitSuccess }) => {
   const {
     submitPrompt,
     isSubmitting,
@@ -32,7 +33,10 @@ export const PromptInput: FC<{ trialData: Record<number, TrialData>; prompt: str
       return
     }
 
-    await submitPrompt(prompt.trim(), trialData)
+    const success = await submitPrompt(prompt.trim(), trialData)
+    if (success && onSubmitSuccess) {
+      onSubmitSuccess()
+    }
   }
 
   // Determine the state to display
