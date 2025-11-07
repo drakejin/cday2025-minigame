@@ -260,13 +260,22 @@ export const RoundTimer: FC = memo(() => {
               Round #{nextRound.round_number}
             </Title>
             {nextRound.trial_text && (
-              <div style={{ padding: '12px', background: 'rgba(24,144,255,0.1)', borderRadius: 8, marginTop: 12 }}>
+              <div
+                style={{
+                  padding: '12px',
+                  background: 'rgba(24,144,255,0.1)',
+                  borderRadius: 8,
+                  marginTop: 12,
+                }}
+              >
                 <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.85)' }}>
                   {nextRound.trial_text}
                 </Text>
               </div>
             )}
-            <Text style={{ display: 'block', fontSize: 13, color: 'rgba(0,0,0,0.7)', marginTop: 8 }}>
+            <Text
+              style={{ display: 'block', fontSize: 13, color: 'rgba(0,0,0,0.7)', marginTop: 8 }}
+            >
               {new Date(nextRound.start_time).toLocaleString('ko-KR')} 시작
             </Text>
           </div>
@@ -385,8 +394,22 @@ export const RoundTimer: FC = memo(() => {
 
             {/* Trial Text */}
             {currentRound.trial_text && (
-              <div style={{ padding: '16px', background: 'rgba(255,255,255,0.15)', borderRadius: 8, marginTop: 8 }}>
-                <Text style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.8)', marginBottom: 8 }}>
+              <div
+                style={{
+                  padding: '16px',
+                  background: 'rgba(255,255,255,0.15)',
+                  borderRadius: 8,
+                  marginTop: 8,
+                }}
+              >
+                <Text
+                  style={{
+                    display: 'block',
+                    fontSize: 12,
+                    color: 'rgba(255,255,255,0.8)',
+                    marginBottom: 8,
+                  }}
+                >
                   시련 내용
                 </Text>
                 <Text style={{ fontSize: 15, color: '#fff', fontWeight: 500 }}>
