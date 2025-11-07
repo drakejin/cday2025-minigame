@@ -29,8 +29,8 @@ serve(
         .maybeSingle()
 
       if (activeRound) {
-        logger.logError(400, '이미 활성화된 라운드가 있습니다')
-        return errorResponse('ROUND_ALREADY_ACTIVE', 400, '이미 활성화된 라운드가 있습니다')
+        logger.logError(400, '이미 활성화된 시련가 있습니다')
+        return errorResponse('ROUND_ALREADY_ACTIVE', 400, '이미 활성화된 시련가 있습니다')
       }
 
       const { data: round, error: updateError } = await supabase
@@ -46,8 +46,8 @@ serve(
         .single()
 
       if (updateError || !round) {
-        logger.logError(400, '라운드 시작에 실패했습니다')
-        return errorResponse('ROUND_START_FAILED', 400, '라운드 시작에 실패했습니다')
+        logger.logError(400, '시련 시작에 실패했습니다')
+        return errorResponse('ROUND_START_FAILED', 400, '시련 시작에 실패했습니다')
       }
 
       await supabase.from('admin_audit_log').insert({

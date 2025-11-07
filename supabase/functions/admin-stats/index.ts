@@ -39,7 +39,7 @@ serve(
         supabase.from('game_rounds').select('*').eq('is_active', true).maybeSingle(),
       ])
 
-      // 3. 현재 라운드 참가자 수
+      // 3. 현재 시련 참가자 수
       let currentRoundStats = null
       if (currentRound) {
         const { count: participants } = await supabase

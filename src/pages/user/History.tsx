@@ -13,7 +13,7 @@ export const History: FC = () => {
 
   return (
     <MainLayout>
-      <Title level={2}>라운드 히스토리</Title>
+      <Title level={2}>시련 히스토리</Title>
       <List
         dataSource={history}
         grid={{ gutter: 16, column: 1 }}
@@ -97,7 +97,7 @@ export const History: FC = () => {
             </Space>
           </List.Item>
         )}
-        locale={{ emptyText: '아직 진행된 라운드가 없습니다' }}
+        locale={{ emptyText: '아직 진행된 시련가 없습니다' }}
       />
       <Title level={3} style={{ marginTop: 24 }}>
         시련 결과

@@ -32,16 +32,16 @@ export const PromptInput: FC = () => {
 
   // Determine the state to display
   const getPromptState = () => {
-    // 1. 활성 라운드 있고, 이미 제출함
+    // 1. 활성 시련 있고, 이미 제출함
     if (currentRound && hasSubmittedThisRound) {
       return {
         type: 'submitted',
-        title: '이번 라운드 제출 완료',
-        message: `Round #${currentRound.round_number}에 이미 참여하셨습니다. 다음 라운드를 기다려주세요!`,
+        title: '이번 시련 제출 완료',
+        message: `Round #${currentRound.round_number}에 이미 참여하셨습니다. 다음 시련를 기다려주세요!`,
       }
     }
 
-    // 2. 활성 라운드 있음 (제출 가능)
+    // 2. 활성 시련 있음 (제출 가능)
     if (currentRound) {
       return {
         type: 'active',
@@ -50,21 +50,21 @@ export const PromptInput: FC = () => {
       }
     }
 
-    // 3. 다음 라운드 대기 중
+    // 3. 다음 시련 대기 중
     if (nextRound) {
       return {
         type: 'waiting',
-        title: '다음 라운드 대기 중',
+        title: '다음 시련 대기 중',
         message: `Round #${nextRound.round_number}가 시작되면 프롬프트를 입력할 수 있습니다`,
         nextStart: new Date(nextRound.start_time).toLocaleString('ko-KR'),
       }
     }
 
-    // 4. 라운드 없음
+    // 4. 시련 없음
     return {
       type: 'no-round',
-      title: '진행 중인 라운드 없음',
-      message: '새로운 라운드가 시작될 때까지 기다려주세요',
+      title: '진행 중인 시련 없음',
+      message: '새로운 시련가 시작될 때까지 기다려주세요',
     }
   }
 

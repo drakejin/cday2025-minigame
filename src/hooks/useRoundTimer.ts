@@ -25,7 +25,7 @@ export const useRoundTimer = () => {
       const diff = endTime - now
 
       if (diff <= 0) {
-        setTimeRemaining('라운드 종료')
+        setTimeRemaining('시련 종료')
         return
       }
 

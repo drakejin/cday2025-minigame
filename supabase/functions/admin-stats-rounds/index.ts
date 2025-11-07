@@ -23,7 +23,7 @@ serve(
         return errorResponse('INVALID_REQUEST', 400, 'round_number가 필요합니다')
       }
 
-      // 1. 라운드 정보
+      // 1. 시련 정보
       const { data: round } = await supabase
         .from('game_rounds')
         .select('*')
@@ -31,8 +31,8 @@ serve(
         .single()
 
       if (!round) {
-        logger.logError(404, '라운드를 찾을 수 없습니다')
-        return errorResponse('ROUND_NOT_FOUND', 404, '라운드를 찾을 수 없습니다')
+        logger.logError(404, '시련를 찾을 수 없습니다')
+        return errorResponse('ROUND_NOT_FOUND', 404, '시련를 찾을 수 없습니다')
       }
 
       // 2. 프롬프트 통계

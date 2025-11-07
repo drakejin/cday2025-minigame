@@ -22,7 +22,7 @@ serve(
         return errorResponse('INVALID_REQUEST', 400, 'round_id와 new_end_time이 필요합니다')
       }
 
-      // 라운드 조회
+      // 시련 조회
       const { data: round } = await supabase
         .from('game_rounds')
         .select('*')
@@ -30,8 +30,8 @@ serve(
         .single()
 
       if (!round) {
-        logger.logError(404, '라운드를 찾을 수 없습니다')
-        return errorResponse('ROUND_NOT_FOUND', 404, '라운드를 찾을 수 없습니다')
+        logger.logError(404, '시련를 찾을 수 없습니다')
+        return errorResponse('ROUND_NOT_FOUND', 404, '시련를 찾을 수 없습니다')
       }
 
       // 새 종료 시간 검증
@@ -47,7 +47,7 @@ serve(
         )
       }
 
-      // 라운드 연장
+      // 시련 연장
       const { data: updated, error: updateError } = await supabase
         .from('game_rounds')
         .update({ end_time: new_end_time })

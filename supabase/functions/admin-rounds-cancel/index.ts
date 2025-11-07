@@ -22,7 +22,7 @@ serve(
         return errorResponse('INVALID_REQUEST', 400, 'round_id가 필요합니다')
       }
 
-      // 라운드 취소
+      // 시련 취소
       const { data: round, error: updateError } = await supabase
         .from('game_rounds')
         .update({
@@ -36,11 +36,11 @@ serve(
         .single()
 
       if (updateError || !round) {
-        logger.logError(400, '라운드 취소 실패 (이미 완료되었거나 존재하지 않음)')
+        logger.logError(400, '시련 취소 실패 (이미 완료되었거나 존재하지 않음)')
         return errorResponse(
           'ROUND_CANCEL_FAILED',
           400,
-          '라운드 취소 실패 (이미 완료되었거나 존재하지 않음)'
+          '시련 취소 실패 (이미 완료되었거나 존재하지 않음)'
         )
       }
 

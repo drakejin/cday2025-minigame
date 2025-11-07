@@ -55,7 +55,7 @@ export const Home: FC = () => {
     }
 
     if (!currentRound) {
-      message.error('현재 진행 중인 라운드가 없습니다')
+      message.error('현재 진행 중인 시련가 없습니다')
       return
     }
 
@@ -119,11 +119,11 @@ export const Home: FC = () => {
         {/* No Round Alert */}
         {!currentRound && (
           <Alert
-            message="현재 진행 중인 라운드가 없습니다"
+            message="현재 진행 중인 시련가 없습니다"
             description={
               nextRound
-                ? `다음 라운드(#${nextRound.round_number})는 ${new Date(nextRound.start_time).toLocaleString('ko-KR')}에 시작됩니다!`
-                : '새로운 라운드가 시작될 때까지 기다려주세요!'
+                ? `다음 시련(#${nextRound.round_number})는 ${new Date(nextRound.start_time).toLocaleString('ko-KR')}에 시작됩니다!`
+                : '새로운 시련가 시작될 때까지 기다려주세요!'
             }
             type="info"
             showIcon
@@ -215,8 +215,8 @@ export const Home: FC = () => {
         {/* Already Submitted Alert */}
         {hasSubmittedThisRound && (
           <Alert
-            message="이번 라운드에 이미 참가했습니다"
-            description="다음 라운드를 기다려주세요!"
+            message="이번 시련에 이미 참가했습니다"
+            description="다음 시련를 기다려주세요!"
             type="success"
             showIcon
           />

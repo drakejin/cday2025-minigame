@@ -30,12 +30,12 @@ export const usePromptSubmit = () => {
     }
 
     if (!currentRound) {
-      setError('현재 진행 중인 라운드가 없습니다')
+      setError('현재 진행 중인 시련가 없습니다')
       return false
     }
 
     if (hasSubmittedThisRound) {
-      setError('이번 라운드에 이미 제출했습니다')
+      setError('이번 시련에 이미 제출했습니다')
       return false
     }
 

@@ -16,7 +16,7 @@ serve(
         .maybeSingle()
 
       if (roundError || !round) {
-        return errorResponse('NO_ACTIVE_ROUND', 404, '활성 라운드가 없습니다')
+        return errorResponse('NO_ACTIVE_ROUND', 404, '활성 시련가 없습니다')
       }
 
       const { data: trials, error } = await supabase

@@ -57,8 +57,8 @@ serve(
         .single()
 
       if (createError || !round) {
-        logger.logError(500, createError?.message || '라운드 생성 실패')
-        return errorResponse('ROUND_CREATE_FAILED', 500, createError?.message || '라운드 생성 실패')
+        logger.logError(500, createError?.message || '시련 생성 실패')
+        return errorResponse('ROUND_CREATE_FAILED', 500, createError?.message || '시련 생성 실패')
       }
 
       await supabase.from('admin_audit_log').insert({

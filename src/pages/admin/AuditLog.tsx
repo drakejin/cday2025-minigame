@@ -24,11 +24,11 @@ const ACTION_COLORS: Record<string, string> = {
 }
 
 const ACTION_LABELS: Record<string, string> = {
-  round_create: '라운드 생성',
-  round_start: '라운드 시작',
-  round_end: '라운드 종료',
-  round_extend: '라운드 연장',
-  round_cancel: '라운드 취소',
+  round_create: '시련 생성',
+  round_start: '시련 시작',
+  round_end: '시련 종료',
+  round_extend: '시련 연장',
+  round_cancel: '시련 취소',
   prompt_delete: '프롬프트 삭제',
   user_ban: '사용자 제재',
   user_unban: '제재 해제',

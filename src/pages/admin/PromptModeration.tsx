@@ -81,7 +81,7 @@ export const PromptModeration: FC = () => {
 
   const columns = [
     {
-      title: '라운드',
+      title: '시련',
       dataIndex: 'roundNumber',
       key: 'roundNumber',
       width: 80,
@@ -167,12 +167,12 @@ export const PromptModeration: FC = () => {
               />
 
               <Select
-                placeholder="라운드 필터"
+                placeholder="시련 필터"
                 value={filterRound}
                 onChange={setFilterRound}
                 style={{ width: 150 }}
               >
-                <Select.Option value="all">전체 라운드</Select.Option>
+                <Select.Option value="all">전체 시련</Select.Option>
                 {roundsData?.rounds?.map((round: { id: string; roundNumber: number }) => (
                   <Select.Option key={round.id} value={round.roundNumber}>
                     Round {round.roundNumber}

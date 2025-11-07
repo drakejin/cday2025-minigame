@@ -353,7 +353,7 @@ export const UserManagement: FC = () => {
                     pagination={false}
                     columns={[
                       {
-                        title: '라운드',
+                        title: '시련',
                         dataIndex: 'roundNumber',
                         key: 'roundNumber',
                         width: 80,

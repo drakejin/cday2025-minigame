@@ -107,7 +107,7 @@ export const RoundManagement: FC = () => {
               icon={<PlayCircleOutlined />}
               onClick={() =>
                 startMutation.mutate(record.id, {
-                  onSuccess: () => message.success('라운드가 시작되었습니다'),
+                  onSuccess: () => message.success('시련가 시작되었습니다'),
                   onError: (error: Error) => message.error(error.message),
                 })
               }
@@ -123,7 +123,7 @@ export const RoundManagement: FC = () => {
               icon={<StopOutlined />}
               onClick={() =>
                 endMutation.mutate(record.id, {
-                  onSuccess: () => message.success('라운드가 종료되었습니다'),
+                  onSuccess: () => message.success('시련가 종료되었습니다'),
                   onError: (error: Error) => message.error(error.message),
                 })
               }
@@ -138,7 +138,7 @@ export const RoundManagement: FC = () => {
               icon={<CloseCircleOutlined />}
               onClick={() =>
                 cancelMutation.mutate(record.id, {
-                  onSuccess: () => message.success('라운드가 취소되었습니다'),
+                  onSuccess: () => message.success('시련가 취소되었습니다'),
                   onError: (error: Error) => message.error(error.message),
                 })
               }
@@ -173,7 +173,7 @@ export const RoundManagement: FC = () => {
               onClick={() =>
                 evaluateMutation.mutate(record.id, {
                   onSuccess: (data) => {
-                    message.success('라운드 평가가 완료되었습니다')
+                    message.success('시련 평가가 완료되었습니다')
                     setEvaluationResult(data)
                     setIsEvaluationModalOpen(true)
                   },
@@ -211,13 +211,13 @@ export const RoundManagement: FC = () => {
         },
         {
           onSuccess: () => {
-            message.success('라운드가 생성되었습니다')
+            message.success('시련가 생성되었습니다')
             setIsCreateModalOpen(false)
             form.resetFields()
           },
           onError: (error: Error) => {
             console.error('Create round error:', error)
-            message.error(`라운드 생성 실패: ${error.message}`)
+            message.error(`시련 생성 실패: ${error.message}`)
           },
         }
       )
@@ -356,7 +356,7 @@ export const RoundManagement: FC = () => {
       </Modal>
 
       <Modal
-        title="라운드 평가 결과"
+        title="시련 평가 결과"
         open={isEvaluationModalOpen}
         onCancel={() => {
           setIsEvaluationModalOpen(false)
@@ -378,8 +378,8 @@ export const RoundManagement: FC = () => {
         {evaluationResult && (
           <Space direction="vertical" style={{ width: '100%' }} size="large">
             <div>
-              <Title level={5}>라운드 정보</Title>
-              <p>라운드 번호: {evaluationResult.round?.round_number}</p>
+              <Title level={5}>시련 정보</Title>
+              <p>시련 번호: {evaluationResult.round?.round_number}</p>
               <p>제출된 프롬프트 수: {evaluationResult.promptsCount}</p>
             </div>
             <div>

@@ -43,7 +43,7 @@ serve(
         .eq('id', round_id)
         .maybeSingle()
       if (!round) {
-        return errorResponse('ROUND_NOT_FOUND', 404, '해당 라운드가 존재하지 않습니다')
+        return errorResponse('ROUND_NOT_FOUND', 404, '해당 시련가 존재하지 않습니다')
       }
 
       // Upsert trial (unique per round_id + trial_no)

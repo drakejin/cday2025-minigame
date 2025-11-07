@@ -49,8 +49,8 @@ serve(
         .maybeSingle()
 
       if (roundError || !round) {
-        logger.logError(400, '현재 진행 중인 라운드가 없습니다')
-        return errorResponse('ROUND_NOT_ACTIVE', 400, '현재 진행 중인 라운드가 없습니다')
+        logger.logError(400, '현재 진행 중인 시련가 없습니다')
+        return errorResponse('ROUND_NOT_ACTIVE', 400, '현재 진행 중인 시련가 없습니다')
       }
 
       const { data: existing } = await supabase
@@ -61,8 +61,8 @@ serve(
         .maybeSingle()
 
       if (existing) {
-        logger.logError(400, '이미 이번 라운드에 제출했습니다')
-        return errorResponse('ALREADY_SUBMITTED', 400, '이미 이번 라운드에 제출했습니다')
+        logger.logError(400, '이미 이번 시련에 제출했습니다')
+        return errorResponse('ALREADY_SUBMITTED', 400, '이미 이번 시련에 제출했습니다')
       }
 
       // Trial resolve: if trial_id provided, validate it belongs to current round; else try to fetch by round
@@ -87,11 +87,11 @@ serve(
         resolvedTrial = trials?.[0] || null
       }
       if (!resolvedTrial) {
-        logger.logError(400, '현재 라운드에 시련이 설정되지 않았습니다')
+        logger.logError(400, '현재 시련에 시련이 설정되지 않았습니다')
         return errorResponse(
           'TRIAL_NOT_CONFIGURED',
           400,
-          '현재 라운드에 시련이 설정되지 않았습니다'
+          '현재 시련에 시련이 설정되지 않았습니다'
         )
       }
 

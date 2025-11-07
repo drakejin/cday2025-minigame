@@ -18,7 +18,7 @@ export const useRealtimeRound = () => {
     // Subscribe to round updates
     channel = realtimeService.subscribeToRounds(() => {
       // Show notification
-      message.info('게임 라운드가 업데이트되었습니다!')
+      message.info('게임 시련가 업데이트되었습니다!')
 
       // Invalidate round queries to trigger refetch
       queryClient.invalidateQueries({ queryKey: queryKeys.round.all })

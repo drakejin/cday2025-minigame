@@ -22,7 +22,7 @@ serve(
         return errorResponse('INVALID_REQUEST', 400, 'round_id가 필요합니다')
       }
 
-      // 1. 라운드 정보 조회
+      // 1. 시련 정보 조회
       const { data: round, error: roundError } = await supabase
         .from('game_rounds')
         .select('id, round_number, status')
@@ -30,11 +30,11 @@ serve(
         .single()
 
       if (roundError || !round) {
-        logger.logError(404, '라운드를 찾을 수 없습니다')
-        return errorResponse('ROUND_NOT_FOUND', 404, '라운드를 찾을 수 없습니다')
+        logger.logError(404, '시련를 찾을 수 없습니다')
+        return errorResponse('ROUND_NOT_FOUND', 404, '시련를 찾을 수 없습니다')
       }
 
-      // 2. 해당 라운드에 제출된 프롬프트 정보 조회
+      // 2. 해당 시련에 제출된 프롬프트 정보 조회
       const { data: prompts, error: promptsError } = await supabase
         .from('prompt_history')
         .select(
@@ -67,8 +67,8 @@ serve(
       }
 
       if (!prompts || prompts.length === 0) {
-        logger.logError(404, '해당 라운드에 제출된 프롬프트가 없습니다')
-        return errorResponse('NO_PROMPTS_FOUND', 404, '해당 라운드에 제출된 프롬프트가 없습니다')
+        logger.logError(404, '해당 시련에 제출된 프롬프트가 없습니다')
+        return errorResponse('NO_PROMPTS_FOUND', 404, '해당 시련에 제출된 프롬프트가 없습니다')
       }
 
       // 3. Claude API 호출을 위한 데이터 준비
@@ -93,10 +93,10 @@ serve(
       }
 
       // Claude API에 보낼 메시지 구성
-      const systemPrompt = `당신은 게임 라운드의 프롬프트들을 평가하는 AI입니다.
+      const systemPrompt = `당신은 게임 시련의 프롬프트들을 평가하는 AI입니다.
 각 프롬프트의 창의성, 적절성, 게임 규칙 준수 여부를 평가해주세요.`
 
-      const userPrompt = `다음은 라운드 ${round.round_number}에 제출된 프롬프트들입니다:
+      const userPrompt = `다음은 시련 ${round.round_number}에 제출된 프롬프트들입니다:
 
 ${promptsData
   .map(

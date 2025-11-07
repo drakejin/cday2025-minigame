@@ -24,8 +24,8 @@ serve(
         .maybeSingle()
 
       if (!currentRound) {
-        logger.logError(400, '활성화된 라운드가 없습니다')
-        return errorResponse('NO_ACTIVE_ROUND', 400, '활성화된 라운드가 없습니다')
+        logger.logError(400, '활성화된 시련가 없습니다')
+        return errorResponse('NO_ACTIVE_ROUND', 400, '활성화된 시련가 없습니다')
       }
 
       const { data: round, error: updateError } = await supabase
@@ -42,8 +42,8 @@ serve(
         .single()
 
       if (updateError || !round) {
-        logger.logError(400, '라운드 종료에 실패했습니다')
-        return errorResponse('ROUND_END_FAILED', 400, '라운드 종료에 실패했습니다')
+        logger.logError(400, '시련 종료에 실패했습니다')
+        return errorResponse('ROUND_END_FAILED', 400, '시련 종료에 실패했습니다')
       }
 
       const { data: characters } = await supabase

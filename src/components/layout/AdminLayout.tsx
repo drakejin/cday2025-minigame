@@ -45,7 +45,7 @@ export const AdminLayout: FC<AdminLayoutProps> = ({ children }) => {
     {
       key: '/admin/rounds',
       icon: <ClockCircleOutlined />,
-      label: '라운드 관리',
+      label: '시련 관리',
     },
     {
       key: '/admin/prompts',

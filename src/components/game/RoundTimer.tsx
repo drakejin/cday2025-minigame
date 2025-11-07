@@ -145,7 +145,7 @@ export const RoundTimer: FC = memo(() => {
           <Space direction="vertical" style={{ width: '100%' }} size="large">
             <div style={{ fontSize: 64 }}>⏸️</div>
             <Title level={3} style={{ margin: 0 }}>
-              활성 라운드 없음
+              활성 시련 없음
             </Title>
             <Text type="secondary">대기 중</Text>
           </Space>
@@ -169,7 +169,7 @@ export const RoundTimer: FC = memo(() => {
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>⏳</div>
             <Title level={3} style={{ margin: 0, color: '#333' }}>
-              다음 라운드 대기 중
+              다음 시련 대기 중
             </Title>
           </div>
 
@@ -254,7 +254,7 @@ export const RoundTimer: FC = memo(() => {
           {/* Next Round Info */}
           <div style={{ textAlign: 'center', marginTop: 8 }}>
             <Text style={{ display: 'block', fontSize: 12, color: 'rgba(0,0,0,0.6)' }}>
-              다음 라운드
+              다음 시련
             </Text>
             <Title level={4} style={{ margin: '8px 0', color: '#1890ff' }}>
               Round #{nextRound.round_number}

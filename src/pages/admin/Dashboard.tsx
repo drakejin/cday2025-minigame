@@ -54,7 +54,7 @@ export const AdminDashboard: FC = () => {
           <Col xs={24} sm={12} md={6}>
             <Card>
               <Statistic
-                title="총 라운드"
+                title="총 시련"
                 value={stats?.totalRounds || 0}
                 prefix={<ClockCircleOutlined />}
               />
@@ -63,10 +63,10 @@ export const AdminDashboard: FC = () => {
         </Row>
 
         {stats?.activeRound && (
-          <Card title="현재 활성 라운드">
+          <Card title="현재 활성 시련">
             <Row gutter={[16, 16]}>
               <Col xs={24} sm={12}>
-                <Statistic title="라운드 번호" value={stats.activeRound.roundNumber} />
+                <Statistic title="시련 번호" value={stats.activeRound.roundNumber} />
               </Col>
               <Col xs={24} sm={12}>
                 <Statistic title="참가자" value={stats.activeRound.participants || 0} suffix="명" />
