@@ -40,6 +40,7 @@ serve(
         .from('characters')
         .select('id')
         .eq('id', character_id)
+        .eq('user_id', user.id)
         .eq('is_active', true)
         .single()
 
@@ -48,24 +49,64 @@ serve(
         return errorResponse('CHARACTER_NOT_FOUND', 404)
       }
 
-      // Weighted totals from view
-      const { data: myScoreRow } = await supabase
-        .from('v_weighted_scores')
-        .select('character_id, weighted_total')
-        .eq('character_id', character_id)
-        .maybeSingle()
+      // Get all active characters
+      const { data: characters, error: charactersError } = await supabase
+        .from('characters')
+        .select('id')
+        .eq('is_active', true)
 
-      const myWeighted = myScoreRow?.weighted_total || 0
+      if (charactersError) {
+        throw charactersError
+      }
 
-      const { data: higherRows } = await supabase
-        .from('v_weighted_scores')
-        .select('character_id, weighted_total')
-        .gt('weighted_total', myWeighted)
+      if (!characters || characters.length === 0) {
+        logger.logSuccess(200, {
+          rank: 1,
+          total_participants: 1,
+          percentile: 100,
+          character: { weighted_total: 0 },
+        })
+        return successResponse({
+          rank: 1,
+          total_participants: 1,
+          percentile: 100,
+          character: { weighted_total: 0 },
+        })
+      }
 
-      const { data: totalRows } = await supabase.from('v_weighted_scores').select('character_id')
+      // Get all prompt history for active characters (not deleted)
+      const characterIds = characters.map((c: { id: string }) => c.id)
+      const { data: prompts, error: promptsError } = await supabase
+        .from('prompt_history')
+        .select('character_id, str, dex, con, int')
+        .in('character_id', characterIds)
+        .eq('is_deleted', false)
 
-      const higherCount = higherRows?.length || 0
-      const totalParticipants = totalRows?.length || 0
+      if (promptsError) {
+        throw promptsError
+      }
+
+      // Calculate total score for each character
+      const scoreMap = new Map<string, number>()
+
+      for (const prompt of prompts || []) {
+        const currentScore = scoreMap.get(prompt.character_id) || 0
+        const promptScore =
+          (prompt.str || 0) + (prompt.dex || 0) + (prompt.con || 0) + (prompt.int || 0)
+        scoreMap.set(prompt.character_id, currentScore + promptScore)
+      }
+
+      // Convert to sorted array
+      const allScores = Array.from(scoreMap.entries())
+        .map(([character_id, total_score]) => ({ character_id, total_score }))
+        .sort((a, b) => b.total_score - a.total_score)
+
+      // Find my character's score
+      const myWeighted = scoreMap.get(character_id) || 0
+
+      // Count characters with higher scores
+      const higherCount = allScores.filter((s) => s.total_score > myWeighted).length
+      const totalParticipants = characters.length
       const rank = higherCount + 1
       const percentile = totalParticipants
         ? ((totalParticipants - rank + 1) / totalParticipants) * 100

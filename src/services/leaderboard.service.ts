@@ -1,3 +1,4 @@
+import { FunctionRegion } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
 import type { LeaderboardResponse, LeaderboardEntry } from '@/types'
@@ -9,6 +10,7 @@ export const leaderboardService = {
   async getCurrentLeaderboard(limit = 100, offset = 0): Promise<LeaderboardResponse> {
     const { data, error } = await supabase.functions.invoke('get-characters-ranking', {
       body: { limit, offset },
+      region: FunctionRegion.ApNortheast2,
     })
 
     const raw = handleEdgeFunctionResponse<{
@@ -49,6 +51,7 @@ export const leaderboardService = {
   async getMyRank(characterId: string) {
     const { data, error } = await supabase.functions.invoke('get-my-rank', {
       body: { character_id: characterId },
+      region: FunctionRegion.ApNortheast2,
     })
 
     return handleEdgeFunctionResponse(data, error, 'Failed to get rank')

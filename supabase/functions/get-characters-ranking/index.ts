@@ -66,7 +66,8 @@ serve(
         existing.total_dex += p.dex || 0
         existing.total_con += p.con || 0
         existing.total_int += p.int || 0
-        existing.total_score = existing.total_str + existing.total_dex + existing.total_con + existing.total_int
+        existing.total_score =
+          existing.total_str + existing.total_dex + existing.total_con + existing.total_int
         scoreMap.set(p.character_id, existing)
       }
 

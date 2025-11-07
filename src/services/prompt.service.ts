@@ -1,3 +1,4 @@
+import { FunctionRegion } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
 import type { SubmitPromptResponse, RoundHistory } from '@/types/game.types'
@@ -12,6 +13,7 @@ export const promptService = {
         character_id: characterId,
         prompt,
       },
+      region: FunctionRegion.ApNortheast2,
     })
     console.log('submitPrompt response:', data, error)
     return handleEdgeFunctionResponse<SubmitPromptResponse>(data, error, 'Failed to submit prompt')
@@ -25,6 +27,7 @@ export const promptService = {
   async getRoundHistory(limit = 20, offset = 0): Promise<RoundHistory[]> {
     const { data, error } = await supabase.functions.invoke('get-my-round-history', {
       body: { limit, offset },
+      region: FunctionRegion.ApNortheast2,
     })
 
     const result = handleEdgeFunctionResponse<{ data: RoundHistory[] }>(

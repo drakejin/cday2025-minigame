@@ -1,4 +1,0 @@
-# supabase/config.toml 설정
-[functions]
-  # 한국에 가까운 리전 지정
-  region = "ap-northeast-2"  # Tokyo
