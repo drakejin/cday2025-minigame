@@ -43,10 +43,6 @@ CREATE TABLE characters (
   user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   name VARCHAR(100) NOT NULL,
   current_prompt TEXT NOT NULL CHECK (char_length(current_prompt) <= 30),
-  total_score INTEGER DEFAULT 0 NOT NULL,
-  strength INTEGER DEFAULT 0 NOT NULL,
-  charm INTEGER DEFAULT 0 NOT NULL,
-  creativity INTEGER DEFAULT 0 NOT NULL,
   is_active BOOLEAN DEFAULT true NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
@@ -58,7 +54,6 @@ CREATE UNIQUE INDEX idx_one_active_character_per_user
   WHERE is_active = true;
 
 CREATE INDEX idx_characters_user_id ON characters(user_id);
-CREATE INDEX idx_characters_total_score ON characters(total_score DESC);
 CREATE INDEX idx_characters_is_active ON characters(is_active) WHERE is_active = true;
 ```
 
@@ -192,11 +187,10 @@ CREATE TABLE trials (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   round_id UUID NOT NULL REFERENCES game_rounds(id) ON DELETE CASCADE,
   trial_no SMALLINT NOT NULL CHECK (trial_no IN (1,2,3)),
-  level SMALLINT NOT NULL CHECK (level IN (1,2,3)),
-  weight_multiplier SMALLINT NOT NULL CHECK (weight_multiplier IN (1,2,3,4)),
   status VARCHAR(20) NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled','active','completed','cancelled')),
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  trials_text TEXT,
   CONSTRAINT uq_trial_per_round UNIQUE (round_id, trial_no)
 );
 ```
@@ -211,12 +205,11 @@ CREATE TABLE trial_results (
   character_id UUID NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   prompt_history_id UUID NOT NULL REFERENCES prompt_history(id) ON DELETE CASCADE,
-  score_strength INTEGER NOT NULL DEFAULT 0,
-  score_dexterity INTEGER NOT NULL DEFAULT 0,
-  score_constitution INTEGER NOT NULL DEFAULT 0,
-  score_intelligence INTEGER NOT NULL DEFAULT 0,
+  score_str INTEGER NOT NULL DEFAULT 0,
+  score_dex INTEGER NOT NULL DEFAULT 0,
+  score_con INTEGER NOT NULL DEFAULT 0,
+  score_int INTEGER NOT NULL DEFAULT 0,
   total_score INTEGER NOT NULL DEFAULT 0,
-  weighted_total INTEGER NOT NULL DEFAULT 0,
   needs_revalidation BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
@@ -224,17 +217,7 @@ CREATE TABLE trial_results (
 );
 ```
 
-### 9. v_weighted_scores (VIEW)
-시련 결과의 가중 총합 기준 리더보드 집계 뷰
-
-```sql
-CREATE OR REPLACE VIEW v_weighted_scores AS
-SELECT character_id, SUM(weighted_total) AS weighted_total
-FROM trial_results
-GROUP BY character_id;
-```
-
-### 10. leaderboard_snapshots
+### 9. leaderboard_snapshots
 라운드별 순위 스냅샷
 
 ```sql
@@ -245,9 +228,7 @@ CREATE TABLE leaderboard_snapshots (
   user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   rank INTEGER NOT NULL,
   total_score INTEGER NOT NULL,
-  strength INTEGER NOT NULL,
-  charm INTEGER NOT NULL,
-  creativity INTEGER NOT NULL,
+  trial_no INTEGER NULL,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
 
   CONSTRAINT unique_character_per_snapshot UNIQUE (round_number, character_id)
@@ -256,7 +237,7 @@ CREATE TABLE leaderboard_snapshots (
 CREATE INDEX idx_leaderboard_round_rank ON leaderboard_snapshots(round_number, rank);
 ```
 
-### 11. admin_audit_log
+### 10. admin_audit_log
 Admin 행동 추적 로그
 
 ```sql
