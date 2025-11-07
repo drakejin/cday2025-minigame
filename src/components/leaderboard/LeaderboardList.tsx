@@ -1,5 +1,5 @@
 import type { FC } from 'react'
-import { List, Tag, Space, Typography } from 'antd'
+import { List, Tag, Space, Typography, Flex, Button, } from 'antd'
 import { TrophyOutlined, FireOutlined, HeartOutlined, BulbOutlined } from '@ant-design/icons'
 import type { LeaderboardEntry } from '@/types'
 import { getRankColor } from '@/utils'
@@ -19,7 +19,12 @@ export const LeaderboardList: FC<LeaderboardListProps> = ({
 }) => {
   return (
     <>
-      <Title level={2}>순위</Title>
+      <Flex>
+        <Title level={2}>순위</Title>
+        <Button type="link" href="/award">
+          award 페이지 이동
+        </Button>
+      </Flex>
       <List
         loading={loading}
         dataSource={data}

@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react'
 import styled, { css, keyframes } from 'styled-components'
 import type { LeaderboardEntry } from '@/types'
 import { useLeaderboard } from '@/hooks/queries/useLeaderboardQuery'
+import { MainLayout } from '@/components/layout/MainLayout'
+import { useAuthStore } from '@/store/authStore'
 
 const { Title, Text } = Typography
 
@@ -833,6 +835,7 @@ const getRankIcon = (rank: number) => {
 
 export const Award: FC = () => {
   const { data: leaderboard, isLoading } = useLeaderboard(50, 0)
+  const user = useAuthStore((state) => state.user)
   const [isMobile, setIsMobile] = useState(false)
 
   // Detect mobile screen size
@@ -863,15 +866,13 @@ export const Award: FC = () => {
   const topThree = displayData.slice(0, 3)
   const remaining = displayData.slice(3)
 
-  // 1�D Y� 0XX0 t  �0� [2�, 1�, 3�]
-  // 모바일: [1등, 2등, 3등] 순서대로
-  // 데스크톱: [2등, 1등, 3등] 중앙에 1등 배치
   const reorderedTopThree = isMobile
     ? topThree
     : [topThree[1], topThree[0], topThree[2]].filter(Boolean)
 
   return (
-    <AwardContainer>
+    <MainLayout showBottomNav={!!user} withoutPadding={true}>
+      <AwardContainer>
       <Header>
         <MainTitle level={1}>Champions</MainTitle>
         <Subtitle>Hall of Fame</Subtitle>
@@ -920,5 +921,6 @@ export const Award: FC = () => {
         </RankingList>
       )}
     </AwardContainer>
+    </MainLayout>
   )
 }

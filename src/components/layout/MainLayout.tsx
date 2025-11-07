@@ -7,21 +7,22 @@ const { Content } = Layout
 interface MainLayoutProps {
   children: ReactNode
   showBottomNav?: boolean
+  withoutPadding?: boolean
 }
 
-export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
+export const MainLayout: FC<MainLayoutProps> = ({ children, showBottomNav = true, withoutPadding = false }) => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Content
         style={{
-          padding: '16px',
-          paddingBottom: '80px',
+          padding: withoutPadding ? '0' : '16px',
+          paddingBottom: withoutPadding ? '0' : '80px',
         }}
       >
         {children}
       </Content>
 
-      <BottomNavigation />
+      {showBottomNav && <BottomNavigation />}
     </Layout>
   )
 }
