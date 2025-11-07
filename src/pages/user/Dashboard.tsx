@@ -105,7 +105,7 @@ export const Dashboard: FC = () => {
 
     setIsLoadingPlan(true)
     loadPlan()
-  }, [character?.id, character?.updated_at])
+  }, [character?.id])
 
   if (characterLoading || isLoadingPlan) {
     return <Loading fullscreen tip="로딩 중..." />
