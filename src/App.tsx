@@ -21,6 +21,7 @@ import { Dashboard } from './pages/user/Dashboard'
 import { Leaderboard } from './pages/user/Leaderboard'
 import { Profile } from './pages/user/Profile'
 import { History } from './pages/user/History'
+import { Award } from './pages/user/Award'
 
 // Loading fallback component
 const PageLoader = () => (
@@ -60,8 +61,8 @@ function App() {
                 <Routes>
                   {/* Public Routes - Redirect to dashboard if logged in */}
                   <Route element={<PublicOnlyGuard />}>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/awards" element={<Awards />} />
+                    <Route path="/" element={<Home />} />
+                    <Route path="/award" element={<Award />} />
                   </Route>
 
                   {/* Protected Routes - Require Authentication */}

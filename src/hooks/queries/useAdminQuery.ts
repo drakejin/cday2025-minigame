@@ -82,6 +82,17 @@ export const useExtendRound = () => {
   })
 }
 
+export const useEvaluateRound = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (roundId: string) => adminService.evaluateRound(roundId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.rounds })
+    },
+  })
+}
+
 /**
  * Admin Prompts Queries
  */

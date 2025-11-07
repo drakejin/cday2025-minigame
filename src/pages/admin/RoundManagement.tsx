@@ -18,6 +18,7 @@ import {
   PlayCircleOutlined,
   StopOutlined,
   CloseCircleOutlined,
+  CheckCircleOutlined,
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { AdminLayout } from '@/components/layout/AdminLayout'
@@ -28,6 +29,7 @@ import {
   useStartRound,
   useEndRound,
   useCancelRound,
+  useEvaluateRound,
 } from '@/hooks/queries/useAdminQuery'
 import { trialService } from '@/services/trial.service'
 
@@ -40,6 +42,8 @@ export const RoundManagement: FC = () => {
   const [trialModalRound, setTrialModalRound] = useState<AdminRound | null>(null)
   const [trialsLoading, setTrialsLoading] = useState(false)
   const [trials, setTrials] = useState<any[]>([])
+  const [isEvaluationModalOpen, setIsEvaluationModalOpen] = useState(false)
+  const [evaluationResult, setEvaluationResult] = useState<any>(null)
   const [form] = Form.useForm()
 
   const { data: rounds, isLoading } = useAdminRounds()
@@ -48,6 +52,7 @@ export const RoundManagement: FC = () => {
   const startMutation = useStartRound()
   const endMutation = useEndRound()
   const cancelMutation = useCancelRound()
+  const evaluateMutation = useEvaluateRound()
 
   const getStatusTag = (status: string) => {
     const colors: Record<string, string> = {
@@ -160,6 +165,26 @@ export const RoundManagement: FC = () => {
           >
             Manage Trials
           </Button>
+          {(record.status === 'active' || record.status === 'completed') && (
+            <Button
+              type="default"
+              size="small"
+              icon={<CheckCircleOutlined />}
+              onClick={() =>
+                evaluateMutation.mutate(record.id, {
+                  onSuccess: (data) => {
+                    message.success('라운드 평가가 완료되었습니다')
+                    setEvaluationResult(data)
+                    setIsEvaluationModalOpen(true)
+                  },
+                  onError: (error: Error) => message.error(error.message),
+                })
+              }
+              loading={evaluateMutation.isPending}
+            >
+              평가
+            </Button>
+          )}
         </Space>
       ),
     },
@@ -328,6 +353,62 @@ export const RoundManagement: FC = () => {
             pagination={false}
           />
         </Space>
+      </Modal>
+
+      <Modal
+        title="라운드 평가 결과"
+        open={isEvaluationModalOpen}
+        onCancel={() => {
+          setIsEvaluationModalOpen(false)
+          setEvaluationResult(null)
+        }}
+        footer={[
+          <Button
+            key="close"
+            onClick={() => {
+              setIsEvaluationModalOpen(false)
+              setEvaluationResult(null)
+            }}
+          >
+            닫기
+          </Button>,
+        ]}
+        width={800}
+      >
+        {evaluationResult && (
+          <Space direction="vertical" style={{ width: '100%' }} size="large">
+            <div>
+              <Title level={5}>라운드 정보</Title>
+              <p>라운드 번호: {evaluationResult.round?.round_number}</p>
+              <p>제출된 프롬프트 수: {evaluationResult.promptsCount}</p>
+            </div>
+            <div>
+              <Title level={5}>Claude AI 평가 결과</Title>
+              <Card>
+                <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                  {evaluationResult.evaluation}
+                </pre>
+              </Card>
+            </div>
+            {evaluationResult.prompts && evaluationResult.prompts.length > 0 && (
+              <div>
+                <Title level={5}>프롬프트 목록</Title>
+                <Table
+                  dataSource={evaluationResult.prompts}
+                  rowKey="promptId"
+                  columns={[
+                    { title: '캐릭터', dataIndex: 'characterName', key: 'characterName' },
+                    { title: '사용자', dataIndex: 'username', key: 'username' },
+                    { title: '시련', dataIndex: 'trialNo', key: 'trialNo' },
+                    { title: '프롬프트', dataIndex: 'promptText', key: 'promptText' },
+                  ]}
+                  pagination={{ pageSize: 5 }}
+                  scroll={{ x: true }}
+                />
+              </div>
+            )}
+          </Space>
+        )}
       </Modal>
     </AdminLayout>
   )

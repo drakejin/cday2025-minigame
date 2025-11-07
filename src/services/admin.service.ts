@@ -64,6 +64,15 @@ export const adminService = {
     return this.listRounds(undefined, 100, 0)
   },
 
+  async evaluateRound(roundId: string) {
+    const { data, error } = await supabase.functions.invoke('admin-round-evaluator', {
+      body: { round_id: roundId },
+    })
+    if (error) throw error
+    if (!data.success) throw new Error(data.message || data.error || 'Failed to evaluate round')
+    return data.data
+  },
+
   // ==================== Prompt Management ====================
   async listPrompts(userId?: string, roundNumber?: number, limit = 50, offset = 0) {
     const { data, error } = await supabase.functions.invoke('admin-prompts-list', {

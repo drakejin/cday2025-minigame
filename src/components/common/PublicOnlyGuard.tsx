@@ -1,5 +1,5 @@
 import type { FC } from 'react'
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { Spin } from 'antd'
 import { useAuthStore } from '@/store/authStore'
 
@@ -8,8 +8,13 @@ import { useAuthStore } from '@/store/authStore'
  * Used for routes that should only be accessible to non-authenticated users (Landing, Login)
  */
 export const PublicOnlyGuard: FC = () => {
+  const location = useLocation()
   const user = useAuthStore((state) => state.user)
   const initialized = useAuthStore((state) => state.initialized)
+
+  if (location.pathname === '/award') {
+    return <Outlet />
+  }
 
   // Wait for auth to initialize
   if (!initialized) {
@@ -26,7 +31,6 @@ export const PublicOnlyGuard: FC = () => {
       </div>
     )
   }
-
   // Redirect to dashboard if user is logged in
   if (user) {
     return <Navigate to="/dashboard" replace />
