@@ -45,18 +45,15 @@ export const StatInput: FC = () => {
         </Text>
       </div>
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-        {Array.from({ length: trial_no }, (_, i) => {
-          const config = TRIAL_CONFIGS[i]
-          return (
-            <Alert
-              key={i + 1}
-              message={config.title}
-              description={config.description}
-              type="info"
-              showIcon
-            />
-          )
-        })}
+        {Array.from({ length: Math.min(trial_no, TRIAL_CONFIGS.length) }, (_, i) => (
+          <Alert
+            key={i + 1}
+            message={TRIAL_CONFIGS[i].title}
+            description={TRIAL_CONFIGS[i].description}
+            type="info"
+            showIcon
+          />
+        ))}
       </Space>
     </Card>
   )
