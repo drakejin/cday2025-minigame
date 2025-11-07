@@ -1,8 +1,8 @@
-import { useState } from 'react'
 import type { FC } from 'react'
 import { Card, Typography, Space, Select, Input, Row, Col, Divider } from 'antd'
 import { ThunderboltOutlined, RocketOutlined, HeartOutlined, BulbOutlined } from '@ant-design/icons'
 import { useCurrentRound } from '@/hooks/queries/useGameQuery'
+import type { TrialData } from '@/pages/user/Dashboard'
 
 const { Title, Text } = Typography
 const { TextArea } = Input
@@ -15,15 +15,25 @@ const STAT_LABELS = [
   { key: 'int', label: 'INT (지능)', icon: BulbOutlined, color: '#a855f7' },
 ]
 
-const TrialInput: FC<{ trialNo: number }> = ({ trialNo }) => {
-  const [baseStats, setBaseStats] = useState<Record<string, number | null>>({
+const TrialInput: FC<{
+  trialNo: number
+  data: TrialData
+  onChange: (data: TrialData) => void
+}> = ({ trialNo, data, onChange }) => {
+  const baseStats: Record<string, number | null> = data.baseStats || {
     str: null,
     dex: null,
     con: null,
     int: null,
-  })
-  const [bonusStats, setBonusStats] = useState<[string | null, string | null]>([null, null])
-  const [skill, setSkill] = useState('')
+  }
+  const bonusStats: [string | null, string | null] = data.bonusStats || [null, null]
+  const skill = data.skill || ''
+
+  const setBaseStats = (stats: Record<string, number | null>) =>
+    onChange({ ...data, baseStats: stats })
+  const setBonusStats = (stats: [string | null, string | null]) =>
+    onChange({ ...data, bonusStats: stats })
+  const setSkill = (s: string) => onChange({ ...data, skill: s })
 
   const availableBaseValues = BASE_STATS.filter((val) => !Object.values(baseStats).includes(val))
   const availableBonusStats = STAT_LABELS.map((s) => s.key).filter(
@@ -128,7 +138,10 @@ const TrialInput: FC<{ trialNo: number }> = ({ trialNo }) => {
   )
 }
 
-export const StatInput: FC = () => {
+export const StatInput: FC<{
+  trialData: Record<number, TrialData>
+  setTrialData: (data: Record<number, TrialData>) => void
+}> = ({ trialData, setTrialData }) => {
   const { data } = useCurrentRound()
 
   if (!data?.currentRound?.trial_no) {
@@ -154,12 +167,19 @@ export const StatInput: FC = () => {
         </Text>
       </div>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        {Array.from({ length: trial_no }, (_, i) => (
-          <div key={i + 1}>
-            <TrialInput trialNo={i + 1} />
-            {i < trial_no - 1 && <Divider />}
-          </div>
-        ))}
+        {Array.from({ length: trial_no }, (_, i) => {
+          const trialNo = i + 1
+          return (
+            <div key={trialNo}>
+              <TrialInput
+                trialNo={trialNo}
+                data={trialData[trialNo] || { skill: '' }}
+                onChange={(data) => setTrialData({ ...trialData, [trialNo]: data })}
+              />
+              {i < trial_no - 1 && <Divider />}
+            </div>
+          )
+        })}
       </Space>
     </Card>
   )

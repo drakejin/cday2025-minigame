@@ -33,22 +33,17 @@ serve(
         return errorResponse('Unauthorized', 401)
       }
 
-      const { character_id, prompt } = await req.json()
-      logger.setRequestBody({ character_id, prompt })
+      const { character_id, prompt, trial_data } = await req.json()
+      logger.setRequestBody({ character_id, prompt, trial_data })
 
       if (!character_id) {
         logger.logError(400, '캐릭터 ID가 필요합니다')
         return errorResponse('CHARACTER_ID_REQUIRED', 400, '캐릭터 ID가 필요합니다')
       }
 
-      if (!prompt || typeof prompt !== 'string') {
-        logger.logError(400, '프롬프트를 입력해주세요')
-        return errorResponse('INVALID_PROMPT', 400, '프롬프트를 입력해주세요')
-      }
-
-      if (prompt.trim().length === 0 || prompt.length > 30) {
-        logger.logError(400, '프롬프트는 1-30자 사이여야 합니다')
-        return errorResponse('INVALID_PROMPT_LENGTH', 400, '프롬프트는 1-30자 사이여야 합니다')
+      if (!trial_data || typeof trial_data !== 'object') {
+        logger.logError(400, '능력치 데이터를 입력해주세요')
+        return errorResponse('INVALID_TRIAL_DATA', 400, '능력치 데이터를 입력해주세요')
       }
 
       // Parallel: Verify character ownership and get active round
@@ -96,6 +91,7 @@ serve(
         return errorResponse('ALREADY_SUBMITTED', 400, '이미 이번 시련에 제출했습니다')
       }
 
+      // Calculate stats from trial_data
       const { data: plan, error: planError } = planResult
       if (planError) {
         logger.logError(500, '캐릭터 플랜 조회 실패')
@@ -113,13 +109,68 @@ serve(
 
       // Use round_number directly as level (1, 2, or 3)
       const level = round.round_number
-      const levelPrefix = `lv${level}`
+      const currentTrial = trial_data[level]
 
-      const str = plan[`${levelPrefix}_str`]
-      const dex = plan[`${levelPrefix}_dex`]
-      const con = plan[`${levelPrefix}_con`]
-      const int = plan[`${levelPrefix}_int`]
-      const skill = plan[`${levelPrefix}_skill`]
+      if (!currentTrial) {
+        logger.logError(400, `Trial ${level} 데이터가 없습니다`)
+        return errorResponse('TRIAL_DATA_MISSING', 400, `Trial ${level} 데이터가 없습니다`)
+      }
+
+      // Calculate final stats
+      let str = 0,
+        dex = 0,
+        con = 0,
+        int = 0
+
+      // Add base stats from trial 1
+      if (trial_data[1]?.baseStats) {
+        str += trial_data[1].baseStats.str || 0
+        dex += trial_data[1].baseStats.dex || 0
+        con += trial_data[1].baseStats.con || 0
+        int += trial_data[1].baseStats.int || 0
+      }
+
+      // Add bonus stats from trial 2 and 3
+      for (let i = 2; i <= level; i++) {
+        if (trial_data[i]?.bonusStats) {
+          const [stat1, stat2] = trial_data[i].bonusStats
+          if (stat1) str += stat1 === 'str' ? 1 : 0
+          if (stat1) dex += stat1 === 'dex' ? 1 : 0
+          if (stat1) con += stat1 === 'con' ? 1 : 0
+          if (stat1) int += stat1 === 'int' ? 1 : 0
+          if (stat2) str += stat2 === 'str' ? 1 : 0
+          if (stat2) dex += stat2 === 'dex' ? 1 : 0
+          if (stat2) con += stat2 === 'con' ? 1 : 0
+          if (stat2) int += stat2 === 'int' ? 1 : 0
+        }
+      }
+
+      const skill = currentTrial.skill || ''
+
+      // Save to character_plans
+      const planData: any = {}
+      for (let i = 1; i <= level; i++) {
+        const trial = trial_data[i]
+        if (i === 1 && trial?.baseStats) {
+          planData.lv1_str = trial.baseStats.str
+          planData.lv1_dex = trial.baseStats.dex
+          planData.lv1_con = trial.baseStats.con
+          planData.lv1_int = trial.baseStats.int
+          planData.lv1_skill = trial.skill
+        } else if (i >= 2 && trial?.bonusStats) {
+          const [stat1, stat2] = trial.bonusStats
+          planData[`lv${i}_str`] = stat1 === 'str' || stat2 === 'str' ? 1 : 0
+          planData[`lv${i}_dex`] = stat1 === 'dex' || stat2 === 'dex' ? 1 : 0
+          planData[`lv${i}_con`] = stat1 === 'con' || stat2 === 'con' ? 1 : 0
+          planData[`lv${i}_int`] = stat1 === 'int' || stat2 === 'int' ? 1 : 0
+          planData[`lv${i}_skill`] = trial.skill
+        }
+      }
+
+      await supabase.from('character_plans').upsert({
+        character_id,
+        ...planData,
+      })
 
       // Validate that stats are set for this level
       if ([str, dex, con, int].some((stat) => stat == null)) {

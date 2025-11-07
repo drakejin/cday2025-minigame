@@ -76,6 +76,7 @@ export const Home: FC = () => {
         await submitPrompt.mutateAsync({
           characterId,
           prompt: prompt.trim(),
+          trialData: {},
         })
         message.success('프롬프트가 제출되었습니다!')
         setPrompt('')
