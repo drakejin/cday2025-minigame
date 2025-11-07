@@ -39,11 +39,23 @@ export const usePromptSubmit = () => {
       return false
     }
 
+    // Validate prompt length
+    const trimmedPrompt = prompt.trim()
+    if (trimmedPrompt.length === 0) {
+      setError('프롬프트를 입력해주세요')
+      return false
+    }
+
+    if (trimmedPrompt.length > 30) {
+      setError('프롬프트는 30자 이하로 입력해주세요')
+      return false
+    }
+
     try {
       setError(null)
       await submitMutation.mutateAsync({
         characterId: character.id,
-        prompt,
+        prompt: trimmedPrompt,
       })
       message.success('프롬프트가 제출되었습니다!')
       return true

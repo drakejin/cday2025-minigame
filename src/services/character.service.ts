@@ -15,8 +15,7 @@ export const characterService = {
    * Get user's active character (Edge Function)
    */
   async getMyCharacter(): Promise<CharacterWithSubmission | null> {
-    const { data, error } = await supabase.functions.invoke('get-my-character', {
-    })
+    const { data, error } = await supabase.functions.invoke('get-my-character', {})
     return handleEdgeFunctionResponse<CharacterWithSubmission | null>(
       data,
       error,
