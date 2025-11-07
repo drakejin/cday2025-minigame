@@ -9,19 +9,19 @@ interface MainLayoutProps {
   showBottomNav?: boolean
 }
 
-export const MainLayout: FC<MainLayoutProps> = ({ children, showBottomNav = true }) => {
+export const MainLayout: FC<MainLayoutProps> = ({ children}) => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Content
         style={{
           padding: '16px',
-          paddingBottom: showBottomNav ? '80px' : '16px',
+          paddingBottom: '80px',
         }}
       >
         {children}
       </Content>
 
-      {showBottomNav && <BottomNavigation />}
+      <BottomNavigation />
     </Layout>
   )
 }
