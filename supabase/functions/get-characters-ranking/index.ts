@@ -11,7 +11,7 @@ serve(
       const limit = parseInt(url.searchParams.get('limit') || '100')
       const offset = parseInt(url.searchParams.get('offset') || '0')
 
-      // Aggregate from trial_results (weighted_total)
+      // Aggregate from prompt_history (scores stored in prompt_history now)
       const { data: aggregated, error } = await supabase
         .from('v_weighted_scores')
         .select('character_id, weighted_total')

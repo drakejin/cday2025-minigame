@@ -23,15 +23,3 @@ export const useCreateCharacter = () => {
     },
   })
 }
-
-export const useUpdateCharacterName = () => {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({ characterId, name }: { characterId: string; name: string }) =>
-      characterService.updateCharacterName(characterId, name),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.character.all })
-    },
-  })
-}

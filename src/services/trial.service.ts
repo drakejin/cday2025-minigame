@@ -1,6 +1,6 @@
-import { supabase } from './supabase'
-import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
 import type { Trial } from '@/types'
+import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
+import { supabase } from './supabase'
 
 export const trialService = {
   async getActiveRoundTrials(): Promise<{ round_id: string; trials: Trial[] }> {
@@ -40,17 +40,6 @@ export const trialService = {
       body: params,
     })
     return handleEdgeFunctionResponse<{ trial: Trial }>(data, error, 'Failed to create trial')
-  },
-  async adminUpdateTrial(params: {
-    trial_id: string
-    level?: 1 | 2 | 3
-    weight_multiplier?: 1 | 2 | 3 | 4
-    status?: string
-  }) {
-    const { data, error } = await supabase.functions.invoke('admin-trials-update', {
-      body: params,
-    })
-    return handleEdgeFunctionResponse<{ trial: Trial }>(data, error, 'Failed to update trial')
   },
   async adminDeleteTrial(trial_id: string) {
     const { data, error } = await supabase.functions.invoke('admin-trials-delete', {

@@ -60,10 +60,6 @@ export const adminService = {
     return data.data
   },
 
-  async getRounds() {
-    return this.listRounds(undefined, 100, 0)
-  },
-
   async evaluateRound(roundId: string) {
     const { data, error } = await supabase.functions.invoke('admin-round-evaluator', {
       body: { round_id: roundId },
@@ -83,10 +79,6 @@ export const adminService = {
     return data.data
   },
 
-  async getPrompts(filters?: { round_id?: number; flagged_only?: boolean }) {
-    return this.listPrompts(undefined, filters?.round_id, 500, 0)
-  },
-
   async deletePrompt(promptId: string, reason: string) {
     const { data, error } = await supabase.functions.invoke('admin-prompts-delete', {
       body: { prompt_id: promptId, reason },
@@ -104,10 +96,6 @@ export const adminService = {
     if (error) throw error
     if (!data.success) throw new Error(data.message || data.error || 'Failed to list users')
     return data.data
-  },
-
-  async getUsers(filters?: { search?: string; status?: string }) {
-    return this.listUsers(filters?.search, 500, 0)
   },
 
   async getUserDetail(userId: string) {
@@ -142,15 +130,6 @@ export const adminService = {
     const { data, error } = await supabase.functions.invoke('admin-stats', {})
     if (error) throw error
     if (!data.success) throw new Error(data.message || data.error || 'Failed to get stats')
-    return data.data
-  },
-
-  async getRoundStats(roundNumber: number) {
-    const { data, error } = await supabase.functions.invoke('admin-stats-rounds', {
-      body: { round_number: roundNumber },
-    })
-    if (error) throw error
-    if (!data.success) throw new Error(data.message || data.error || 'Failed to get round stats')
     return data.data
   },
 

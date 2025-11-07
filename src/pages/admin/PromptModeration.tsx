@@ -23,16 +23,18 @@ export const PromptModeration: FC = () => {
   const { data: promptsData, isLoading } = useQuery({
     queryKey: ['admin', 'prompts', filterRound, filterStatus],
     queryFn: () =>
-      adminService.getPrompts({
-        round_id: filterRound === 'all' ? undefined : filterRound,
-        flagged_only: filterStatus === 'flagged',
-      }),
+      adminService.listPrompts(
+        undefined,
+        filterRound === 'all' ? undefined : filterRound,
+        500,
+        0
+      ),
   })
 
   // Fetch rounds for filter
   const { data: roundsData } = useQuery({
     queryKey: ['admin', 'rounds'],
-    queryFn: () => adminService.getRounds(),
+    queryFn: () => adminService.listRounds(undefined, 100, 0),
   })
 
   // Delete prompt mutation

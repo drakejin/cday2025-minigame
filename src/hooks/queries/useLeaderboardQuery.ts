@@ -8,11 +8,3 @@ export const useLeaderboard = (limit = 100, offset = 0) => {
     queryFn: () => leaderboardService.getCurrentLeaderboard(limit, offset),
   })
 }
-
-export const useMyRank = (characterId?: string) => {
-  return useQuery({
-    queryKey: queryKeys.rank.byCharacter(characterId!),
-    queryFn: () => leaderboardService.getMyRank(characterId!),
-    enabled: !!characterId,
-  })
-}

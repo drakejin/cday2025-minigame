@@ -3,6 +3,9 @@
  * Import from here to use any query/mutation hook
  */
 
+// Admin hooks
+export * from './useAdminQuery'
+
 // Character hooks
 export * from './useCharacterQuery'
 
@@ -14,9 +17,3 @@ export * from './useLeaderboardQuery'
 
 // Prompt hooks
 export * from './usePromptQuery'
-
-// Profile hooks
-export * from './useProfileQuery'
-
-// Admin hooks
-export * from './useAdminQuery'

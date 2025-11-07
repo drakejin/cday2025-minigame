@@ -21,15 +21,6 @@ serve(
 
       const supabase = createSupabaseClient()
 
-      // Prevent deletion if results exist
-      const { count } = await supabase
-        .from('trial_results')
-        .select('id', { count: 'exact', head: true })
-        .eq('trial_id', trial_id)
-      if ((count || 0) > 0) {
-        return errorResponse('TRIAL_HAS_RESULTS', 400, '이미 결과가 존재하여 삭제할 수 없습니다')
-      }
-
       const { error: delError } = await supabase.from('trials').delete().eq('id', trial_id)
       if (delError) {
         return errorResponse('TRIAL_DELETE_FAILED', 500, delError.message)

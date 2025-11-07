@@ -36,11 +36,7 @@ export const UserManagement: FC = () => {
   // Fetch users
   const { data: usersData, isLoading } = useQuery({
     queryKey: ['admin', 'users', searchTerm, statusFilter],
-    queryFn: () =>
-      adminService.getUsers({
-        search: searchTerm || undefined,
-        status: statusFilter === 'all' ? undefined : statusFilter,
-      }),
+    queryFn: () => adminService.listUsers(searchTerm || undefined, 500, 0),
   })
 
   // Fetch user detail

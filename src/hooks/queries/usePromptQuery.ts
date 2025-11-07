@@ -13,9 +13,6 @@ export const useMyRoundHistory = (limit = 20, offset = 0) => {
   })
 }
 
-// Legacy hook name for backward compatibility
-export const useMyPrompts = useMyRoundHistory
-
 export const useSubmitPrompt = () => {
   const queryClient = useQueryClient()
 
