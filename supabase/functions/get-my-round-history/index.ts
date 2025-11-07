@@ -31,16 +31,22 @@ serve(
         return errorResponse('CHARACTER_NOT_FOUND', 404, '활성 캐릭터가 없습니다')
       }
 
-      // Get all rounds (ordered by round_number desc)
-      const {
-        data: rounds,
-        error: roundsError,
-        count,
-      } = await supabase
-        .from('game_rounds')
-        .select('id, round_number, status, start_time, end_time', { count: 'exact' })
-        .order('round_number', { ascending: false })
-        .range(offset, offset + limit - 1)
+      // 라운드 조회와 프롬프트 히스토리 조회를 병렬로 실행
+      const [
+        { data: rounds, error: roundsError, count },
+        { data: prompts, error: promptsError },
+      ] = await Promise.all([
+        supabase
+          .from('game_rounds')
+          .select('id, round_number, status, start_time, end_time', { count: 'exact' })
+          .order('round_number', { ascending: false })
+          .range(offset, offset + limit - 1),
+        supabase
+          .from('prompt_history')
+          .select('*')
+          .eq('character_id', character.id)
+          .eq('is_deleted', false),
+      ])
 
       if (roundsError) {
         logger.logError(500, roundsError.message)
@@ -59,15 +65,6 @@ serve(
         logger.logSuccess(200, responseData)
         return successResponse(responseData)
       }
-
-      // Get user's prompt history for these rounds
-      const roundNumbers = rounds.map((r) => r.round_number)
-      const { data: prompts, error: promptsError } = await supabase
-        .from('prompt_history')
-        .select('*')
-        .eq('character_id', character.id)
-        .eq('is_deleted', false)
-        .in('round_number', roundNumbers)
 
       if (promptsError) {
         logger.logError(500, promptsError.message)

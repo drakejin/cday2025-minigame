@@ -36,17 +36,20 @@ serve(
         return errorResponse('ROUND_NOT_FOUND', 404, '시련를 찾을 수 없습니다')
       }
 
-      // 2. 프롬프트 통계
-      const { data: prompts, count: promptCount } = await supabase
-        .from('prompt_history')
-        .select('*, characters!inner(name)', { count: 'exact' })
-        .eq('round_number', round_number)
-
-      // 3. 참여자 수
-      const { count: uniqueUsers } = await supabase
-        .from('prompt_history')
-        .select('user_id', { count: 'exact', head: true })
-        .eq('round_number', round_number)
+      // 2-3. 프롬프트 통계와 참여자 수 병렬 조회
+      const [
+        { data: prompts, count: promptCount },
+        { count: uniqueUsers },
+      ] = await Promise.all([
+        supabase
+          .from('prompt_history')
+          .select('*, characters!inner(name)', { count: 'exact' })
+          .eq('round_number', round_number),
+        supabase
+          .from('prompt_history')
+          .select('user_id', { count: 'exact', head: true })
+          .eq('round_number', round_number),
+      ])
 
       // 4. 평균 점수
       const avgScores = prompts?.reduce(

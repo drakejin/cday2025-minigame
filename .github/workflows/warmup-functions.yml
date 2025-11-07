@@ -1,0 +1,38 @@
+name: Warmup Edge Functions
+
+on:
+  schedule:
+    # 매 5분마다 실행 (cold start는 보통 5분 후 발생)
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # 수동 실행 가능
+
+jobs:
+  warmup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Warmup Edge Functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          echo "Warming up Edge Functions..."
+
+          # Supabase CLI를 사용하여 warmup 함수 호출
+          npx supabase functions invoke warmup \
+            --project-ref $SUPABASE_PROJECT_REF \
+            --no-verify-jwt
+
+          echo "✅ Warmup successful"
+
+      - name: Send notification on failure
+        if: failure()
+        run: |
+          echo "⚠️ Warmup job failed. Please check the Edge Functions."

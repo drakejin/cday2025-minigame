@@ -36,24 +36,25 @@ serve(
       const { character_id } = await req.json()
       logger.setRequestBody({ character_id })
 
-      const { data: myCharacter, error: charError } = await supabase
-        .from('characters')
-        .select('id')
-        .eq('id', character_id)
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .single()
+      // 내 캐릭터 검증과 모든 캐릭터 조회를 병렬로 실행
+      const [
+        { data: myCharacter, error: charError },
+        { data: characters, error: charactersError },
+      ] = await Promise.all([
+        supabase
+          .from('characters')
+          .select('id')
+          .eq('id', character_id)
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .single(),
+        supabase.from('characters').select('id').eq('is_active', true),
+      ])
 
       if (charError || !myCharacter) {
         logger.logError(404, 'CHARACTER_NOT_FOUND')
         return errorResponse('CHARACTER_NOT_FOUND', 404)
       }
-
-      // Get all active characters
-      const { data: characters, error: charactersError } = await supabase
-        .from('characters')
-        .select('id')
-        .eq('is_active', true)
 
       if (charactersError) {
         throw charactersError

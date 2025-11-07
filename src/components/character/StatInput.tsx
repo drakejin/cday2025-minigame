@@ -155,7 +155,7 @@ export const StatInput: FC = () => {
       </div>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         {Array.from({ length: trial_no }, (_, i) => (
-          <div key={i + 1}>
+          <div key={`trial-${i + 1}`}>
             <TrialInput trialNo={i + 1} />
             {i < trial_no - 1 && <Divider />}
           </div>

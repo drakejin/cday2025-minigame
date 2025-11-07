@@ -24,34 +24,32 @@ serve(
         return errorResponse('INVALID_REQUEST', 400, 'user_id가 필요합니다')
       }
 
-      // 1. 캐릭터 정보
-      const { data: character, error: charError } = await supabase
-        .from('characters')
-        .select('*')
-        .eq('user_id', user_id)
-        .maybeSingle()
+      // 모든 쿼리를 병렬로 실행
+      const [
+        { data: character, error: charError },
+        { data: prompts },
+        { count: promptCount },
+        { data: authUser },
+      ] = await Promise.all([
+        // 1. 캐릭터 정보
+        supabase.from('characters').select('*').eq('user_id', user_id).maybeSingle(),
+        // 2. 프롬프트 히스토리 (최근 10개)
+        supabase
+          .from('prompt_history')
+          .select('*')
+          .eq('user_id', user_id)
+          .order('created_at', { ascending: false })
+          .limit(10),
+        // 3. 통계
+        supabase.from('prompt_history').select('*', { count: 'exact', head: true }).eq('user_id', user_id),
+        // 4. Auth 정보
+        supabase.auth.admin.getUserById(user_id),
+      ])
 
       if (charError) {
         logger.logError(500, charError.message)
         return errorResponse('DATABASE_ERROR', 500, charError.message)
       }
-
-      // 2. 프롬프트 히스토리 (최근 10개)
-      const { data: prompts } = await supabase
-        .from('prompt_history')
-        .select('*')
-        .eq('user_id', user_id)
-        .order('created_at', { ascending: false })
-        .limit(10)
-
-      // 3. 통계
-      const { count: promptCount } = await supabase
-        .from('prompt_history')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user_id)
-
-      // 4. Auth 정보
-      const { data: authUser } = await supabase.auth.admin.getUserById(user_id)
 
       const responseData = {
         user: keysToCamelCase(character || {}),
