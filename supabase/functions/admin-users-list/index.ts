@@ -4,6 +4,27 @@ import { errorResponse, successResponse } from '../_shared/response.ts'
 import { withLogging } from '../_shared/withLogging.ts'
 import { keysToCamelCase } from '../_shared/camelCase.ts'
 
+interface Character {
+  id: string
+  name: string
+  total_score: number
+}
+
+interface Profile {
+  id: string
+  email: string
+  display_name: string
+  avatar_url: string | null
+  role: string
+  created_at: string
+  updated_at: string
+  characters?: Character[]
+}
+
+interface PromptHistoryItem {
+  user_id: string
+}
+
 serve(
   withLogging('admin-users-list', async (req, logger) => {
     try {
@@ -53,20 +74,23 @@ serve(
       }
 
       // Get prompt counts for each user
-      const userIds = (profiles || []).map((p: any) => p.id)
+      const userIds = (profiles || []).map((p: Profile) => p.id)
       const { data: promptCounts } = await supabase
         .from('prompt_history')
         .select('user_id')
         .in('user_id', userIds)
         .eq('is_deleted', false)
 
-      const promptCountMap = (promptCounts || []).reduce((acc: any, p: any) => {
-        acc[p.user_id] = (acc[p.user_id] || 0) + 1
-        return acc
-      }, {})
+      const promptCountMap = (promptCounts || []).reduce(
+        (acc: Record<string, number>, p: PromptHistoryItem) => {
+          acc[p.user_id] = (acc[p.user_id] || 0) + 1
+          return acc
+        },
+        {}
+      )
 
       // Transform data to include aggregated info
-      const users = (profiles || []).map((profile: any) => ({
+      const users = (profiles || []).map((profile: Profile) => ({
         id: profile.id,
         userId: profile.id,
         email: profile.email,
@@ -76,7 +100,7 @@ serve(
         isBanned: false, // TODO: Add ban functionality to DB
         characterCount: profile.characters?.length || 0,
         promptCount: promptCountMap[profile.id] || 0,
-        totalScore: Math.max(...(profile.characters?.map((c: any) => c.total_score) || [0])),
+        totalScore: Math.max(...(profile.characters?.map((c: Character) => c.total_score) || [0])),
         createdAt: profile.created_at,
         updatedAt: profile.updated_at,
       }))

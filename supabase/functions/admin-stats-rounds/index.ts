@@ -11,7 +11,6 @@ serve(
       logger.setUser(admin?.id, admin?.email)
 
       if (error || !admin || !supabase) {
-        // biome-ignore lint/style/noNonNullAssertion: Error guaranteed to exist in this branch
         const errorMsg = error ?? 'UNAUTHORIZED'
         logger.logError(status, errorMsg)
         return errorResponse(errorMsg, status)

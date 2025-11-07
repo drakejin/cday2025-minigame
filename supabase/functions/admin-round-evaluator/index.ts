@@ -3,6 +3,26 @@ import { errorResponse, successResponse } from '../_shared/response.ts'
 import { verifyAdmin } from '../_shared/adminAuth.ts'
 import { withLogging } from '../_shared/withLogging.ts'
 
+interface PromptWithRelations {
+  id: string
+  prompt_text: string
+  round_number: number
+  trial_no: number
+  user_id: string
+  character_id: string
+  created_at: string
+  characters: {
+    id: string
+    name: string
+    user_id: string
+  }
+  profiles: {
+    id: string
+    email: string
+    username: string
+  }
+}
+
 serve(
   withLogging('admin-round-evaluator', async (req, logger) => {
     try {
@@ -73,16 +93,16 @@ serve(
       }
 
       // 3. Claude API 호출을 위한 데이터 준비
-      const promptsData = prompts.map((p) => ({
+      const promptsData = (prompts as PromptWithRelations[]).map((p) => ({
         promptId: p.id,
         promptText: p.prompt_text,
         roundNumber: p.round_number,
         trialNo: p.trial_no,
         userId: p.user_id,
         characterId: p.character_id,
-        characterName: (p.characters as any)?.name,
-        userEmail: (p.profiles as any)?.email,
-        username: (p.profiles as any)?.username,
+        characterName: p.characters.name,
+        userEmail: p.profiles.email,
+        username: p.profiles.username,
         createdAt: p.created_at,
       }))
 

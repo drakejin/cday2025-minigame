@@ -3,13 +3,28 @@ import { createSupabaseClient } from '../_shared/db.ts'
 import { errorResponse, successResponse } from '../_shared/response.ts'
 import { withLogging } from '../_shared/withLogging.ts'
 
+interface AggregatedScore {
+  character_id: string
+  weighted_total: number
+}
+
+interface CharacterWithProfile {
+  id: string
+  name: string
+  current_prompt: string | null
+  profiles: {
+    display_name: string
+    avatar_url: string | null
+  } | null
+}
+
 serve(
   withLogging('get-characters-ranking', async (req, logger) => {
     try {
       const supabase = createSupabaseClient()
       const url = new URL(req.url)
-      const limit = parseInt(url.searchParams.get('limit') || '100')
-      const offset = parseInt(url.searchParams.get('offset') || '0')
+      const limit = parseInt(url.searchParams.get('limit') || '100', 10)
+      const offset = parseInt(url.searchParams.get('offset') || '0', 10)
 
       // Aggregate from prompt_history (scores stored in prompt_history now)
       const { data: aggregated, error } = await supabase
@@ -28,8 +43,8 @@ serve(
       }
 
       // Fetch character/profile info for the page of results
-      const ids = (aggregated || []).map((r: any) => r.character_id)
-      let characters: any[] = []
+      const ids = (aggregated || []).map((r: AggregatedScore) => r.character_id)
+      let characters: CharacterWithProfile[] = []
       if (ids.length > 0) {
         const { data: chars } = await supabase
           .from('characters')
@@ -49,8 +64,8 @@ serve(
       }
 
       const leaderboard =
-        aggregated?.map((row: any, index: number) => {
-          const char = characters.find((c: any) => c.id === row.character_id)
+        aggregated?.map((row: AggregatedScore, index: number) => {
+          const char = characters.find((c: CharacterWithProfile) => c.id === row.character_id)
           return {
             rank: offset + index + 1,
             character_id: row.character_id,

@@ -3,10 +3,21 @@ import { createSupabaseClient } from '../_shared/db.ts'
 import { errorResponse, successResponse } from '../_shared/response.ts'
 import { withLogging } from '../_shared/withLogging.ts'
 
+interface GameRound {
+  id: string
+  round_number: number
+  start_time: string
+  end_time: string
+  status: string
+  is_active: boolean
+}
+
+type SupabaseClient = ReturnType<typeof createSupabaseClient>
+
 /**
  * Format round data for response
  */
-function formatRoundData(round: any) {
+function formatRoundData(round: GameRound | null) {
   if (!round) return null
 
   return {
@@ -35,7 +46,7 @@ function calculateTimeRemaining(endTime: string): string {
 /**
  * Get next scheduled round
  */
-async function getNextRound(supabase: any, now: string) {
+async function getNextRound(supabase: SupabaseClient, now: string) {
   const { data: nextRound } = await supabase
     .from('game_rounds')
     .select('*')
