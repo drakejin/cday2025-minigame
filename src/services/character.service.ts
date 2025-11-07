@@ -1,32 +1,45 @@
 import { supabase } from './supabase'
 import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
+import type { Character } from '@/types/character.types'
+
+export interface CharacterWithSubmission extends Character {
+  last_submission_round?: number
+  total_score?: number
+  strength?: number
+  charm?: number
+  creativity?: number
+}
 
 export const characterService = {
   /**
    * Get user's active character (Edge Function)
    */
-  async getMyCharacter() {
+  async getMyCharacter(): Promise<CharacterWithSubmission | null> {
     const { data, error } = await supabase.functions.invoke('get-my-character')
-    return handleEdgeFunctionResponse(data, error, 'Failed to get character')
+    return handleEdgeFunctionResponse<CharacterWithSubmission | null>(
+      data,
+      error,
+      'Failed to get character'
+    )
   },
 
   /**
    * Create new character (Edge Function)
    */
-  async createCharacter(name: string) {
+  async createCharacter(name: string): Promise<Character> {
     const { data, error } = await supabase.functions.invoke('create-character', {
       body: { name },
     })
-    return handleEdgeFunctionResponse(data, error, 'Failed to create character')
+    return handleEdgeFunctionResponse<Character>(data, error, 'Failed to create character')
   },
 
   /**
    * Update character name (Edge Function)
    */
-  async updateCharacterName(characterId: string, name: string) {
+  async updateCharacterName(characterId: string, name: string): Promise<Character> {
     const { data, error } = await supabase.functions.invoke('update-character-name', {
       body: { character_id: characterId, name },
     })
-    return handleEdgeFunctionResponse(data, error, 'Failed to update character')
+    return handleEdgeFunctionResponse<Character>(data, error, 'Failed to update character')
   },
 }

@@ -35,10 +35,25 @@ import {
 const { Title } = Typography
 const { RangePicker } = DatePicker
 
+interface EvaluationResult {
+  round?: {
+    round_number: number
+  }
+  promptsCount: number
+  evaluation: string
+  prompts?: Array<{
+    promptId: string
+    characterName: string
+    username: string
+    trialNo: number
+    promptText: string
+  }>
+}
+
 export const RoundManagement: FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEvaluationModalOpen, setIsEvaluationModalOpen] = useState(false)
-  const [evaluationResult, setEvaluationResult] = useState<any>(null)
+  const [evaluationResult, setEvaluationResult] = useState<EvaluationResult | null>(null)
   const [form] = Form.useForm()
 
   const { data: rounds, isLoading } = useAdminRounds()

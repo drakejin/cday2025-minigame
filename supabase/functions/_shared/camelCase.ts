@@ -8,9 +8,9 @@ export function toCamelCase(str: string): string {
 /**
  * Convert object keys from snake_case to camelCase
  */
-export function keysToCamelCase<T = any>(obj: any): T {
+export function keysToCamelCase<T = unknown>(obj: unknown): T {
   if (obj === null || obj === undefined) {
-    return obj
+    return obj as T
   }
 
   if (Array.isArray(obj)) {
@@ -18,22 +18,22 @@ export function keysToCamelCase<T = any>(obj: any): T {
   }
 
   if (typeof obj === 'object' && obj.constructor === Object) {
-    const result: any = {}
+    const result: Record<string, unknown> = {}
     for (const key in obj) {
       if (Object.hasOwn(obj, key)) {
         const camelKey = toCamelCase(key)
-        result[camelKey] = keysToCamelCase(obj[key])
+        result[camelKey] = keysToCamelCase((obj as Record<string, unknown>)[key])
       }
     }
     return result as T
   }
 
-  return obj
+  return obj as T
 }
 
 /**
  * Convert Supabase query result to camelCase
  */
-export function convertToCamelCase<T>(data: any): T {
+export function convertToCamelCase<T>(data: unknown): T {
   return keysToCamelCase<T>(data)
 }

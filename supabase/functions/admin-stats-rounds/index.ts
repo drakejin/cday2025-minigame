@@ -11,8 +11,10 @@ serve(
       logger.setUser(admin?.id, admin?.email)
 
       if (error || !admin || !supabase) {
-        logger.logError(status, error!)
-        return errorResponse(error!, status)
+        // biome-ignore lint/style/noNonNullAssertion: Error guaranteed to exist in this branch
+        const errorMsg = error ?? 'UNAUTHORIZED'
+        logger.logError(status, errorMsg)
+        return errorResponse(errorMsg, status)
       }
 
       const { round_number } = await req.json()

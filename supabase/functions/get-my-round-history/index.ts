@@ -83,26 +83,34 @@ serve(
       }
 
       // Merge rounds with prompts (LEFT JOIN effect)
-      const transformedHistory = rounds.map((round: any) => {
-        const prompt = promptMap.get(round.round_number)
+      const transformedHistory = rounds.map(
+        (round: {
+          id: string
+          round_number: number
+          status: string
+          start_time: string
+          end_time: string
+        }) => {
+          const prompt = promptMap.get(round.round_number)
 
-        return {
-          round_id: round.id,
-          round_number: round.round_number,
-          round_status: round.status,
-          round_start_time: round.start_time,
-          round_end_time: round.end_time,
-          // Prompt data (will be null if not participated)
-          prompt_id: prompt?.id || null,
-          prompt: prompt?.prompt || null,
-          strength_gained: prompt?.strength_gained || 0,
-          charm_gained: prompt?.charm_gained || 0,
-          creativity_gained: prompt?.creativity_gained || 0,
-          total_score_gained: prompt?.total_score_gained || 0,
-          created_at: prompt?.created_at || null,
-          participated: !!prompt,
+          return {
+            round_id: round.id,
+            round_number: round.round_number,
+            round_status: round.status,
+            round_start_time: round.start_time,
+            round_end_time: round.end_time,
+            // Prompt data (will be null if not participated)
+            prompt_id: prompt?.id || null,
+            prompt: prompt?.prompt || null,
+            strength_gained: prompt?.strength_gained || 0,
+            charm_gained: prompt?.charm_gained || 0,
+            creativity_gained: prompt?.creativity_gained || 0,
+            total_score_gained: prompt?.total_score_gained || 0,
+            created_at: prompt?.created_at || null,
+            participated: !!prompt,
+          }
         }
-      })
+      )
 
       const responseData = {
         data: transformedHistory,

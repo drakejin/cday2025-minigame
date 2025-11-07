@@ -91,15 +91,20 @@ export const useAuthStore = create<AuthState>((set) => ({
   try {
     console.log('[authStore] Checking for existing session...')
 
-    let result: any
+    type SessionResponse = Awaited<ReturnType<typeof supabase.auth.getSession>>
+    let result: SessionResponse
+
     try {
       // Try getSession with timeout
-      result = await Promise.race([
+      const sessionResult = await Promise.race([
         supabase.auth.getSession(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('getSession timeout')), 3000)),
+        new Promise<SessionResponse>((_, reject) =>
+          setTimeout(() => reject(new Error('getSession timeout')), 3000)
+        ),
       ])
+      result = sessionResult
       console.log('[authStore] getSession succeeded')
-    } catch (timeoutError) {
+    } catch (_timeoutError) {
       console.warn('[authStore] getSession timed out, trying localStorage fallback')
 
       // Fallback: read directly from localStorage

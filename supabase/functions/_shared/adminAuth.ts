@@ -13,7 +13,9 @@ export async function verifyAdmin(req: Request) {
 
   const token = authHeader.replace('Bearer ', '')
   const supabase = createClient(
+    // biome-ignore lint/style/noNonNullAssertion: Environment variables are required in production
     Deno.env.get('SUPABASE_URL')!,
+    // biome-ignore lint/style/noNonNullAssertion: Environment variables are required in production
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   )
 

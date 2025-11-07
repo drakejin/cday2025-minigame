@@ -1,6 +1,7 @@
 import type { FC } from 'react'
 import { Card, Form, Input, InputNumber, Space, Button, Typography, message } from 'antd'
 import { useMyPlan, useUpsertPlan } from '@/hooks/queries/usePlanQuery'
+import type { CharacterPlan } from '@/types/plan.types'
 
 const { Title } = Typography
 
@@ -31,7 +32,9 @@ export const PlanEditor: FC = () => {
         lv3_skill: '',
       }
 
-  const onFinish = async (values: any) => {
+  const onFinish = async (
+    values: Omit<CharacterPlan, 'id' | 'character_id' | 'created_at' | 'updated_at'>
+  ) => {
     try {
       await upsert.mutateAsync(values)
       message.success('플랜이 저장되었습니다')

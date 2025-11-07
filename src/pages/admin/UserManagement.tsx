@@ -42,7 +42,7 @@ export const UserManagement: FC = () => {
   // Fetch user detail
   const { data: userDetail, isLoading: isLoadingDetail } = useQuery<AdminUserDetail>({
     queryKey: ['admin', 'user', selectedUserId],
-    queryFn: () => adminService.getUserDetail(selectedUserId!),
+    queryFn: () => adminService.getUserDetail(selectedUserId ?? ''),
     enabled: !!selectedUserId && detailModalVisible,
   })
 

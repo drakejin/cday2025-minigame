@@ -12,11 +12,19 @@ export const leaderboardService = {
     })
 
     const raw = handleEdgeFunctionResponse<{
-      data: any[]
+      data: Array<{
+        rank: number
+        character_id: string
+        character_name: string
+        display_name: string
+        avatar_url: string | null
+        weighted_total: number
+        current_prompt: string | null
+      }>
       pagination: { total: number; limit: number; offset: number }
     }>(data, error, 'Failed to get leaderboard')
 
-    const mapped: LeaderboardEntry[] = (raw.data || []).map((item: any) => ({
+    const mapped: LeaderboardEntry[] = (raw.data || []).map((item) => ({
       rank: item.rank,
       character_id: item.character_id,
       character_name: item.character_name,

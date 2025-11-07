@@ -48,8 +48,23 @@ serve(
 
       if (qErr) return errorResponse('LIST_FAILED', 500, qErr.message)
 
+      interface TrialResult {
+        id: string
+        trial_id: string
+        total_score: number
+        weighted_total: number
+        created_at: string
+        trials?: {
+          trial_no: number
+          level: number
+          game_rounds?: {
+            round_number: number
+          }
+        }
+      }
+
       const items =
-        data?.map((r: any) => ({
+        data?.map((r: TrialResult) => ({
           id: r.id,
           trial_id: r.trial_id,
           round_number: r.trials?.game_rounds?.round_number || null,

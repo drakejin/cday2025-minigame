@@ -26,16 +26,29 @@ serve(
         return errorResponse('DATABASE_ERROR', 500, charError.message)
       }
 
-      const responseData = character
-        ? {
-            id: character.id,
-            name: character.name,
-            current_prompt: character.current_prompt,
-            is_active: character.is_active,
-            created_at: character.created_at,
-            updated_at: character.updated_at,
-          }
-        : null
+      if (!character) {
+        logger.logSuccess(200, null)
+        return successResponse(null)
+      }
+
+      // Get last submission round
+      const { data: lastPrompt } = await supabase
+        .from('prompt_history')
+        .select('round_number')
+        .eq('character_id', character.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      const responseData = {
+        id: character.id,
+        name: character.name,
+        current_prompt: character.current_prompt,
+        is_active: character.is_active,
+        created_at: character.created_at,
+        updated_at: character.updated_at,
+        last_submission_round: lastPrompt?.round_number,
+      }
 
       logger.logSuccess(200, responseData)
       return successResponse(responseData)

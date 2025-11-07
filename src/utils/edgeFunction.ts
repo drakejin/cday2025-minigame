@@ -11,33 +11,40 @@ export function extractEdgeFunctionError(error: unknown): string {
 
   // Try to access error details from FunctionsHttpError
   if (typeof error === 'object' && error !== null) {
-    const errorObj = error as any
+    const errorObj = error as Record<string, unknown>
 
     // Log error structure for debugging
     console.log('[extractEdgeFunctionError] Error keys:', Object.keys(errorObj))
-    console.log('[extractEdgeFunctionError] Error context:', errorObj.context.body)
-    console.log('[extractEdgeFunctionError] Error message:', errorObj.message)
+
+    const context = errorObj.context as Record<string, unknown> | undefined
+    if (context) {
+      console.log('[extractEdgeFunctionError] Error context:', context.body)
+    }
+
+    const message = errorObj.message
+    if (typeof message === 'string') {
+      console.log('[extractEdgeFunctionError] Error message:', message)
+    }
 
     // Check if context exists and contains response data
-    if (errorObj.context) {
+    if (context) {
       try {
-        // The context might contain the full response
-        const context = errorObj.context
         console.log('[extractEdgeFunctionError] Context type:', typeof context)
         console.log('[extractEdgeFunctionError] Context:', context)
 
         // Try different possible locations for the response body
-        if (context.json && typeof context.json === 'object') {
-          console.log('[extractEdgeFunctionError] Found json in context:', context.json)
-          if (context.json.message) return context.json.message
-          if (context.json.error) return context.json.error
+        const contextJson = context.json as Record<string, unknown> | undefined
+        if (contextJson && typeof contextJson === 'object') {
+          console.log('[extractEdgeFunctionError] Found json in context:', contextJson)
+          if (typeof contextJson.message === 'string') return contextJson.message
+          if (typeof contextJson.error === 'string') return contextJson.error
         }
 
         if (context.body) {
           const body = typeof context.body === 'string' ? JSON.parse(context.body) : context.body
           console.log('[extractEdgeFunctionError] Parsed body:', body)
-          if (body?.message) return body.message
-          if (body?.error) return body.error
+          if (body?.message && typeof body.message === 'string') return body.message
+          if (body?.error && typeof body.error === 'string') return body.error
         }
       } catch (e) {
         console.warn('[extractEdgeFunctionError] Failed to parse context:', e)
@@ -45,8 +52,8 @@ export function extractEdgeFunctionError(error: unknown): string {
     }
 
     // Fallback to error message
-    if (errorObj.message) {
-      return errorObj.message
+    if (typeof message === 'string') {
+      return message
     }
   }
 
@@ -62,7 +69,7 @@ export function extractEdgeFunctionError(error: unknown): string {
 /**
  * Standard response type from Edge Functions
  */
-export interface EdgeFunctionResponse<T = any> {
+export interface EdgeFunctionResponse<T = unknown> {
   success: boolean
   data?: T
   error?: string
@@ -77,7 +84,7 @@ export interface EdgeFunctionResponse<T = any> {
  * 2. Error object from HTTP error
  * 3. Fallback message
  */
-export function handleEdgeFunctionResponse<T = any>(
+export function handleEdgeFunctionResponse<T = unknown>(
   data: EdgeFunctionResponse<T> | null,
   error: unknown,
   fallbackMessage: string

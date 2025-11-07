@@ -18,6 +18,8 @@ export interface CurrentRound {
   start_time: string
   end_time: string
   time_remaining: string
+  status: 'scheduled' | 'active' | 'completed' | 'cancelled'
+  is_active: boolean
 }
 
 export interface PromptHistory {

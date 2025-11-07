@@ -10,8 +10,9 @@ serve(
       logger.setUser(admin?.id, admin?.email)
 
       if (error || !admin || !supabase) {
-        logger.logError(status, error!)
-        return errorResponse(error!, status)
+        const errorMsg = error ?? 'UNAUTHORIZED'
+        logger.logError(status, errorMsg)
+        return errorResponse(errorMsg, status)
       }
 
       logger.setRequestBody({})

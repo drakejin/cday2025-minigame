@@ -140,8 +140,8 @@ export const useAdminUsers = (filters?: { search?: string; limit?: number; offse
 
 export const useAdminUserDetail = (userId?: string) => {
   return useQuery({
-    queryKey: queryKeys.admin.user(userId!),
-    queryFn: () => adminService.getUserDetail(userId!),
+    queryKey: queryKeys.admin.user(userId ?? ''),
+    queryFn: () => adminService.getUserDetail(userId ?? ''),
     enabled: !!userId,
     staleTime: 1000 * 30,
   })
@@ -177,7 +177,7 @@ export const useUnbanUser = () => {
 export const useAdminStatsRounds = (roundId?: string) => {
   return useQuery({
     queryKey: queryKeys.admin.statsRounds(roundId),
-    queryFn: () => adminService.getRoundStatsByRoundId(roundId!),
+    queryFn: () => adminService.getRoundStatsByRoundId(roundId ?? ''),
     enabled: !!roundId,
     staleTime: 1000 * 60,
   })

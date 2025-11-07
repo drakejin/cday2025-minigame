@@ -10,8 +10,9 @@ serve(
       logger.setUser(user?.id, user?.email)
 
       if (error || !user || !supabase) {
-        logger.logError(status, error!)
-        return errorResponse(error!, status)
+        const errorMsg = error ?? 'UNAUTHORIZED'
+        logger.logError(status, errorMsg)
+        return errorResponse(errorMsg, status)
       }
 
       const { display_name, avatar_url } = await req.json()

@@ -11,8 +11,9 @@ serve(
       logger.setUser(user?.id, user?.email)
 
       if (error || !user || !supabase) {
-        logger.logError(status, error || 'Unauthorized')
-        return errorResponse(error!, status)
+        const errorMsg = error ?? 'UNAUTHORIZED'
+        logger.logError(status, errorMsg)
+        return errorResponse(errorMsg, status)
       }
 
       const { data: profile, error: profileError } = await supabase
