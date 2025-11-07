@@ -201,6 +201,7 @@ export const RoundManagement: FC = () => {
           startTime: values.dateRange[0].toISOString(),
           endTime: values.dateRange[1].toISOString(),
           trialText: values.trialText,
+          trialNo: values.trialNo,
         },
         {
           onSuccess: () => {
@@ -272,6 +273,9 @@ export const RoundManagement: FC = () => {
           </Form.Item>
           <Form.Item name="trialText" label="시련 텍스트 (Optional)">
             <Input.TextArea rows={3} placeholder="시련에 대한 설명을 입력하세요..." />
+          </Form.Item>
+          <Form.Item name="trialNo" label="Trial Number (Optional)">
+            <Input type="number" min={1} max={3} placeholder="1, 2, or 3" />
           </Form.Item>
         </Form>
       </Modal>

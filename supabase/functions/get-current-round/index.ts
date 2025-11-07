@@ -11,6 +11,7 @@ interface GameRound {
   status: string
   is_active: boolean
   trial_text?: string
+  trial_no?: number
 }
 
 type SupabaseClient = ReturnType<typeof createSupabaseClient>
@@ -28,6 +29,7 @@ function formatRoundData(round: GameRound | null) {
     end_time: round.end_time,
     status: round.status,
     trial_text: round.trial_text,
+    trial_no: round.trial_no,
   }
 }
 
