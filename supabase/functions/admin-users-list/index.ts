@@ -4,12 +4,6 @@ import { errorResponse, successResponse } from '../_shared/response.ts'
 import { withLogging } from '../_shared/withLogging.ts'
 import { keysToCamelCase } from '../_shared/camelCase.ts'
 
-interface Character {
-  id: string
-  name: string
-  total_score: number
-}
-
 interface Profile {
   id: string
   email: string
@@ -18,7 +12,6 @@ interface Profile {
   role: string
   created_at: string
   updated_at: string
-  characters?: Character[]
 }
 
 interface PromptHistoryItem {
@@ -48,13 +41,7 @@ serve(
         avatar_url,
         role,
         created_at,
-        updated_at,
-        characters(
-          id,
-          name,
-          total_score,
-          is_active
-        )
+        updated_at
       `,
         { count: 'exact' }
       )
@@ -98,9 +85,7 @@ serve(
         avatarUrl: profile.avatar_url,
         role: profile.role,
         isBanned: false, // TODO: Add ban functionality to DB
-        characterCount: profile.characters?.length || 0,
         promptCount: promptCountMap[profile.id] || 0,
-        totalScore: Math.max(...(profile.characters?.map((c: Character) => c.total_score) || [0])),
         createdAt: profile.created_at,
         updatedAt: profile.updated_at,
       }))
