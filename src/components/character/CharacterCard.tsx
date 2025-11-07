@@ -1,8 +1,10 @@
 import { memo } from 'react'
 import type { FC } from 'react'
 import { Space, Typography, Progress, Tag, Divider } from 'antd'
-import { FireOutlined, HeartOutlined, BulbOutlined } from '@ant-design/icons'
+import { ThunderboltOutlined, RocketOutlined, HeartOutlined, BulbOutlined } from '@ant-design/icons'
 import type { Character } from '@/types'
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '@/services/supabase'
 
 const { Title, Text } = Typography
 
@@ -12,6 +14,16 @@ interface CharacterCardProps {
 
 export const CharacterCard: FC<CharacterCardProps> = memo(({ character }) => {
   const maxScore = 500
+
+  // Fetch aggregated stats
+  const { data: stats } = useQuery({
+    queryKey: ['character-stats', character.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('get-my-character-stats')
+      if (error) throw error
+      return data as { str: number; dex: number; con: number; int: number; total: number }
+    },
+  })
 
   return (
     <div
@@ -52,7 +64,7 @@ export const CharacterCard: FC<CharacterCardProps> = memo(({ character }) => {
               {character.name}
             </Text>
             <Tag color="gold" style={{ fontSize: 14, padding: '4px 12px', margin: 0 }}>
-              총점 {character.total_score}
+              총점 {stats?.total || 0}
             </Tag>
           </div>
         </div>
@@ -83,56 +95,74 @@ export const CharacterCard: FC<CharacterCardProps> = memo(({ character }) => {
             능력치
           </Text>
           <Space direction="vertical" style={{ width: '100%' }} size="middle">
-            {/* Strength */}
+            {/* STR */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                 <Space size="small">
-                  <FireOutlined style={{ color: '#ef4444', fontSize: 16 }} />
-                  <Text style={{ fontSize: 14 }}>힘</Text>
+                  <ThunderboltOutlined style={{ color: '#ef4444', fontSize: 16 }} />
+                  <Text style={{ fontSize: 14 }}>STR (힘)</Text>
                 </Space>
                 <Text strong style={{ fontSize: 14 }}>
-                  {character.strength}
+                  {stats?.str || 0}
                 </Text>
               </div>
               <Progress
-                percent={(character.strength / maxScore) * 100}
+                percent={((stats?.str || 0) / maxScore) * 100}
                 strokeColor="#ef4444"
                 showInfo={false}
               />
             </div>
 
-            {/* Charm */}
+            {/* DEX */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                 <Space size="small">
-                  <HeartOutlined style={{ color: '#3b82f6', fontSize: 16 }} />
-                  <Text style={{ fontSize: 14 }}>매력</Text>
+                  <RocketOutlined style={{ color: '#3b82f6', fontSize: 16 }} />
+                  <Text style={{ fontSize: 14 }}>DEX (민첩)</Text>
                 </Space>
                 <Text strong style={{ fontSize: 14 }}>
-                  {character.charm}
+                  {stats?.dex || 0}
                 </Text>
               </div>
               <Progress
-                percent={(character.charm / maxScore) * 100}
+                percent={((stats?.dex || 0) / maxScore) * 100}
                 strokeColor="#3b82f6"
                 showInfo={false}
               />
             </div>
 
-            {/* Creativity */}
+            {/* CON */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                 <Space size="small">
-                  <BulbOutlined style={{ color: '#10b981', fontSize: 16 }} />
-                  <Text style={{ fontSize: 14 }}>창의성</Text>
+                  <HeartOutlined style={{ color: '#10b981', fontSize: 16 }} />
+                  <Text style={{ fontSize: 14 }}>CON (체력)</Text>
                 </Space>
                 <Text strong style={{ fontSize: 14 }}>
-                  {character.creativity}
+                  {stats?.con || 0}
                 </Text>
               </div>
               <Progress
-                percent={(character.creativity / maxScore) * 100}
+                percent={((stats?.con || 0) / maxScore) * 100}
                 strokeColor="#10b981"
+                showInfo={false}
+              />
+            </div>
+
+            {/* INT */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                <Space size="small">
+                  <BulbOutlined style={{ color: '#a855f7', fontSize: 16 }} />
+                  <Text style={{ fontSize: 14 }}>INT (지능)</Text>
+                </Space>
+                <Text strong style={{ fontSize: 14 }}>
+                  {stats?.int || 0}
+                </Text>
+              </div>
+              <Progress
+                percent={((stats?.int || 0) / maxScore) * 100}
+                strokeColor="#a855f7"
                 showInfo={false}
               />
             </div>

@@ -26,10 +26,12 @@ export interface PromptHistory {
   user_id: string
   prompt: string
   round_number: number
-  strength_gained: number
-  charm_gained: number
-  creativity_gained: number
-  total_score_gained: number
+  str: number
+  dex: number
+  con: number
+  int: number
+  skill: string
+  is_deleted: boolean
   created_at: string
 }
 
@@ -42,10 +44,11 @@ export interface RoundHistory {
   // Prompt data (null if not participated)
   prompt_id: string | null
   prompt: string | null
-  strength_gained: number
-  charm_gained: number
-  creativity_gained: number
-  total_score_gained: number
+  str: number
+  dex: number
+  con: number
+  int: number
+  skill: string | null
   created_at: string | null
   participated: boolean
 }
@@ -60,17 +63,13 @@ export interface SubmitPromptResponse {
   data?: {
     prompt_history_id: string
     round_number: number
-    scores: {
-      strength: number
-      charm: number
-      creativity: number
-      total: number
-    }
-    character: {
-      total_score: number
-      strength: number
-      charm: number
-      creativity: number
+    level: number
+    stats: {
+      str: number
+      dex: number
+      con: number
+      int: number
+      skill: string
     }
   }
   error?: string

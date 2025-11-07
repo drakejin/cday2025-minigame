@@ -69,49 +69,11 @@ export const AdminLeaderboard: FC = () => {
       width: 100,
       align: 'center' as const,
       render: (score: number) => (
-        <span style={{ fontSize: 16, fontWeight: 'bold', color: '#1890ff' }}>{score}</span>
+        <span style={{ fontSize: 16, fontWeight: 'bold', color: '#1890ff' }}>{score || 0}</span>
       ),
-      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => b.total_score - a.total_score,
+      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) =>
+        (b.total_score || 0) - (a.total_score || 0),
       defaultSortOrder: 'descend' as const,
-    },
-    {
-      title: '힘',
-      dataIndex: 'strength',
-      key: 'strength',
-      width: 80,
-      align: 'center' as const,
-      render: (value: number) => (
-        <Tag color="red" style={{ minWidth: 40 }}>
-          💪 {value}
-        </Tag>
-      ),
-      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => a.strength - b.strength,
-    },
-    {
-      title: '매력',
-      dataIndex: 'charm',
-      key: 'charm',
-      width: 80,
-      align: 'center' as const,
-      render: (value: number) => (
-        <Tag color="pink" style={{ minWidth: 40 }}>
-          ✨ {value}
-        </Tag>
-      ),
-      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => a.charm - b.charm,
-    },
-    {
-      title: '창의력',
-      dataIndex: 'creativity',
-      key: 'creativity',
-      width: 80,
-      align: 'center' as const,
-      render: (value: number) => (
-        <Tag color="purple" style={{ minWidth: 40 }}>
-          🎨 {value}
-        </Tag>
-      ),
-      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => a.creativity - b.creativity,
     },
     {
       title: '현재 프롬프트',

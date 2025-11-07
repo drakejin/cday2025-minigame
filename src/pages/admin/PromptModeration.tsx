@@ -23,12 +23,7 @@ export const PromptModeration: FC = () => {
   const { data: promptsData, isLoading } = useQuery({
     queryKey: ['admin', 'prompts', filterRound, filterStatus],
     queryFn: () =>
-      adminService.listPrompts(
-        undefined,
-        filterRound === 'all' ? undefined : filterRound,
-        500,
-        0
-      ),
+      adminService.listPrompts(undefined, filterRound === 'all' ? undefined : filterRound, 500, 0),
   })
 
   // Fetch rounds for filter
