@@ -126,6 +126,7 @@ CREATE TABLE public.game_rounds (
   started_by uuid,
   ended_by uuid,
   trial_text text,
+  trial_no integer,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 ```
