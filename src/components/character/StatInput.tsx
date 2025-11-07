@@ -144,6 +144,8 @@ export const StatInput: FC<{
 }> = ({ trialData, setTrialData }) => {
   const { data } = useCurrentRound()
 
+  console.log('StatInput received trialData:', trialData)
+
   if (!data?.currentRound?.trial_no) {
     return null
   }
