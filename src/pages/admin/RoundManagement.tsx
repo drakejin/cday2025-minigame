@@ -31,17 +31,12 @@ import {
   useCancelRound,
   useEvaluateRound,
 } from '@/hooks/queries/useAdminQuery'
-import { trialService } from '@/services/trial.service'
 
 const { Title } = Typography
 const { RangePicker } = DatePicker
 
 export const RoundManagement: FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [isTrialsModalOpen, setIsTrialsModalOpen] = useState(false)
-  const [trialModalRound, setTrialModalRound] = useState<AdminRound | null>(null)
-  const [trialsLoading, setTrialsLoading] = useState(false)
-  const [trials, setTrials] = useState<any[]>([])
   const [isEvaluationModalOpen, setIsEvaluationModalOpen] = useState(false)
   const [evaluationResult, setEvaluationResult] = useState<any>(null)
   const [form] = Form.useForm()
@@ -147,24 +142,7 @@ export const RoundManagement: FC = () => {
               Cancel
             </Button>
           )}
-          <Button
-            size="small"
-            onClick={async () => {
-              setTrialModalRound(record)
-              setIsTrialsModalOpen(true)
-              setTrialsLoading(true)
-              try {
-                const res = await trialService.adminListTrialsByRoundNumber(record.roundNumber)
-                setTrials(res.trials || [])
-              } catch (e) {
-                message.error((e as Error).message)
-              } finally {
-                setTrialsLoading(false)
-              }
-            }}
-          >
-            Manage Trials
-          </Button>
+
           {(record.status === 'active' || record.status === 'completed') && (
             <Button
               type="default"
@@ -281,78 +259,6 @@ export const RoundManagement: FC = () => {
             <Input.TextArea rows={3} placeholder="Add any notes for this round..." />
           </Form.Item>
         </Form>
-      </Modal>
-
-      <Modal
-        title={`Trials - Round ${trialModalRound?.roundNumber ?? ''}`}
-        open={isTrialsModalOpen}
-        onCancel={() => {
-          setIsTrialsModalOpen(false)
-          setTrialModalRound(null)
-          setTrials([])
-        }}
-        footer={null}
-      >
-        <Space direction="vertical" style={{ width: '100%' }}>
-          <Button
-            type="primary"
-            onClick={async () => {
-              if (!trialModalRound) return
-              setTrialsLoading(true)
-              try {
-                // Create 3 default trials (Lv1->x1, Lv2->x2, Lv3->x4)
-                const roundId = trialModalRound.id
-                await trialService.adminCreateTrial({
-                  round_id: roundId,
-                  trial_no: 1,
-                  level: 1,
-                  weight_multiplier: 1,
-                })
-                await trialService.adminCreateTrial({
-                  round_id: roundId,
-                  trial_no: 2,
-                  level: 2,
-                  weight_multiplier: 2,
-                })
-                await trialService.adminCreateTrial({
-                  round_id: roundId,
-                  trial_no: 3,
-                  level: 3,
-                  weight_multiplier: 4,
-                })
-                const res = await trialService.adminListTrialsByRoundNumber(
-                  trialModalRound.roundNumber
-                )
-                setTrials(res.trials || [])
-                message.success('시련이 생성되었습니다')
-              } catch (e) {
-                message.error((e as Error).message)
-              } finally {
-                setTrialsLoading(false)
-              }
-            }}
-            disabled={trialsLoading}
-          >
-            기본 시련 3개 생성
-          </Button>
-          <Table
-            dataSource={trials}
-            loading={trialsLoading}
-            rowKey="id"
-            columns={[
-              { title: 'Trial #', dataIndex: 'trial_no', key: 'trial_no' },
-              { title: 'Level', dataIndex: 'level', key: 'level' },
-              { title: 'Multiplier', dataIndex: 'weight_multiplier', key: 'weight_multiplier' },
-              {
-                title: 'Status',
-                dataIndex: 'status',
-                key: 'status',
-                render: (s: string) => getStatusTag(s),
-              },
-            ]}
-            pagination={false}
-          />
-        </Space>
       </Modal>
 
       <Modal
