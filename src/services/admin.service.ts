@@ -9,12 +9,8 @@ export const adminService = {
   // ==================== Round Management ====================
   async createRound(startTime: string, endTime: string, trialText?: string, trialNo?: number) {
     const { data, error } = await supabase.functions.invoke('admin-rounds-create', {
-<<<<<<< HEAD
-      body: { start_time: startTime, end_time: endTime, trial_text: trialText },
-      region: FunctionRegion.ApNortheast2,
-=======
       body: { start_time: startTime, end_time: endTime, trial_text: trialText, trial_no: trialNo },
->>>>>>> 770abb403b43297704f753c4c0266eafe06f447e
+      region: FunctionRegion.ApNortheast2,
     })
     if (error) throw error
     if (!data.success) throw new Error(data.message || data.error || 'Failed to create round')
