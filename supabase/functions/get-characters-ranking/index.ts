@@ -71,6 +71,11 @@ serve(
         scoreMap.set(p.character_id, existing)
       }
 
+      // Calculate total_score after aggregation
+      for (const score of scoreMap.values()) {
+        score.total_score = score.total_str + score.total_dex + score.total_con + score.total_int
+      }
+
       // Step 3: Sort by total_score and apply pagination
       const sorted = Array.from(scoreMap.values()).sort((a, b) => b.total_score - a.total_score)
       const total = sorted.length

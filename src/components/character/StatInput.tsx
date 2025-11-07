@@ -1,6 +1,6 @@
 import type { FC } from 'react'
 import { Card, Typography, Alert, Space } from 'antd'
-import { useCurrentRound } from '@/hooks/queries/useRoundQuery'
+import { useCurrentRound } from '@/hooks/queries/useGameQuery'
 
 const { Title, Text } = Typography
 
@@ -20,7 +20,8 @@ const TRIAL_CONFIGS = [
 ]
 
 export const StatInput: FC = () => {
-  const { data: currentRound } = useCurrentRound()
+  const { data } = useCurrentRound()
+  const currentRound = data?.currentRound
 
   if (!currentRound?.trial_no) {
     return null
