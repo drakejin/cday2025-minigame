@@ -9,7 +9,7 @@ interface MainLayoutProps {
   showBottomNav?: boolean
 }
 
-export const MainLayout: FC<MainLayoutProps> = ({ children}) => {
+export const MainLayout: FC<MainLayoutProps> = ({ children }) => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Content

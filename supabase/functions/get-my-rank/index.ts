@@ -58,9 +58,7 @@ serve(
         .select('character_id, weighted_total')
         .gt('weighted_total', myWeighted)
 
-      const { data: totalRows } = await supabase
-        .from('v_weighted_scores')
-        .select('character_id')
+      const { data: totalRows } = await supabase.from('v_weighted_scores').select('character_id')
 
       const higherCount = higherRows?.length || 0
       const totalParticipants = totalRows?.length || 0

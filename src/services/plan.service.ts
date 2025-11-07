@@ -13,5 +13,3 @@ export const planService = {
     return handleEdgeFunctionResponse<{ plan: CharacterPlan }>(data, error, 'Failed to save plan')
   },
 }
-
-

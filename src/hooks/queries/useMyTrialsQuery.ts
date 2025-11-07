@@ -7,5 +7,3 @@ export const useMyTrials = () => {
     queryFn: () => trialService.getMyTrials(),
   })
 }
-
-

@@ -16,9 +16,21 @@ serve(
       logger.setRequestBody(payload)
 
       const requiredFields = [
-        'lv1_str','lv1_dex','lv1_con','lv1_int','lv1_skill',
-        'lv2_str','lv2_dex','lv2_con','lv2_int','lv2_skill',
-        'lv3_str','lv3_dex','lv3_con','lv3_int','lv3_skill',
+        'lv1_str',
+        'lv1_dex',
+        'lv1_con',
+        'lv1_int',
+        'lv1_skill',
+        'lv2_str',
+        'lv2_dex',
+        'lv2_con',
+        'lv2_int',
+        'lv2_skill',
+        'lv3_str',
+        'lv3_dex',
+        'lv3_con',
+        'lv3_int',
+        'lv3_skill',
       ]
       for (const f of requiredFields) {
         if (payload[f] === undefined || payload[f] === null) {
@@ -39,12 +51,20 @@ serve(
       // Validate +1 split rule: lv2 - lv1 has exactly two +1, others 0
       const d12 = lv2.map((v, i) => v - lv1[i])
       if (!(d12.filter((d) => d === 1).length === 2 && d12.every((d) => d === 0 || d === 1))) {
-        return errorResponse('INVALID_LV2_ALLOCATION', 400, 'Lv2는 서로 다른 2개 능력치에 +1씩 분배해야 합니다')
+        return errorResponse(
+          'INVALID_LV2_ALLOCATION',
+          400,
+          'Lv2는 서로 다른 2개 능력치에 +1씩 분배해야 합니다'
+        )
       }
       // Validate +1 split rule: lv3 - lv2 has exactly two +1, others 0
       const d23 = lv3.map((v, i) => v - lv2[i])
       if (!(d23.filter((d) => d === 1).length === 2 && d23.every((d) => d === 0 || d === 1))) {
-        return errorResponse('INVALID_LV3_ALLOCATION', 400, 'Lv3는 서로 다른 2개 능력치에 +1씩 분배해야 합니다')
+        return errorResponse(
+          'INVALID_LV3_ALLOCATION',
+          400,
+          'Lv3는 서로 다른 2개 능력치에 +1씩 분배해야 합니다'
+        )
       }
 
       const supabase = createSupabaseClient()
@@ -93,5 +113,3 @@ serve(
     }
   })
 )
-
-

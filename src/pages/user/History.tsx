@@ -115,7 +115,9 @@ export const History: FC = () => {
             }}
           >
             <Space direction="vertical" style={{ width: '100%' }} size="small">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
                 <Tag color="purple" style={{ margin: 0 }}>
                   Round #{item.round_number ?? '-'} · Trial {item.trial_no} (Lv.{item.level})
                 </Tag>

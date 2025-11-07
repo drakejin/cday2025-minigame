@@ -7,7 +7,18 @@ export const trialService = {
     const { data, error } = await supabase.functions.invoke('get-round-trials')
     return handleEdgeFunctionResponse(data, error, 'Failed to get trials')
   },
-  async getMyTrials(): Promise<{ trials: Array<{ id: string; trial_id: string; round_number: number | null; trial_no: number; level: number; total_score: number; weighted_total: number; created_at: string }> }> {
+  async getMyTrials(): Promise<{
+    trials: Array<{
+      id: string
+      trial_id: string
+      round_number: number | null
+      trial_no: number
+      level: number
+      total_score: number
+      weighted_total: number
+      created_at: string
+    }>
+  }> {
     const { data, error } = await supabase.functions.invoke('get-my-trials')
     return handleEdgeFunctionResponse(data, error, 'Failed to get my trials')
   },

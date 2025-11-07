@@ -16,7 +16,6 @@ export const AdminDashboard: FC = () => {
     queryKey: ['admin', 'stats'],
     queryFn: () => adminService.getOverallStats(),
   })
-
   if (isLoading) {
     return <Loading fullscreen tip="통계 로딩 중..." />
   }

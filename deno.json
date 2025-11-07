@@ -16,5 +16,3 @@
     "vendor:functions": "deno vendor supabase/functions/**/*.ts"
   }
 }
-
-

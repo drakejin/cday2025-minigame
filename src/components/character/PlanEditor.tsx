@@ -43,7 +43,14 @@ export const PlanEditor: FC = () => {
   const numberProps = { min: 1, max: 20 }
 
   return (
-    <Card title={<Title level={4} style={{ margin: 0 }}>캐릭터 성장 계획 (Lv1~Lv3)</Title>} loading={isLoading}>
+    <Card
+      title={
+        <Title level={4} style={{ margin: 0 }}>
+          캐릭터 성장 계획 (Lv1~Lv3)
+        </Title>
+      }
+      loading={isLoading}
+    >
       <Form form={form} layout="vertical" initialValues={initial} onFinish={onFinish}>
         <Space direction="vertical" style={{ width: '100%' }} size="large">
           <Card size="small" title="Lv.1">
@@ -116,5 +123,3 @@ export const PlanEditor: FC = () => {
     </Card>
   )
 }
-
-

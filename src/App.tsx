@@ -60,7 +60,8 @@ function App() {
                 <Routes>
                   {/* Public Routes - Redirect to dashboard if logged in */}
                   <Route element={<PublicOnlyGuard />}>
-                    <Route path="/" element={<Home />} />
+                  <Route path="/" element={<Home />} />
+                  <Route path="/awards" element={<Awards />} />
                   </Route>
 
                   {/* Protected Routes - Require Authentication */}

@@ -19,5 +19,3 @@ export interface CharacterPlan {
   created_at?: string
   updated_at?: string
 }
-
-
