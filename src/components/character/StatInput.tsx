@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import type { FC } from 'react'
-import { Card, Typography, Space, Select, Button, Row, Col } from 'antd'
+import { Card, Typography, Space, Select, Input, Row, Col, Divider } from 'antd'
 import { ThunderboltOutlined, RocketOutlined, HeartOutlined, BulbOutlined } from '@ant-design/icons'
 import { useCurrentRound } from '@/hooks/queries/useGameQuery'
 
 const { Title, Text } = Typography
+const { TextArea } = Input
 
 const BASE_STATS = [15, 14, 12, 10]
 const STAT_LABELS = [
@@ -14,53 +15,111 @@ const STAT_LABELS = [
   { key: 'int', label: 'INT (지능)', icon: BulbOutlined, color: '#a855f7' },
 ]
 
-const Trial1StatInput: FC = () => {
-  const [assignments, setAssignments] = useState<Record<string, number | null>>({
+const TrialInput: FC<{ trialNo: number }> = ({ trialNo }) => {
+  const [baseStats, setBaseStats] = useState<Record<string, number | null>>({
     str: null,
     dex: null,
     con: null,
     int: null,
   })
+  const [bonusStats, setBonusStats] = useState<[string | null, string | null]>([null, null])
+  const [skill, setSkill] = useState('')
 
-  const availableValues = BASE_STATS.filter((val) => !Object.values(assignments).includes(val))
-
-  const isComplete = Object.values(assignments).every((val) => val !== null)
+  const availableBaseValues = BASE_STATS.filter((val) => !Object.values(baseStats).includes(val))
+  const availableBonusStats = STAT_LABELS.map((s) => s.key).filter(
+    (key) => !bonusStats.includes(key)
+  )
 
   return (
     <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-      <Text>기본 능력치 [15, 14, 12, 10]을 4가지 능력치에 배정하세요</Text>
-      {STAT_LABELS.map(({ key, label, icon: Icon, color }) => (
-        <Row key={key} gutter={16} align="middle">
-          <Col span={12}>
-            <Space>
-              <Icon style={{ color, fontSize: 16 }} />
-              <Text>{label}</Text>
-            </Space>
-          </Col>
-          <Col span={12}>
-            <Select
-              style={{ width: '100%' }}
-              placeholder="선택"
-              value={assignments[key]}
-              onChange={(val) => setAssignments({ ...assignments, [key]: val })}
-              options={[
-                ...(assignments[key] ? [{ value: assignments[key], label: assignments[key] }] : []),
-                ...availableValues.map((v) => ({ value: v, label: v })),
-              ]}
-            />
-          </Col>
-        </Row>
-      ))}
-      <Button type="primary" block disabled={!isComplete}>
-        확정
-      </Button>
+      <Text strong>Trial {trialNo}</Text>
+
+      {trialNo === 1 && (
+        <>
+          <Text>기본 능력치 [15, 14, 12, 10] 배정</Text>
+          {STAT_LABELS.map(({ key, label, icon: Icon, color }) => (
+            <Row key={key} gutter={16} align="middle">
+              <Col span={12}>
+                <Space>
+                  <Icon style={{ color, fontSize: 16 }} />
+                  <Text>{label}</Text>
+                </Space>
+              </Col>
+              <Col span={12}>
+                <Select
+                  style={{ width: '100%' }}
+                  placeholder="선택"
+                  value={baseStats[key]}
+                  onChange={(val) => setBaseStats({ ...baseStats, [key]: val })}
+                  options={[
+                    ...(baseStats[key] ? [{ value: baseStats[key], label: baseStats[key] }] : []),
+                    ...availableBaseValues.map((v) => ({ value: v, label: v })),
+                  ]}
+                />
+              </Col>
+            </Row>
+          ))}
+        </>
+      )}
+
+      {trialNo >= 2 && (
+        <>
+          <Text>보너스 능력치 +2 (서로 다른 2개에 +1씩)</Text>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Select
+                style={{ width: '100%' }}
+                placeholder="첫 번째 +1"
+                value={bonusStats[0]}
+                onChange={(val) => setBonusStats([val, bonusStats[1]])}
+                options={[
+                  ...(bonusStats[0]
+                    ? [{ value: bonusStats[0], label: STAT_LABELS.find((s) => s.key === bonusStats[0])?.label }]
+                    : []),
+                  ...availableBonusStats.map((key) => ({
+                    value: key,
+                    label: STAT_LABELS.find((s) => s.key === key)?.label,
+                  })),
+                ]}
+              />
+            </Col>
+            <Col span={12}>
+              <Select
+                style={{ width: '100%' }}
+                placeholder="두 번째 +1"
+                value={bonusStats[1]}
+                onChange={(val) => setBonusStats([bonusStats[0], val])}
+                options={[
+                  ...(bonusStats[1]
+                    ? [{ value: bonusStats[1], label: STAT_LABELS.find((s) => s.key === bonusStats[1])?.label }]
+                    : []),
+                  ...availableBonusStats.map((key) => ({
+                    value: key,
+                    label: STAT_LABELS.find((s) => s.key === key)?.label,
+                  })),
+                ]}
+              />
+            </Col>
+          </Row>
+        </>
+      )}
+
+      <div>
+        <Text>스킬 {trialNo}</Text>
+        <TextArea
+          rows={2}
+          placeholder="스킬 이름과 설명을 입력하세요"
+          value={skill}
+          onChange={(e) => setSkill(e.target.value)}
+          style={{ marginTop: 8 }}
+        />
+      </div>
     </Space>
   )
 }
 
 export const StatInput: FC = () => {
   const { data } = useCurrentRound()
-  const currentRound = data?.currentRound
 
   if (!data?.currentRound?.trial_no) {
     return null
@@ -84,8 +143,13 @@ export const StatInput: FC = () => {
           Trial #{trial_no}
         </Text>
       </div>
-      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-        {trial_no >= 1 && <Trial1StatInput />}
+      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        {Array.from({ length: trial_no }, (_, i) => (
+          <div key={i + 1}>
+            <TrialInput trialNo={i + 1} />
+            {i < trial_no - 1 && <Divider />}
+          </div>
+        ))}
       </Space>
     </Card>
   )
