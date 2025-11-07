@@ -97,7 +97,6 @@ export const History: FC = () => {
         )}
         locale={{ emptyText: '아직 진행된 시련가 없습니다' }}
       />
-
     </MainLayout>
   )
 }
