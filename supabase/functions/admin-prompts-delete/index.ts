@@ -25,7 +25,7 @@ serve(
       // 1. 프롬프트 정보 조회
       const { data: prompt, error: fetchError } = await supabase
         .from('prompt_history')
-        .select('*, characters!inner(*)')
+        .select('*')
         .eq('id', prompt_id)
         .single()
 
@@ -34,26 +34,20 @@ serve(
         return errorResponse('PROMPT_NOT_FOUND', 404, '프롬프트를 찾을 수 없습니다')
       }
 
-      // 2. 캐릭터 점수 롤백
-      const { error: rollbackError } = await supabase
-        .from('characters')
-        .update({
-          strength: (prompt.characters as any).strength - prompt.strength_gained,
-          charm: (prompt.characters as any).charm - prompt.charm_gained,
-          creativity: (prompt.characters as any).creativity - prompt.creativity_gained,
-          total_score: (prompt.characters as any).total_score - prompt.total_score_gained,
-        })
-        .eq('id', prompt.character_id)
-
-      if (rollbackError) {
-        logger.logError(500, rollbackError.message)
-        return errorResponse('ROLLBACK_FAILED', 500, rollbackError.message)
+      if (prompt.is_deleted) {
+        logger.logError(400, '이미 삭제된 프롬프트입니다')
+        return errorResponse('ALREADY_DELETED', 400, '이미 삭제된 프롬프트입니다')
       }
 
-      // 3. 프롬프트 삭제
+      // 2. 소프트 삭제
       const { error: deleteError } = await supabase
         .from('prompt_history')
-        .delete()
+        .update({
+          is_deleted: true,
+          deleted_by: admin.id,
+          deleted_at: new Date().toISOString(),
+          delete_reason: reason || null,
+        })
         .eq('id', prompt_id)
 
       if (deleteError) {
@@ -61,7 +55,7 @@ serve(
         return errorResponse('DELETE_FAILED', 500, deleteError.message)
       }
 
-      // 4. Audit log
+      // 3. Audit log
       await supabase.from('admin_audit_log').insert({
         admin_id: admin.id,
         action: 'DELETE_PROMPT',
@@ -69,12 +63,8 @@ serve(
         resource_id: prompt_id,
         changes: {
           prompt: prompt.prompt,
-          scores_rolled_back: {
-            strength: prompt.strength_gained,
-            charm: prompt.charm_gained,
-            creativity: prompt.creativity_gained,
-            total: prompt.total_score_gained,
-          },
+          character_id: prompt.character_id,
+          round_number: prompt.round_number,
           reason,
         },
         ip_address: req.headers.get('x-forwarded-for') || 'unknown',
@@ -82,13 +72,9 @@ serve(
       })
 
       const responseData = {
-        message: 'Prompt deleted and scores rolled back',
-        rolled_back: {
-          strength: prompt.strength_gained,
-          charm: prompt.charm_gained,
-          creativity: prompt.creativity_gained,
-          total: prompt.total_score_gained,
-        },
+        message: 'Prompt soft deleted successfully',
+        prompt_id,
+        deleted_at: new Date().toISOString(),
       }
       logger.logSuccess(200, responseData)
       return successResponse(responseData)

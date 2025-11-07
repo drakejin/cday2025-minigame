@@ -45,10 +45,6 @@ serve(
           user_id: user.id,
           name: name.trim(),
           current_prompt: '새로운 영웅',
-          total_score: 0,
-          strength: 0,
-          charm: 0,
-          creativity: 0,
           is_active: true,
         })
         .select()
@@ -63,11 +59,9 @@ serve(
         id: character.id,
         name: character.name,
         current_prompt: character.current_prompt,
-        total_score: character.total_score,
-        strength: character.strength,
-        charm: character.charm,
-        creativity: character.creativity,
+        is_active: character.is_active,
         created_at: character.created_at,
+        updated_at: character.updated_at,
       }
 
       logger.logSuccess(200, responseData)

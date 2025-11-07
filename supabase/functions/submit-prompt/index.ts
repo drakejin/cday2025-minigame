@@ -29,8 +29,8 @@ serve(
         return errorResponse('Unauthorized', 401)
       }
 
-      const { character_id, prompt, trial_id } = await req.json()
-      logger.setRequestBody({ character_id, prompt, trial_id })
+      const { character_id, prompt } = await req.json()
+      logger.setRequestBody({ character_id, prompt })
 
       if (!prompt || typeof prompt !== 'string') {
         logger.logError(400, '프롬프트를 입력해주세요')
@@ -65,39 +65,27 @@ serve(
         return errorResponse('ALREADY_SUBMITTED', 400, '이미 이번 시련에 제출했습니다')
       }
 
-      // Trial resolve: if trial_id provided, validate it belongs to current round; else try to fetch by round
-      let resolvedTrial: any = null
-      if (trial_id) {
-        const { data: t } = await supabase
-          .from('trials')
-          .select('*')
-          .eq('id', trial_id)
-          .maybeSingle()
-        if (!t || t.round_id !== round.id) {
-          logger.logError(400, '잘못된 시련 선택입니다')
-          return errorResponse('INVALID_TRIAL', 400, '잘못된 시련 선택입니다')
-        }
-        resolvedTrial = t
-      } else {
-        const { data: trials } = await supabase
-          .from('trials')
-          .select('*')
-          .eq('round_id', round.id)
-          .order('trial_no')
-        resolvedTrial = trials?.[0] || null
-      }
-      if (!resolvedTrial) {
-        logger.logError(400, '현재 시련에 시련이 설정되지 않았습니다')
-        return errorResponse('TRIAL_NOT_CONFIGURED', 400, '현재 시련에 시련이 설정되지 않았습니다')
+      // Get character plan
+      const { data: plan } = await supabase
+        .from('character_plans')
+        .select('*')
+        .eq('character_id', character_id)
+        .maybeSingle()
+
+      if (!plan) {
+        logger.logError(400, '캐릭터 플랜이 설정되지 않았습니다')
+        return errorResponse('PLAN_NOT_FOUND', 400, '캐릭터 플랜이 설정되지 않았습니다')
       }
 
-      // TODO: Replace with actual evaluation per GameRule (stats+skill). Temporary random with 4 stats.
-      const score_strength = Math.floor(Math.random() * 30) + 5
-      const score_dexterity = Math.floor(Math.random() * 30) + 5
-      const score_constitution = Math.floor(Math.random() * 30) + 5
-      const score_intelligence = Math.floor(Math.random() * 30) + 5
-      const total = score_strength + score_dexterity + score_constitution + score_intelligence
-      const weighted_total = total * (resolvedTrial.weight_multiplier ?? 1)
+      // Use round_number directly as level (1, 2, or 3)
+      const level = round.round_number
+      const levelPrefix = `lv${level}`
+
+      const str = plan[`${levelPrefix}_str`]
+      const dex = plan[`${levelPrefix}_dex`]
+      const con = plan[`${levelPrefix}_con`]
+      const int = plan[`${levelPrefix}_int`]
+      const skill = plan[`${levelPrefix}_skill`]
 
       const { data: promptHistory, error: historyError } = await supabase
         .from('prompt_history')
@@ -106,10 +94,11 @@ serve(
           user_id: user.id,
           prompt: prompt.trim(),
           round_number: round.round_number,
-          strength_gained: 0,
-          charm_gained: 0,
-          creativity_gained: 0,
-          total_score_gained: total,
+          str,
+          dex,
+          con,
+          int,
+          skill,
         })
         .select()
         .single()
@@ -119,54 +108,16 @@ serve(
         return errorResponse('SUBMISSION_FAILED', 500, '제출에 실패했습니다')
       }
 
-      const { data: character } = await supabase
-        .from('characters')
-        .select('*')
-        .eq('id', character_id)
-        .single()
-
-      if (!character) {
-        logger.logError(404, 'CHARACTER_NOT_FOUND')
-        return errorResponse('CHARACTER_NOT_FOUND', 404)
-      }
-
-      // Insert trial_results (unique per trial_id + character)
-      const { data: trialResult, error: trErr } = await supabase
-        .from('trial_results')
-        .upsert(
-          {
-            trial_id: resolvedTrial.id,
-            character_id,
-            user_id: user.id,
-            prompt_history_id: promptHistory.id,
-            score_strength,
-            score_dexterity,
-            score_constitution,
-            score_intelligence,
-            total_score: total,
-            weighted_total,
-            needs_revalidation: false,
-          },
-          { onConflict: 'trial_id,character_id' }
-        )
-        .select('*')
-        .single()
-      if (trErr) {
-        logger.logError(500, '시련 결과 저장 실패')
-        return errorResponse('TRIAL_RESULT_FAILED', 500, trErr.message)
-      }
-
       const responseData = {
         prompt_history_id: promptHistory.id,
         round_number: round.round_number,
-        trial_id: resolvedTrial.id,
-        scores: {
-          strength: score_strength,
-          dexterity: score_dexterity,
-          constitution: score_constitution,
-          intelligence: score_intelligence,
-          total,
-          weighted_total,
+        level,
+        stats: {
+          str,
+          dex,
+          con,
+          int,
+          skill,
         },
       }
 

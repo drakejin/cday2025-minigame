@@ -14,8 +14,7 @@ serve(
         return errorResponse(error!, status)
       }
 
-      const { notes } = await req.json()
-      logger.setRequestBody({ notes })
+      logger.setRequestBody({})
 
       const { data: currentRound } = await supabase
         .from('game_rounds')
@@ -35,7 +34,6 @@ serve(
           status: 'completed',
           actual_end_time: new Date().toISOString(),
           ended_by: admin.id,
-          notes: notes || null,
         })
         .eq('id', currentRound.id)
         .select()
@@ -46,27 +44,6 @@ serve(
         return errorResponse('ROUND_END_FAILED', 400, '시련 종료에 실패했습니다')
       }
 
-      const { data: characters } = await supabase
-        .from('characters')
-        .select('*')
-        .eq('is_active', true)
-        .order('total_score', { ascending: false })
-
-      if (characters && characters.length > 0) {
-        const snapshots = characters.map((char, index) => ({
-          round_number: currentRound.round_number,
-          character_id: char.id,
-          user_id: char.user_id,
-          rank: index + 1,
-          total_score: char.total_score,
-          strength: char.strength,
-          charm: char.charm,
-          creativity: char.creativity,
-        }))
-
-        await supabase.from('leaderboard_snapshots').insert(snapshots)
-      }
-
       await supabase.from('admin_audit_log').insert({
         admin_id: admin.id,
         action: 'END_ROUND',
@@ -74,7 +51,7 @@ serve(
         resource_id: currentRound.id,
         changes: {
           status: 'active -> completed',
-          snapshot_count: characters?.length || 0,
+          round_number: currentRound.round_number,
         },
         ip_address: req.headers.get('x-forwarded-for') || 'unknown',
         user_agent: req.headers.get('user-agent'),
@@ -82,8 +59,6 @@ serve(
 
       const responseData = {
         round,
-        snapshot_created: true,
-        leaderboard_count: characters?.length || 0,
       }
 
       logger.logSuccess(200, responseData)

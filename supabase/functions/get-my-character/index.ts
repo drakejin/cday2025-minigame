@@ -31,10 +31,7 @@ serve(
             id: character.id,
             name: character.name,
             current_prompt: character.current_prompt,
-            total_score: character.total_score,
-            strength: character.strength,
-            charm: character.charm,
-            creativity: character.creativity,
+            is_active: character.is_active,
             created_at: character.created_at,
             updated_at: character.updated_at,
           }
