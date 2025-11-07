@@ -1,12 +1,3 @@
-import type { CharacterStats } from '@/types'
-
-/**
- * Calculate total score from individual stats
- */
-export const calculateTotalScore = (stats: CharacterStats): number => {
-  return stats.strength + stats.charm + stats.creativity
-}
-
 /**
  * Get rank suffix (1st, 2nd, 3rd, etc.)
  */

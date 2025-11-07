@@ -4,7 +4,7 @@ import { Space, Typography, Progress, Tag, Divider } from 'antd'
 import { ThunderboltOutlined, RocketOutlined, HeartOutlined, BulbOutlined } from '@ant-design/icons'
 import type { Character } from '@/types'
 import { useQuery } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/services/supabase'
 
 const { Title, Text } = Typography
 

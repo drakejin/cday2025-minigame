@@ -71,7 +71,8 @@ export const AdminLeaderboard: FC = () => {
       render: (score: number) => (
         <span style={{ fontSize: 16, fontWeight: 'bold', color: '#1890ff' }}>{score || 0}</span>
       ),
-      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => (b.total_score || 0) - (a.total_score || 0),
+      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) =>
+        (b.total_score || 0) - (a.total_score || 0),
       defaultSortOrder: 'descend' as const,
     },
     {
