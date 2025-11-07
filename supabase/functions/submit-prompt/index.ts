@@ -41,6 +41,16 @@ serve(
         return errorResponse('CHARACTER_ID_REQUIRED', 400, '캐릭터 ID가 필요합니다')
       }
 
+      if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
+        logger.logError(400, '프롬프트를 입력해주세요')
+        return errorResponse('INVALID_PROMPT', 400, '프롬프트를 입력해주세요')
+      }
+
+      if (prompt.length > 30) {
+        logger.logError(400, '프롬프트는 최대 30자까지 입력 가능합니다')
+        return errorResponse('PROMPT_TOO_LONG', 400, '프롬프트는 최대 30자까지 입력 가능합니다')
+      }
+
       if (!trial_data || typeof trial_data !== 'object') {
         logger.logError(400, '능력치 데이터를 입력해주세요')
         return errorResponse('INVALID_TRIAL_DATA', 400, '능력치 데이터를 입력해주세요')
@@ -167,10 +177,17 @@ serve(
         }
       }
 
-      await supabase.from('character_plans').upsert({
-        character_id,
-        ...planData,
-      })
+      // Update character_plans and current_prompt
+      await Promise.all([
+        supabase.from('character_plans').upsert({
+          character_id,
+          ...planData,
+        }),
+        supabase
+          .from('characters')
+          .update({ current_prompt: prompt.trim() })
+          .eq('id', character_id),
+      ])
 
       // Validate that stats are set for this level
       if ([str, dex, con, int].some((stat) => stat == null)) {

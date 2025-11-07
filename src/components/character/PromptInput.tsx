@@ -6,7 +6,10 @@ import type { TrialData } from '@/pages/user/Dashboard'
 
 const { Text, Title } = Typography
 
-export const PromptInput: FC<{ trialData: Record<number, TrialData> }> = ({ trialData }) => {
+export const PromptInput: FC<{ trialData: Record<number, TrialData>; prompt: string }> = ({
+  trialData,
+  prompt,
+}) => {
   const {
     submitPrompt,
     isSubmitting,
@@ -18,13 +21,18 @@ export const PromptInput: FC<{ trialData: Record<number, TrialData> }> = ({ tria
   } = usePromptSubmit()
 
   const handleSubmit = async () => {
+    // Validate prompt
+    if (!prompt.trim()) {
+      return
+    }
+
     // Validate trial data
     const trials = Object.keys(trialData).map(Number).sort()
     if (trials.length === 0) {
       return
     }
 
-    await submitPrompt('character_build', trialData)
+    await submitPrompt(prompt.trim(), trialData)
   }
 
   // Determine the state to display

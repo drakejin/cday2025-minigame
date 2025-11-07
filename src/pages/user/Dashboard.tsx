@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { FC } from 'react'
-import { Space, Typography } from 'antd'
+import { Space, Typography, Input } from 'antd'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { RoundTimer } from '@/components/game/RoundTimer'
 import { CharacterCard } from '@/components/character/CharacterCard'
@@ -12,7 +12,8 @@ import { Loading } from '@/components/common/Loading'
 import { useRealtimeRound } from '@/hooks/useRealtimeRound'
 import { supabase } from '@/services/supabase'
 
-const { Title } = Typography
+const { Title, Text } = Typography
+const { TextArea } = Input
 
 export interface TrialData {
   baseStats?: Record<string, number | null>
@@ -23,6 +24,7 @@ export interface TrialData {
 export const Dashboard: FC = () => {
   const { data: character, isLoading: characterLoading } = useMyCharacter()
   const [trialData, setTrialData] = useState<Record<number, TrialData>>({})
+  const [prompt, setPrompt] = useState('')
   const [isLoadingPlan, setIsLoadingPlan] = useState(true)
 
   // Subscribe to real-time updates
@@ -101,9 +103,38 @@ export const Dashboard: FC = () => {
       <Title level={2}>게임</Title>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <RoundTimer />
-        {character ? <CharacterCard character={character} /> : <CharacterCreationForm />}
-        <StatInput trialData={trialData} setTrialData={setTrialData} />
-        <PromptInput trialData={trialData} />
+        {character ? (
+          <>
+            <CharacterCard character={character} />
+            <div
+              style={{
+                background: '#fff',
+                border: '1px solid #e0e0e0',
+                borderRadius: 8,
+                padding: '20px',
+              }}
+            >
+              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                <Text strong>캐릭터를 성장시킬 프롬프트 (최대 30자)</Text>
+                <TextArea
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  placeholder="예: 용감한 전사가 되어라"
+                  maxLength={30}
+                  rows={3}
+                  style={{ fontSize: 14 }}
+                />
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  {prompt.length}/30자
+                </Text>
+              </Space>
+            </div>
+            <StatInput trialData={trialData} setTrialData={setTrialData} />
+            <PromptInput trialData={trialData} prompt={prompt} />
+          </>
+        ) : (
+          <CharacterCreationForm />
+        )}
       </Space>
     </MainLayout>
   )
