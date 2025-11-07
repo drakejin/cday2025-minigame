@@ -93,24 +93,52 @@ serve(
       }
 
       // Claude API에 보낼 메시지 구성
-      const systemPrompt = `당신은 게임 시련의 프롬프트들을 평가하는 AI입니다.
-각 프롬프트의 창의성, 적절성, 게임 규칙 준수 여부를 평가해주세요.`
+      const systemPrompt = `당신은 캐릭터 육성 게임의 프롬프트 평가 전문가입니다.
 
-      const userPrompt = `다음은 시련 ${round.round_number}에 제출된 프롬프트들입니다:
+## 게임 규칙
+- 플레이어는 30자 이내의 프롬프트로 캐릭터를 성장시킵니다
+- 각 라운드마다 여러 시련(trial)이 있으며, 난이도에 따라 가중치가 다릅니다
+- 프롬프트는 창의적이고 전략적이어야 하며, 캐릭터의 능력을 효과적으로 향상시켜야 합니다
+
+## 평가 기준
+1. **창의성 (Creativity)**: 독창적이고 흥미로운 접근 방식인가?
+2. **전략성 (Strategy)**: 게임 진행에 도움이 되는 현명한 선택인가?
+3. **규칙 준수 (Rule Compliance)**: 30자 제한과 게임 규칙을 준수하는가?
+4. **명확성 (Clarity)**: 의도가 명확하고 이해하기 쉬운가?
+5. **효과성 (Effectiveness)**: 캐릭터 성장에 실질적으로 도움이 될 것으로 예상되는가?
+
+각 프롬프트를 위 5가지 기준으로 평가하고, 개선 제안과 함께 피드백을 제공해주세요.`
+
+      const userPrompt = `# 라운드 ${round.round_number} 프롬프트 평가
+
+총 ${promptsData.length}개의 프롬프트가 제출되었습니다.
 
 ${promptsData
   .map(
     (p, idx) => `
-${idx + 1}. 캐릭터: ${p.characterName}
-   사용자: ${p.username || p.userEmail}
-   시련 번호: ${p.trialNo}
-   프롬프트: ${p.promptText}
-   제출 시간: ${p.createdAt}
+## ${idx + 1}. ${p.characterName} (${p.username || p.userEmail})
+- **시련 번호**: Trial #${p.trialNo}
+- **프롬프트**: "${p.promptText}"
+- **글자 수**: ${p.promptText.length}자
+- **제출 시간**: ${new Date(p.createdAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
 `
   )
   .join('\n')}
 
-각 프롬프트를 평가해주세요.`
+---
+
+각 프롬프트에 대해 다음 형식으로 평가해주세요:
+
+**프롬프트 #번호**
+- 창의성: ⭐/5
+- 전략성: ⭐/5
+- 규칙 준수: ⭐/5
+- 명확성: ⭐/5
+- 효과성: ⭐/5
+- **총평**: [간단한 평가]
+- **개선 제안**: [구체적인 개선 방안]
+
+마지막에 이번 라운드의 전체적인 트렌드와 특징, 그리고 가장 인상적인 프롬프트를 선정해주세요.`
 
       const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',

@@ -88,11 +88,7 @@ serve(
       }
       if (!resolvedTrial) {
         logger.logError(400, '현재 시련에 시련이 설정되지 않았습니다')
-        return errorResponse(
-          'TRIAL_NOT_CONFIGURED',
-          400,
-          '현재 시련에 시련이 설정되지 않았습니다'
-        )
+        return errorResponse('TRIAL_NOT_CONFIGURED', 400, '현재 시련에 시련이 설정되지 않았습니다')
       }
 
       // TODO: Replace with actual evaluation per GameRule (stats+skill). Temporary random with 4 stats.

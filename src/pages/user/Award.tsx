@@ -873,54 +873,54 @@ export const Award: FC = () => {
   return (
     <MainLayout showBottomNav={!!user} withoutPadding={true}>
       <AwardContainer>
-      <Header>
-        <MainTitle level={1}>Champions</MainTitle>
-        <Subtitle>Hall of Fame</Subtitle>
-      </Header>
+        <Header>
+          <MainTitle level={1}>Champions</MainTitle>
+          <Subtitle>Hall of Fame</Subtitle>
+        </Header>
 
-      {topThree.length > 0 && (
-        <TopThreeContainer>
-          {reorderedTopThree.map((entry) => {
-            const actualRank = entry.rank
-            return (
-              <WinnerCard key={entry.character_id} $rank={actualRank}>
-                <RankBadge $rank={actualRank}>{getRankIcon(actualRank)}</RankBadge>
-                <WinnerAvatar
-                  size={280}
-                  src={entry.avatar_url || undefined}
-                  alt={entry.display_name}
-                >
+        {topThree.length > 0 && (
+          <TopThreeContainer>
+            {reorderedTopThree.map((entry) => {
+              const actualRank = entry.rank
+              return (
+                <WinnerCard key={entry.character_id} $rank={actualRank}>
+                  <RankBadge $rank={actualRank}>{getRankIcon(actualRank)}</RankBadge>
+                  <WinnerAvatar
+                    size={280}
+                    src={entry.avatar_url || undefined}
+                    alt={entry.display_name}
+                  >
+                    {!entry.avatar_url && entry.display_name[0]?.toUpperCase()}
+                  </WinnerAvatar>
+                  <WinnerInfo>
+                    <WinnerName level={2}>{entry.display_name}</WinnerName>
+                    <CharacterName>{entry.character_name}</CharacterName>
+                    <Score>{entry.total_score.toLocaleString()}</Score>
+                  </WinnerInfo>
+                </WinnerCard>
+              )
+            })}
+          </TopThreeContainer>
+        )}
+
+        {remaining.length > 0 && (
+          <RankingList>
+            {remaining.map((entry) => (
+              <RankingItem key={entry.character_id}>
+                <RankNumber>{entry.rank}</RankNumber>
+                <RankAvatar size={100} src={entry.avatar_url || undefined} alt={entry.display_name}>
                   {!entry.avatar_url && entry.display_name[0]?.toUpperCase()}
-                </WinnerAvatar>
-                <WinnerInfo>
-                  <WinnerName level={2}>{entry.display_name}</WinnerName>
-                  <CharacterName>{entry.character_name}</CharacterName>
-                  <Score>{entry.total_score.toLocaleString()}</Score>
-                </WinnerInfo>
-              </WinnerCard>
-            )
-          })}
-        </TopThreeContainer>
-      )}
-
-      {remaining.length > 0 && (
-        <RankingList>
-          {remaining.map((entry) => (
-            <RankingItem key={entry.character_id}>
-              <RankNumber>{entry.rank}</RankNumber>
-              <RankAvatar size={100} src={entry.avatar_url || undefined} alt={entry.display_name}>
-                {!entry.avatar_url && entry.display_name[0]?.toUpperCase()}
-              </RankAvatar>
-              <RankInfo>
-                <RankName level={3}>{entry.display_name}</RankName>
-                <RankCharacter>{entry.character_name}</RankCharacter>
-              </RankInfo>
-              <RankScore>{entry.total_score.toLocaleString()}</RankScore>
-            </RankingItem>
-          ))}
-        </RankingList>
-      )}
-    </AwardContainer>
+                </RankAvatar>
+                <RankInfo>
+                  <RankName level={3}>{entry.display_name}</RankName>
+                  <RankCharacter>{entry.character_name}</RankCharacter>
+                </RankInfo>
+                <RankScore>{entry.total_score.toLocaleString()}</RankScore>
+              </RankingItem>
+            ))}
+          </RankingList>
+        )}
+      </AwardContainer>
     </MainLayout>
   )
 }

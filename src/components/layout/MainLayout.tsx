@@ -10,7 +10,11 @@ interface MainLayoutProps {
   withoutPadding?: boolean
 }
 
-export const MainLayout: FC<MainLayoutProps> = ({ children, showBottomNav = true, withoutPadding = false }) => {
+export const MainLayout: FC<MainLayoutProps> = ({
+  children,
+  showBottomNav = true,
+  withoutPadding = false,
+}) => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Content

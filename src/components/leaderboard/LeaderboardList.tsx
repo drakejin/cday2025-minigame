@@ -1,5 +1,5 @@
 import type { FC } from 'react'
-import { List, Tag, Space, Typography, Flex, Button, } from 'antd'
+import { List, Tag, Space, Typography, Flex, Button } from 'antd'
 import { TrophyOutlined, FireOutlined, HeartOutlined, BulbOutlined } from '@ant-design/icons'
 import type { LeaderboardEntry } from '@/types'
 import { getRankColor } from '@/utils'
