@@ -66,12 +66,12 @@ function App() {
                   </Route>
 
                   {/* Protected Routes - Require Authentication */}
-                  {/* <Route element={<AuthGuard />}>
-                  </Route> */}
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/leaderboard" element={<Leaderboard />} />
-                  <Route path="/history" element={<History />} />
-                  <Route path="/profile" element={<Profile />} />
+                  <Route element={<AuthGuard />}>
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/leaderboard" element={<Leaderboard />} />
+                    <Route path="/history" element={<History />} />
+                    <Route path="/profile" element={<Profile />} />
+                  </Route>
 
                   {/* Admin Routes - Require Admin Role */}
                   <Route element={<AdminGuard />}>

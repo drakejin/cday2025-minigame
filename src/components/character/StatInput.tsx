@@ -74,7 +74,12 @@ const TrialInput: FC<{ trialNo: number }> = ({ trialNo }) => {
                 onChange={(val) => setBonusStats([val, bonusStats[1]])}
                 options={[
                   ...(bonusStats[0]
-                    ? [{ value: bonusStats[0], label: STAT_LABELS.find((s) => s.key === bonusStats[0])?.label }]
+                    ? [
+                        {
+                          value: bonusStats[0],
+                          label: STAT_LABELS.find((s) => s.key === bonusStats[0])?.label,
+                        },
+                      ]
                     : []),
                   ...availableBonusStats.map((key) => ({
                     value: key,
@@ -91,7 +96,12 @@ const TrialInput: FC<{ trialNo: number }> = ({ trialNo }) => {
                 onChange={(val) => setBonusStats([bonusStats[0], val])}
                 options={[
                   ...(bonusStats[1]
-                    ? [{ value: bonusStats[1], label: STAT_LABELS.find((s) => s.key === bonusStats[1])?.label }]
+                    ? [
+                        {
+                          value: bonusStats[1],
+                          label: STAT_LABELS.find((s) => s.key === bonusStats[1])?.label,
+                        },
+                      ]
                     : []),
                   ...availableBonusStats.map((key) => ({
                     value: key,
