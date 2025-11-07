@@ -97,8 +97,8 @@ serve(
         return errorResponse('ALREADY_SUBMITTED', 400, '이미 이번 시련에 제출했습니다')
       }
 
-      // Use round_number directly as level (1, 2, or 3)
-      const level = round.round_number
+      // Use trial_no from round (1, 2, or 3)
+      const level = round.trial_no || 1
       const currentTrial = trial_data[level]
 
       if (!currentTrial) {
