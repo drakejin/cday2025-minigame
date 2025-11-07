@@ -84,37 +84,17 @@ serve(
         return errorResponse('ROUND_NOT_ACTIVE', 400, '현재 진행 중인 시련가 없습니다')
       }
 
-      // Parallel: Check existing submission and get character plan
-      const [existingResult, planResult] = await Promise.all([
-        supabase
-          .from('prompt_history')
-          .select('id')
-          .eq('character_id', character_id)
-          .eq('round_number', round.round_number)
-          .maybeSingle(),
-        supabase.from('character_plans').select('*').eq('character_id', character_id).maybeSingle(),
-      ])
+      // Check existing submission
+      const { data: existing } = await supabase
+        .from('prompt_history')
+        .select('id')
+        .eq('character_id', character_id)
+        .eq('round_number', round.round_number)
+        .maybeSingle()
 
-      const { data: existing } = existingResult
       if (existing) {
         logger.logError(400, '이미 이번 시련에 제출했습니다')
         return errorResponse('ALREADY_SUBMITTED', 400, '이미 이번 시련에 제출했습니다')
-      }
-
-      // Calculate stats from trial_data
-      const { data: plan, error: planError } = planResult
-      if (planError) {
-        logger.logError(500, '캐릭터 플랜 조회 실패')
-        return errorResponse('PLAN_QUERY_ERROR', 500, '캐릭터 플랜 조회 실패')
-      }
-
-      if (!plan) {
-        logger.logError(400, '캐릭터 플랜이 설정되지 않았습니다. 먼저 스탯 분배를 완료해주세요.')
-        return errorResponse(
-          'PLAN_NOT_FOUND',
-          400,
-          '캐릭터 플랜이 설정되지 않았습니다. 먼저 스탯 분배를 완료해주세요.'
-        )
       }
 
       // Use round_number directly as level (1, 2, or 3)
@@ -177,6 +157,19 @@ serve(
         }
       }
 
+      // Validate that stats are set for this level
+      if ([str, dex, con, int].some((stat) => stat == null || stat === 0)) {
+        logger.logError(
+          400,
+          `레벨 ${level} 스탯이 설정되지 않았습니다. 먼저 스탯 분배를 완료해주세요.`
+        )
+        return errorResponse(
+          'LEVEL_STATS_NOT_SET',
+          400,
+          `레벨 ${level} 스탯이 설정되지 않았습니다. 먼저 스탯 분배를 완료해주세요.`
+        )
+      }
+
       // Update character_plans and current_prompt
       await Promise.all([
         supabase.from('character_plans').upsert({
@@ -188,19 +181,6 @@ serve(
           .update({ current_prompt: prompt.trim() })
           .eq('id', character_id),
       ])
-
-      // Validate that stats are set for this level
-      if ([str, dex, con, int].some((stat) => stat == null)) {
-        logger.logError(
-          400,
-          `레벨 ${level} 스탯이 설정되지 않았습니다. 먼저 스탯 분배를 완료해주세요.`
-        )
-        return errorResponse(
-          'LEVEL_STATS_NOT_SET',
-          400,
-          `레벨 ${level} 스탯이 설정되지 않았습니다. 먼저 스탯 분배를 완료해주세요.`
-        )
-      }
 
       const { data: promptHistory, error: historyError } = await supabase
         .from('prompt_history')
