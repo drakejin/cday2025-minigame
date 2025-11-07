@@ -21,11 +21,13 @@ export const useCreateRound = () => {
       startTime,
       endTime,
       trialText,
+      trialNo,
     }: {
       startTime: string
       endTime: string
       trialText?: string
-    }) => adminService.createRound(startTime, endTime, trialText),
+      trialNo?: number
+    }) => adminService.createRound(startTime, endTime, trialText, trialNo),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.rounds })
       queryClient.invalidateQueries({ queryKey: queryKeys.round.all })

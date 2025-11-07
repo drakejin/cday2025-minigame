@@ -21,6 +21,7 @@ export interface CurrentRound {
   status: 'scheduled' | 'active' | 'completed' | 'cancelled'
   is_active: boolean
   trial_text?: string
+  trial_no?: number
 }
 
 export interface PromptHistory {

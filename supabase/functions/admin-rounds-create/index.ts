@@ -15,8 +15,8 @@ serve(
         return errorResponse(errorMsg, status)
       }
 
-      const { start_time, end_time, trial_text } = await req.json()
-      logger.setRequestBody({ start_time, end_time, trial_text })
+      const { start_time, end_time, trial_text, trial_no } = await req.json()
+      logger.setRequestBody({ start_time, end_time, trial_text, trial_no })
 
       if (!start_time || !end_time) {
         logger.logError(400, 'start_time과 end_time이 필요합니다')
@@ -53,6 +53,7 @@ serve(
           is_active: false,
           status: 'scheduled',
           trial_text: trial_text || null,
+          trial_no: trial_no || null,
         })
         .select()
         .single()

@@ -4,6 +4,7 @@ import { MainLayout } from '@/components/layout/MainLayout'
 import { RoundTimer } from '@/components/game/RoundTimer'
 import { CharacterCard } from '@/components/character/CharacterCard'
 import { CharacterCreationForm } from '@/components/character/CharacterCreationForm'
+import { StatInput } from '@/components/character/StatInput'
 import { PromptInput } from '@/components/character/PromptInput'
 import { useMyCharacter } from '@/hooks/queries/useCharacterQuery'
 import { Loading } from '@/components/common/Loading'
@@ -26,8 +27,9 @@ export const Dashboard: FC = () => {
       <Title level={2}>게임</Title>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <RoundTimer />
-        <PromptInput />
         {character ? <CharacterCard character={character} /> : <CharacterCreationForm />}
+        <StatInput />
+        <PromptInput />
       </Space>
     </MainLayout>
   )
