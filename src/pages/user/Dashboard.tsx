@@ -38,19 +38,15 @@ export const Dashboard: FC = () => {
     }
 
     const loadPlan = async () => {
-      console.log('Loading plan for character:', character.id)
       const { data, error } = await supabase.functions.invoke('get-my-character-plan')
 
       if (error) {
-        console.error('Error loading plan:', error)
         setTrialData({})
         setIsLoadingPlan(false)
         return
       }
 
-      console.log('Raw response:', data)
       const plan = data?.data || data
-      console.log('Plan loaded:', plan)
 
       if (plan) {
         const loaded: Record<number, TrialData> = {}
@@ -94,10 +90,8 @@ export const Dashboard: FC = () => {
           }
         }
 
-        console.log('Loaded trial data:', loaded)
         setTrialData(loaded)
       } else {
-        console.log('No plan found, setting empty')
         setTrialData({})
       }
       setIsLoadingPlan(false)
