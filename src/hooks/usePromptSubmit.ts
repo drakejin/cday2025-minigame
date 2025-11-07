@@ -23,7 +23,7 @@ export const usePromptSubmit = () => {
   // Can submit if: has character, round is active, and hasn't submitted yet
   const canSubmit = !!character && !!currentRound && !hasSubmittedThisRound
 
-  const submitPrompt = async (prompt: string) => {
+  const submitPrompt = async (prompt: string, trialData: Record<number, any>) => {
     if (!character) {
       setError('캐릭터를 먼저 생성해주세요')
       return false
@@ -56,11 +56,12 @@ export const usePromptSubmit = () => {
       await submitMutation.mutateAsync({
         characterId: character.id,
         prompt: trimmedPrompt,
+        trialData,
       })
-      message.success('프롬프트가 제출되었습니다!')
+      message.success('제출이 완료되었습니다!')
       return true
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '프롬프트 제출에 실패했습니다'
+      const errorMessage = err instanceof Error ? err.message : '제출에 실패했습니다'
       setError(errorMessage)
       message.error(errorMessage)
       return false

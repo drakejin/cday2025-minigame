@@ -1,13 +1,15 @@
-import { type FC, useState } from 'react'
-import { Input, Button, Space, Typography, Alert, Tag } from 'antd'
+import type { FC } from 'react'
+import { Button, Space, Typography, Alert, Tag } from 'antd'
 import { SendOutlined, EditOutlined } from '@ant-design/icons'
 import { usePromptSubmit } from '@/hooks/usePromptSubmit'
+import type { TrialData } from '@/pages/user/Dashboard'
 
-const { TextArea } = Input
 const { Text, Title } = Typography
 
-export const PromptInput: FC = () => {
-  const [prompt, setPrompt] = useState('')
+export const PromptInput: FC<{ trialData: Record<number, TrialData>; prompt: string }> = ({
+  trialData,
+  prompt,
+}) => {
   const {
     submitPrompt,
     isSubmitting,
@@ -19,12 +21,18 @@ export const PromptInput: FC = () => {
   } = usePromptSubmit()
 
   const handleSubmit = async () => {
-    if (!prompt.trim() || prompt.length > 30) return
-
-    const success = await submitPrompt(prompt)
-    if (success) {
-      setPrompt('')
+    // Validate prompt
+    if (!prompt.trim()) {
+      return
     }
+
+    // Validate trial data
+    const trials = Object.keys(trialData).map(Number).sort()
+    if (trials.length === 0) {
+      return
+    }
+
+    await submitPrompt(prompt.trim(), trialData)
   }
 
   // Determine the state to display
@@ -127,46 +135,17 @@ export const PromptInput: FC = () => {
           <Alert message={state.title} description={state.message} type="warning" showIcon />
         )}
 
-        {/* Input Form (only for active round) */}
+        {/* Submit Button (only for active round) */}
         {state.type === 'active' && (
           <>
-            <div>
-              <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-                {state.message}
-              </Text>
-              <TextArea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="예: 용감한 전사가 되어라"
-                maxLength={30}
-                rows={3}
-                disabled={!canSubmit}
-                aria-label="프롬프트 입력"
-                aria-describedby="prompt-char-count"
-                style={{ fontSize: 14 }}
-              />
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                  marginTop: 8,
-                }}
-              >
-                <Text type="secondary" style={{ fontSize: 12 }} id="prompt-char-count">
-                  {prompt.length}/30자
-                </Text>
-              </div>
-            </div>
-
             {error && <Alert message={error} type="error" showIcon role="alert" />}
-
             <Button
               type="primary"
               icon={<SendOutlined />}
               onClick={handleSubmit}
               loading={isSubmitting}
-              disabled={!canSubmit || prompt.trim().length === 0}
-              aria-label="프롬프트 제출하기"
+              disabled={!canSubmit}
+              aria-label="제출하기"
               block
               size="large"
             >
