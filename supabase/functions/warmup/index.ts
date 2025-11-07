@@ -41,7 +41,7 @@ const EDGE_FUNCTIONS = [
   'upsert-plan',
 ]
 
-serve(async (req) => {
+serve(async (_req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
 

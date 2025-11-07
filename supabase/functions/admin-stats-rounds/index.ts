@@ -37,10 +37,7 @@ serve(
       }
 
       // 2-3. 프롬프트 통계와 참여자 수 병렬 조회
-      const [
-        { data: prompts, count: promptCount },
-        { count: uniqueUsers },
-      ] = await Promise.all([
+      const [{ data: prompts, count: promptCount }, { count: uniqueUsers }] = await Promise.all([
         supabase
           .from('prompt_history')
           .select('*, characters!inner(name)', { count: 'exact' })

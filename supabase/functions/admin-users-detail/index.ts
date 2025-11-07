@@ -32,7 +32,11 @@ serve(
         { data: authUser },
       ] = await Promise.all([
         // 1. 캐릭터 정보
-        supabase.from('characters').select('*').eq('user_id', user_id).maybeSingle(),
+        supabase
+          .from('characters')
+          .select('*')
+          .eq('user_id', user_id)
+          .maybeSingle(),
         // 2. 프롬프트 히스토리 (최근 10개)
         supabase
           .from('prompt_history')
@@ -41,7 +45,10 @@ serve(
           .order('created_at', { ascending: false })
           .limit(10),
         // 3. 통계
-        supabase.from('prompt_history').select('*', { count: 'exact', head: true }).eq('user_id', user_id),
+        supabase
+          .from('prompt_history')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user_id),
         // 4. Auth 정보
         supabase.auth.admin.getUserById(user_id),
       ])

@@ -167,14 +167,6 @@ export const StatInput: FC<{
         </Text>
       </div>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
-<<<<<<< HEAD
-        {Array.from({ length: trial_no }, (_, i) => (
-          <div key={`trial-${i + 1}`}>
-            <TrialInput trialNo={i + 1} />
-            {i < trial_no - 1 && <Divider />}
-          </div>
-        ))}
-=======
         {Array.from({ length: trial_no }, (_, i) => {
           const trialNo = i + 1
           return (
@@ -188,7 +180,6 @@ export const StatInput: FC<{
             </div>
           )
         })}
->>>>>>> 70d452ddaac27b8176790c755378a9bcad4fc230
       </Space>
     </Card>
   )
