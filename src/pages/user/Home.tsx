@@ -112,7 +112,7 @@ export const Home: FC = () => {
         {/* Title */}
         <div style={{ textAlign: 'center', padding: '18px 0', position: 'relative' }}>
           <Title level={1} style={{ margin: 0, fontSize: '36px', fontWeight: 'bold' }}>
-            Prompt Challenge
+            Character Battle
           </Title>
           <Button
             type="text"

@@ -3,12 +3,27 @@ import { createSupabaseClient } from '../_shared/db.ts'
 import { errorResponse, successResponse } from '../_shared/response.ts'
 import { withLogging } from '../_shared/withLogging.ts'
 
+interface LeaderboardSnapshot {
+  id: string
+  round_number: number
+  character_id: string
+  user_id: string
+  rank: number
+  total_score: number
+  characters: {
+    id: string
+    name: string
+    current_prompt: string | null
+    user_id: string
+  }
+  profiles: {
+    display_name: string
+    avatar_url: string | null
+  }
+}
+
 interface CharacterScore {
   character_id: string
-  total_str: number
-  total_dex: number
-  total_con: number
-  total_int: number
   total_score: number
 }
 
@@ -31,7 +46,68 @@ serve(
       const limit = parseInt(url.searchParams.get('limit') || '100', 10)
       const offset = parseInt(url.searchParams.get('offset') || '0', 10)
 
-      // Step 1: Get all active characters with their prompts
+      // Step 1: Try to get the latest completed round snapshot
+      const { data: latestRound } = await supabase
+        .from('game_rounds')
+        .select('round_number')
+        .eq('status', 'completed')
+        .order('round_number', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      // Step 2: If we have a completed round, try to get snapshots
+      if (latestRound) {
+        const { data: snapshots, error: snapshotError } = await supabase
+          .from('leaderboard_snapshots')
+          .select(
+            `
+            id,
+            round_number,
+            character_id,
+            user_id,
+            rank,
+            total_score,
+            characters:character_id (
+              id,
+              name,
+              current_prompt,
+              user_id
+            ),
+            profiles:user_id (
+              display_name,
+              avatar_url
+            )
+          `
+          )
+          .eq('round_number', latestRound.round_number)
+          .order('rank', { ascending: true })
+
+        if (!snapshotError && snapshots && snapshots.length > 0) {
+          // We have snapshot data, use it
+          const total = snapshots.length
+          const paginated = snapshots.slice(offset, offset + limit)
+
+          const leaderboard = (paginated as unknown as LeaderboardSnapshot[]).map((snapshot) => ({
+            rank: snapshot.rank,
+            character_id: snapshot.character_id,
+            character_name: snapshot.characters?.name || 'Unknown',
+            display_name: snapshot.profiles?.display_name || 'Unknown',
+            avatar_url: snapshot.profiles?.avatar_url || null,
+            weighted_total: snapshot.total_score,
+            current_prompt: snapshot.characters?.current_prompt || null,
+          }))
+
+          const responseData = {
+            data: leaderboard,
+            pagination: { total, limit, offset },
+          }
+
+          logger.logSuccess(200, responseData)
+          return successResponse(responseData)
+        }
+      }
+
+      // Step 3: No snapshots available, calculate real-time leaderboard from prompt_history
       const { data: prompts, error: promptError } = await supabase
         .from('prompt_history')
         .select('character_id, str, dex, con, int')
@@ -43,6 +119,7 @@ serve(
       }
 
       if (!prompts || prompts.length === 0) {
+        // No prompts at all, return empty
         const responseData = {
           data: [],
           pagination: { total: 0, limit, offset },
@@ -51,33 +128,23 @@ serve(
         return successResponse(responseData)
       }
 
-      // Step 2: Aggregate stats per character
+      // Aggregate stats per character
       const scoreMap = new Map<string, CharacterScore>()
       for (const p of prompts) {
         const existing = scoreMap.get(p.character_id) || {
           character_id: p.character_id,
-          total_str: 0,
-          total_dex: 0,
-          total_con: 0,
-          total_int: 0,
           total_score: 0,
         }
-        existing.total_str += p.str || 0
-        existing.total_dex += p.dex || 0
-        existing.total_con += p.con || 0
-        existing.total_int += p.int || 0
-        existing.total_score =
-          existing.total_str + existing.total_dex + existing.total_con + existing.total_int
+        existing.total_score += (p.str || 0) + (p.dex || 0) + (p.con || 0) + (p.int || 0)
         scoreMap.set(p.character_id, existing)
       }
 
-      // Step 3: Sort by total_score and apply pagination
+      // Sort by total_score
       const sorted = Array.from(scoreMap.values()).sort((a, b) => b.total_score - a.total_score)
       const total = sorted.length
-      const paginated = sorted.slice(offset, offset + limit)
-      const characterIds = paginated.map((s) => s.character_id)
+      const characterIds = sorted.map((s) => s.character_id)
 
-      // Step 4: Fetch character and profile info
+      // Fetch all character and profile info
       const { data: characters, error: charError } = await supabase
         .from('characters')
         .select(
@@ -100,12 +167,14 @@ serve(
         return errorResponse('DATABASE_ERROR', 500, charError.message)
       }
 
-      // Step 5: Build leaderboard with character info
+      // Build character map
       const characterMap = new Map<string, CharacterWithProfile>()
       for (const char of (characters || []) as CharacterWithProfile[]) {
         characterMap.set(char.id, char)
       }
 
+      // Apply pagination and build response
+      const paginated = sorted.slice(offset, offset + limit)
       const leaderboard = paginated.map((score, index) => {
         const char = characterMap.get(score.character_id)
         return {

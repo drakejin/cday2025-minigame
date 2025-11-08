@@ -29,7 +29,7 @@ export const Header: FC = () => {
       role="banner"
     >
       <Title level={4} style={{ color: 'white', margin: 0 }} aria-label="사이트 로고">
-        Prompt Challenge
+        Character Battle
       </Title>
 
       {user && (

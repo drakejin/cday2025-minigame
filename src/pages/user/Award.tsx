@@ -739,7 +739,7 @@ export const Award: FC = () => {
           }}
         />
         <Header>
-          <MainTitle level={1}>Prompt Challenge</MainTitle>
+          <MainTitle level={1}>Character Battle</MainTitle>
         </Header>
 
         {topThree.length > 0 && (
@@ -759,8 +759,7 @@ export const Award: FC = () => {
                   <WinnerInfo>
                     <WinnerName level={2}>{entry.display_name}</WinnerName>
                     <CharacterName>{entry.character_name}</CharacterName>
-                    <Score>0</Score>
-                    {/* <Score>{entry.total_score.toLocaleString()}</Score> */}
+                    <Score>{entry.total_score.toLocaleString()}</Score>
                   </WinnerInfo>
                 </WinnerCard>
               )
@@ -780,8 +779,7 @@ export const Award: FC = () => {
                   <RankName level={3}>{entry.display_name}</RankName>
                   <RankCharacter>{entry.character_name}</RankCharacter>
                 </RankInfo>
-                <RankScore>0</RankScore>
-                {/* <RankScore>{entry.total_score.toLocaleString()}</RankScore> */}
+                <RankScore>{entry.total_score.toLocaleString()}</RankScore>
               </RankingItem>
             ))}
           </RankingList>
