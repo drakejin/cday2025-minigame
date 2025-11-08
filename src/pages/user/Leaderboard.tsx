@@ -30,7 +30,9 @@ export const Leaderboard: FC = () => {
             fontSize: 20,
             zIndex: 10,
           }}
-        />
+        >
+          게임가이드
+        </Button>
         <LeaderboardList
           data={leaderboard?.data || []}
           loading={isLoading}

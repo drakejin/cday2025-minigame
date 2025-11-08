@@ -23,7 +23,9 @@ export const History: FC = () => {
           icon={<InfoCircleOutlined />}
           onClick={() => setShowGameRuleModal(true)}
           style={{ fontSize: 20 }}
-        />
+        >
+          게임가이드
+        </Button>
       </div>
       <List
         dataSource={history}

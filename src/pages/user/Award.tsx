@@ -732,7 +732,7 @@ export const Award: FC = () => {
           }}
         />
         <Header>
-          <MainTitle level={1}>Champions</MainTitle>
+          <MainTitle level={1}>Prompt Challenge</MainTitle>
         </Header>
 
         {topThree.length > 0 && (
@@ -752,7 +752,8 @@ export const Award: FC = () => {
                   <WinnerInfo>
                     <WinnerName level={2}>{entry.display_name}</WinnerName>
                     <CharacterName>{entry.character_name}</CharacterName>
-                    <Score>{entry.total_score.toLocaleString()}</Score>
+                    <Score>0</Score>
+                    {/* <Score>{entry.total_score.toLocaleString()}</Score> */}
                   </WinnerInfo>
                 </WinnerCard>
               )

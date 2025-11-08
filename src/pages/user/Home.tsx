@@ -124,7 +124,9 @@ export const Home: FC = () => {
               right: 0,
               fontSize: 20,
             }}
-          />
+          >
+            게임가이드
+          </Button>
         </div>
 
         {/* Round Timer */}

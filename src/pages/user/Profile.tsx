@@ -22,7 +22,9 @@ export const Profile: FC = () => {
           icon={<InfoCircleOutlined />}
           onClick={() => setShowGameRuleModal(true)}
           style={{ fontSize: 20 }}
-        />
+        >
+          게임가이드
+        </Button>
       </div>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         {/* User Profile */}
