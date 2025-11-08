@@ -17,20 +17,3 @@ export const supabase = createClient(env.supabase.url, env.supabase.anonKey, {
     fetch: fetch.bind(globalThis),
   },
 })
-
-console.log('[Supabase] Client initialized')
-
-// Test client immediately
-setTimeout(async () => {
-  console.log('[Supabase] Testing client...')
-  try {
-    const { data, error } = await supabase.auth.getSession()
-    console.log('[Supabase] Test result:', {
-      hasData: !!data,
-      hasError: !!error,
-      hasSession: !!data?.session,
-    })
-  } catch (err) {
-    console.error('[Supabase] Test failed:', err)
-  }
-}, 100)

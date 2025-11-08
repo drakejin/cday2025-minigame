@@ -96,12 +96,8 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     try {
       // Try getSession with timeout
-      const sessionResult = await Promise.race([
-        supabase.auth.getSession(),
-        new Promise<SessionResponse>((_, reject) =>
-          setTimeout(() => reject(new Error('getSession timeout')), 3000)
-        ),
-      ])
+      const sessionResult = await supabase.auth.getSession()
+  
       result = sessionResult
       console.log('[authStore] getSession succeeded')
     } catch (_timeoutError) {
