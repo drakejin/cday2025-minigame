@@ -46,17 +46,17 @@ serve(
       const limit = parseInt(url.searchParams.get('limit') || '100', 10)
       const offset = parseInt(url.searchParams.get('offset') || '0', 10)
 
-      // Step 1: Try to get the latest completed round snapshot
-      const { data: latestRound } = await supabase
+      // Step 1: Get all completed rounds
+      const { data: completedRounds, error: roundsError } = await supabase
         .from('game_rounds')
         .select('round_number')
         .eq('status', 'completed')
-        .order('round_number', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+        .order('round_number', { ascending: true })
 
-      // Step 2: If we have a completed round, try to get snapshots
-      if (latestRound) {
+      // Step 2: If we have completed rounds, try to get all snapshots
+      if (completedRounds && completedRounds.length > 0) {
+        const roundNumbers = completedRounds.map((r) => r.round_number)
+
         const { data: snapshots, error: snapshotError } = await supabase
           .from('leaderboard_snapshots')
           .select(
@@ -79,22 +79,54 @@ serve(
             )
           `
           )
-          .eq('round_number', latestRound.round_number)
-          .order('rank', { ascending: true })
+          .in('round_number', roundNumbers)
 
         if (!snapshotError && snapshots && snapshots.length > 0) {
-          // We have snapshot data, use it
-          const total = snapshots.length
-          const paginated = snapshots.slice(offset, offset + limit)
+          // Aggregate total scores across all rounds per character
+          const characterScoreMap = new Map<
+            string,
+            {
+              character_id: string
+              total_score: number
+              character_name: string
+              display_name: string
+              avatar_url: string | null
+              current_prompt: string | null
+            }
+          >()
 
-          const leaderboard = (paginated as unknown as LeaderboardSnapshot[]).map((snapshot) => ({
-            rank: snapshot.rank,
-            character_id: snapshot.character_id,
-            character_name: snapshot.characters?.name || 'Unknown',
-            display_name: snapshot.profiles?.display_name || 'Unknown',
-            avatar_url: snapshot.profiles?.avatar_url || null,
-            weighted_total: snapshot.total_score,
-            current_prompt: snapshot.characters?.current_prompt || null,
+          for (const snapshot of snapshots as unknown as LeaderboardSnapshot[]) {
+            const existing = characterScoreMap.get(snapshot.character_id)
+            if (existing) {
+              existing.total_score += snapshot.total_score
+            } else {
+              characterScoreMap.set(snapshot.character_id, {
+                character_id: snapshot.character_id,
+                total_score: snapshot.total_score,
+                character_name: snapshot.characters?.name || 'Unknown',
+                display_name: snapshot.profiles?.display_name || 'Unknown',
+                avatar_url: snapshot.profiles?.avatar_url || null,
+                current_prompt: snapshot.characters?.current_prompt || null,
+              })
+            }
+          }
+
+          // Sort by total aggregated score
+          const sorted = Array.from(characterScoreMap.values()).sort(
+            (a, b) => b.total_score - a.total_score
+          )
+
+          const total = sorted.length
+          const paginated = sorted.slice(offset, offset + limit)
+
+          const leaderboard = paginated.map((entry, index) => ({
+            rank: offset + index + 1,
+            character_id: entry.character_id,
+            character_name: entry.character_name,
+            display_name: entry.display_name,
+            avatar_url: entry.avatar_url,
+            weighted_total: entry.total_score,
+            current_prompt: entry.current_prompt,
           }))
 
           const responseData = {
