@@ -109,7 +109,7 @@ serve(
             character_name: entry.character_name,
             display_name: entry.display_name,
             avatar_url: entry.avatar_url,
-            weighted_total: entry.total_score,
+            total_score: entry.total_score,
             current_prompt: entry.current_prompt,
           }))
 
@@ -123,11 +123,57 @@ serve(
         }
       }
 
-      // Step 3: No snapshots available, return empty
-      const responseData = {
-        data: [],
-        pagination: { total: 0, limit, offset },
+      // Step 3: No snapshots available, show all characters with 0 score
+      const { data: allCharacters, error: charError } = await supabase
+        .from('characters')
+        .select(
+          `
+          id,
+          name,
+          current_prompt,
+          user_id,
+          profiles:user_id (
+            display_name,
+            avatar_url
+          )
+        `
+        )
+        .eq('is_active', true)
+        .order('created_at', { ascending: true })
+
+      if (charError) {
+        logger.logError(500, charError.message)
+        return errorResponse('DATABASE_ERROR', 500, charError.message)
       }
+
+      if (!allCharacters || allCharacters.length === 0) {
+        const responseData = {
+          data: [],
+          pagination: { total: 0, limit, offset },
+        }
+        logger.logSuccess(200, responseData)
+        return successResponse(responseData)
+      }
+
+      // Build leaderboard with 0 scores
+      const total = allCharacters.length
+      const paginated = allCharacters.slice(offset, offset + limit)
+
+      const leaderboard = paginated.map((char: any, index: number) => ({
+        rank: offset + index + 1,
+        character_id: char.id,
+        character_name: char.name || 'Unknown',
+        display_name: char.profiles?.display_name || 'Unknown',
+        avatar_url: char.profiles?.avatar_url || null,
+        weighted_total: 0,
+        current_prompt: char.current_prompt || null,
+      }))
+
+      const responseData = {
+        data: leaderboard,
+        pagination: { total, limit, offset },
+      }
+
       logger.logSuccess(200, responseData)
       return successResponse(responseData)
     } catch (error) {
