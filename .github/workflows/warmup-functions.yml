@@ -10,30 +10,35 @@ jobs:
   warmup:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
       - name: Warmup Edge Functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: |
           echo "Warming up Edge Functions..."
 
-          response=$(curl -s -w "\n%{http_code}" -X POST \
-            "https://oapwrpmohheorgbweeon.supabase.co/functions/v1/warmup" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcHdycG1vaGhlb3JnYndlZW9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0ODI5NzgsImV4cCI6MjA3NzA1ODk3OH0.BVfYy1wY_OC9DvDL_NBxtW_6Yunrn5RAdhAeCetFmhU")
+          # Supabase CLI로 warmup 함수 호출
+          response=$(supabase functions invoke warmup \
+            --project-ref $SUPABASE_PROJECT_REF \
+            --method POST \
+            --body '{}')
 
-          http_code=$(echo "$response" | tail -n1)
-          body=$(echo "$response" | sed '$d')
+          echo "Response: $response"
 
-          echo "HTTP Status: $http_code"
-          echo "Response Body: $body"
-
-          if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
+          # JSON 파싱해서 success 체크
+          if echo "$response" | grep -q '"success":true'; then
             echo "✅ Warmup successful"
             exit 0
           else
-            echo "❌ Warmup failed with status $http_code"
+            echo "❌ Warmup failed"
+            echo "$response"
             exit 1
           fi
-
-      - name: Send notification on failure
-        if: failure()
-        run: |
-          echo "⚠️ Warmup job failed. Please check the Edge Functions."
