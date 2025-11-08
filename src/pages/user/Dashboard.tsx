@@ -112,7 +112,29 @@ export const Dashboard: FC = () => {
         <RoundTimer />
         {character ? (
           <>
-            <CharacterCard character={character} />
+            <div
+              style={{
+                background: '#fff',
+                border: '1px solid #e0e0e0',
+                borderRadius: 8,
+                padding: '20px',
+              }}
+            >
+              <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                <Text type="secondary">사용 중인 프롬프트</Text>
+                <div
+                  style={{
+                    padding: '12px',
+                    background: '#e6f4ff',
+                    border: '1px solid #91caff',
+                    borderRadius: 8,
+                    wordBreak: 'break-word',
+                  }}
+                >
+                  <Text style={{ fontSize: 15 }}>"{character.current_prompt}"</Text>
+                </div>
+              </Space>
+            </div>
             <div
               style={{
                 background: '#fff',

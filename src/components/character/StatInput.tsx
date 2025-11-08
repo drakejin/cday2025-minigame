@@ -61,10 +61,8 @@ const TrialInput: FC<{
                   placeholder="선택"
                   value={baseStats[key]}
                   onChange={(val) => setBaseStats({ ...baseStats, [key]: val })}
-                  options={[
-                    ...(baseStats[key] ? [{ value: baseStats[key], label: baseStats[key] }] : []),
-                    ...availableBaseValues.map((v) => ({ value: v, label: v })),
-                  ]}
+                  allowClear
+                  options={[...availableBaseValues.map((v) => ({ value: v, label: v }))]}
                 />
               </Col>
             </Row>

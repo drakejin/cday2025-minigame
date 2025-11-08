@@ -33,6 +33,14 @@ export const PromptInput: FC<{
       return
     }
 
+    // Validate base stats are all selected for trial 1
+    if (trialData[1]?.baseStats) {
+      const stats = trialData[1].baseStats
+      if (!stats.str || !stats.dex || !stats.con || !stats.int) {
+        return
+      }
+    }
+
     const success = await submitPrompt(prompt.trim(), trialData)
     if (success && onSubmitSuccess) {
       onSubmitSuccess()
