@@ -1,6 +1,12 @@
 import type { FC } from 'react'
 import { Card, Typography, Space, Select, Input, Row, Col, Divider, Button } from 'antd'
-import { ThunderboltOutlined, RocketOutlined, HeartOutlined, BulbOutlined, ClearOutlined } from '@ant-design/icons'
+import {
+  ThunderboltOutlined,
+  RocketOutlined,
+  HeartOutlined,
+  BulbOutlined,
+  ClearOutlined,
+} from '@ant-design/icons'
 import { useCurrentRound } from '@/hooks/queries/useGameQuery'
 import type { TrialData } from '@/pages/user/Dashboard'
 
@@ -163,7 +169,14 @@ export const StatInput: FC<{
         borderRadius: 8,
       }}
     >
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div
+        style={{
+          marginBottom: 16,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
         <div>
           <Title level={4} style={{ margin: 0 }}>
             능력치 입력
