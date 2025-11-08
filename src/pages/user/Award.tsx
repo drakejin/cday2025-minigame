@@ -773,7 +773,8 @@ export const Award: FC = () => {
                   <RankName level={3}>{entry.display_name}</RankName>
                   <RankCharacter>{entry.character_name}</RankCharacter>
                 </RankInfo>
-                <RankScore>{entry.total_score.toLocaleString()}</RankScore>
+                <RankScore>0</RankScore>
+                {/* <RankScore>{entry.total_score.toLocaleString()}</RankScore> */}
               </RankingItem>
             ))}
           </RankingList>
