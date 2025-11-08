@@ -431,6 +431,31 @@ const CharacterName = styled(Text)`
   }
 `
 
+const CurrentPrompt = styled(Text)`
+  font-size: 14px;
+  color: #95a5a6;
+  display: block;
+  margin-bottom: 8px;
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @media (min-width: 768px) {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 22px;
+  }
+
+  @media (min-width: 1920px) {
+    font-size: 26px;
+    margin-bottom: 12px;
+  }
+`
+
 const Score = styled.div`
   font-size: 32px;
   font-weight: 900;
@@ -626,6 +651,29 @@ const RankCharacter = styled(Text)`
   }
 `
 
+const RankPrompt = styled(Text)`
+  font-size: 9px;
+  color: #95a5a6;
+  display: block;
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+
+  @media (min-width: 768px) {
+    font-size: 14px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 16px;
+  }
+
+  @media (min-width: 1920px) {
+    font-size: 20px;
+  }
+`
+
 const RankScore = styled.div`
   font-size: 12px;
   font-weight: 800;
@@ -759,6 +807,9 @@ export const Award: FC = () => {
                   <WinnerInfo>
                     <WinnerName level={2}>{entry.display_name}</WinnerName>
                     <CharacterName>{entry.character_name}</CharacterName>
+                    {entry.current_prompt && (
+                      <CurrentPrompt>"{entry.current_prompt}"</CurrentPrompt>
+                    )}
                     <Score>{entry.total_score.toLocaleString()}</Score>
                   </WinnerInfo>
                 </WinnerCard>
@@ -778,6 +829,7 @@ export const Award: FC = () => {
                 <RankInfo>
                   <RankName level={3}>{entry.display_name}</RankName>
                   <RankCharacter>{entry.character_name}</RankCharacter>
+                  {entry.current_prompt && <RankPrompt>"{entry.current_prompt}"</RankPrompt>}
                 </RankInfo>
                 <RankScore>{entry.total_score.toLocaleString()}</RankScore>
               </RankingItem>

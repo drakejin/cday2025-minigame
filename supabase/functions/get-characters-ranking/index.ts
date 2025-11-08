@@ -58,6 +58,9 @@ serve(
             new Set(Array.from(characterScoreMap.values()).map((c) => c.user_id))
           )
 
+          // Get latest round number
+          const latestRoundNumber = Math.max(...roundNumbers)
+
           // Fetch characters separately
           const { data: characters, error: charError } = await supabase
             .from('characters')
@@ -81,14 +84,29 @@ serve(
             return errorResponse('DATABASE_ERROR', 500, profileError.message)
           }
 
+          // Fetch latest round prompts
+          const { data: prompts, error: promptError } = await supabase
+            .from('prompt_history')
+            .select('character_id, prompt')
+            .in('character_id', characterIds)
+            .eq('round_number', latestRoundNumber)
+            .eq('is_deleted', false)
+
+          if (promptError) {
+            logger.logError(500, promptError.message)
+            return errorResponse('DATABASE_ERROR', 500, promptError.message)
+          }
+
           // Build maps for quick lookup
           const characterMap = new Map((characters || []).map((c: any) => [c.id, c]))
           const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]))
+          const promptMap = new Map((prompts || []).map((p: any) => [p.character_id, p.prompt]))
 
           // Combine data
           const combined = Array.from(characterScoreMap.values()).map((score) => {
             const character = characterMap.get(score.character_id)
             const profile = profileMap.get(score.user_id)
+            const latestPrompt = promptMap.get(score.character_id)
 
             return {
               character_id: score.character_id,
@@ -96,7 +114,7 @@ serve(
               character_name: character?.name || 'Unknown',
               display_name: profile?.display_name || 'Unknown',
               avatar_url: profile?.avatar_url || null,
-              current_prompt: character?.current_prompt || null,
+              current_prompt: latestPrompt || character?.current_prompt || null,
             }
           })
 
@@ -148,8 +166,9 @@ serve(
         return successResponse(responseData)
       }
 
-      // Get all unique user_ids
+      // Get all unique user_ids and character_ids
       const userIds = Array.from(new Set(characters.map((c: any) => c.user_id)))
+      const characterIds = characters.map((c: any) => c.id)
 
       // Fetch profiles separately
       const { data: profiles, error: profileError } = await supabase
@@ -162,19 +181,39 @@ serve(
         return errorResponse('DATABASE_ERROR', 500, profileError.message)
       }
 
-      // Build profile map
+      // Fetch latest prompts from prompt_history
+      const { data: latestPrompts } = await supabase
+        .from('prompt_history')
+        .select('character_id, prompt, round_number')
+        .in('character_id', characterIds)
+        .eq('is_deleted', false)
+        .order('round_number', { ascending: false })
+
+      // Build maps
       const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]))
+
+      // Get the latest prompt for each character
+      const promptMap = new Map<string, string>()
+      if (latestPrompts) {
+        for (const p of latestPrompts) {
+          if (!promptMap.has(p.character_id)) {
+            promptMap.set(p.character_id, p.prompt)
+          }
+        }
+      }
 
       // Combine data
       const combined = characters.map((char: any) => {
         const profile = profileMap.get(char.user_id)
+        const latestPrompt = promptMap.get(char.id)
+
         return {
           character_id: char.id,
           character_name: char.name || 'Unknown',
           display_name: profile?.display_name || 'Unknown',
           avatar_url: profile?.avatar_url || null,
           total_score: 0,
-          current_prompt: char.current_prompt || null,
+          current_prompt: latestPrompt || char.current_prompt || null,
         }
       })
 
