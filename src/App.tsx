@@ -2,7 +2,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConfigProvider, Spin } from 'antd'
 import { Suspense } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from 'styled-components'
+
 import { AdminGuard } from './components/common/AdminGuard'
 import { AuthGuard } from './components/common/AuthGuard'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
@@ -54,6 +56,7 @@ function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider theme={appTheme}>
+          <Analytics />
           <GlobalStyles />
           <ConfigProvider theme={antdTheme}>
             <BrowserRouter>
