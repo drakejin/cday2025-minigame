@@ -22,22 +22,6 @@ interface LeaderboardSnapshot {
   }
 }
 
-interface CharacterScore {
-  character_id: string
-  total_score: number
-}
-
-interface CharacterWithProfile {
-  id: string
-  name: string
-  current_prompt: string | null
-  user_id: string
-  profiles: {
-    display_name: string
-    avatar_url: string | null
-  }
-}
-
 serve(
   withLogging('get-characters-ranking', async (req, logger) => {
     try {
@@ -47,7 +31,7 @@ serve(
       const offset = parseInt(url.searchParams.get('offset') || '0', 10)
 
       // Step 1: Get all completed rounds
-      const { data: completedRounds, error: roundsError } = await supabase
+      const { data: completedRounds } = await supabase
         .from('game_rounds')
         .select('round_number')
         .eq('status', 'completed')
@@ -55,7 +39,7 @@ serve(
 
       // Step 2: If we have completed rounds, try to get all snapshots
       if (completedRounds && completedRounds.length > 0) {
-        const roundNumbers = completedRounds.map((r) => r.round_number)
+        const roundNumbers = completedRounds.map((r: { round_number: number }) => r.round_number)
 
         const { data: snapshots, error: snapshotError } = await supabase
           .from('leaderboard_snapshots')
@@ -139,92 +123,11 @@ serve(
         }
       }
 
-      // Step 3: No snapshots available, calculate real-time leaderboard from prompt_history
-      const { data: prompts, error: promptError } = await supabase
-        .from('prompt_history')
-        .select('character_id, str, dex, con, int')
-        .eq('is_deleted', false)
-
-      if (promptError) {
-        logger.logError(500, promptError.message)
-        return errorResponse('DATABASE_ERROR', 500, promptError.message)
-      }
-
-      if (!prompts || prompts.length === 0) {
-        // No prompts at all, return empty
-        const responseData = {
-          data: [],
-          pagination: { total: 0, limit, offset },
-        }
-        logger.logSuccess(200, responseData)
-        return successResponse(responseData)
-      }
-
-      // Aggregate stats per character
-      const scoreMap = new Map<string, CharacterScore>()
-      for (const p of prompts) {
-        const existing = scoreMap.get(p.character_id) || {
-          character_id: p.character_id,
-          total_score: 0,
-        }
-        existing.total_score += (p.str || 0) + (p.dex || 0) + (p.con || 0) + (p.int || 0)
-        scoreMap.set(p.character_id, existing)
-      }
-
-      // Sort by total_score
-      const sorted = Array.from(scoreMap.values()).sort((a, b) => b.total_score - a.total_score)
-      const total = sorted.length
-      const characterIds = sorted.map((s) => s.character_id)
-
-      // Fetch all character and profile info
-      const { data: characters, error: charError } = await supabase
-        .from('characters')
-        .select(
-          `
-          id,
-          name,
-          current_prompt,
-          user_id,
-          profiles:user_id (
-            display_name,
-            avatar_url
-          )
-        `
-        )
-        .in('id', characterIds)
-        .eq('is_active', true)
-
-      if (charError) {
-        logger.logError(500, charError.message)
-        return errorResponse('DATABASE_ERROR', 500, charError.message)
-      }
-
-      // Build character map
-      const characterMap = new Map<string, CharacterWithProfile>()
-      for (const char of (characters || []) as CharacterWithProfile[]) {
-        characterMap.set(char.id, char)
-      }
-
-      // Apply pagination and build response
-      const paginated = sorted.slice(offset, offset + limit)
-      const leaderboard = paginated.map((score, index) => {
-        const char = characterMap.get(score.character_id)
-        return {
-          rank: offset + index + 1,
-          character_id: score.character_id,
-          character_name: char?.name || 'Unknown',
-          display_name: char?.profiles?.display_name || 'Unknown',
-          avatar_url: char?.profiles?.avatar_url || null,
-          weighted_total: score.total_score,
-          current_prompt: char?.current_prompt || null,
-        }
-      })
-
+      // Step 3: No snapshots available, return empty
       const responseData = {
-        data: leaderboard,
-        pagination: { total, limit, offset },
+        data: [],
+        pagination: { total: 0, limit, offset },
       }
-
       logger.logSuccess(200, responseData)
       return successResponse(responseData)
     } catch (error) {
