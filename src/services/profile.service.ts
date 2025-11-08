@@ -21,9 +21,15 @@ export const profileService = {
 
     console.log('Fetching fresh profile from API...')
 
+    // Add timeout to prevent infinite loading (2 seconds)
+    const invokePromise = supabase.functions.invoke('get-my-profile', {})
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Request timeout after 2 seconds')), 2000)
+    )
+
     try {
       console.log('Invoking get-my-profile...')
-      const { data, error } = await supabase.functions.invoke('get-my-profile', {})
+      const { data, error } = await Promise.race([invokePromise, timeoutPromise])
 
       console.log('get-my-profile response:', { hasData: !!data, hasError: !!error })
 
@@ -51,12 +57,17 @@ export const profileService = {
    * Update user profile (display name, avatar)
    */
   async updateProfile(updates: { displayName?: string; avatarUrl?: string }) {
-    const { data, error } = await supabase.functions.invoke('update-profile', {
+    const invokePromise = supabase.functions.invoke('update-profile', {
       body: {
         display_name: updates.displayName,
         avatar_url: updates.avatarUrl,
       },
     })
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Request timeout after 2 seconds')), 2000)
+    )
+
+    const { data, error } = await Promise.race([invokePromise, timeoutPromise])
 
     const result = handleEdgeFunctionResponse(data, error, 'Failed to update profile')
 
