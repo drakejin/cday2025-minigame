@@ -3,25 +3,6 @@ import { createSupabaseClient } from '../_shared/db.ts'
 import { errorResponse, successResponse } from '../_shared/response.ts'
 import { withLogging } from '../_shared/withLogging.ts'
 
-interface LeaderboardSnapshot {
-  id: string
-  round_number: number
-  character_id: string
-  user_id: string
-  rank: number
-  total_score: number
-  characters: {
-    id: string
-    name: string
-    current_prompt: string | null
-    user_id: string
-  }
-  profiles: {
-    display_name: string
-    avatar_url: string | null
-  }
-}
-
 serve(
   withLogging('get-characters-ranking', async (req, logger) => {
     try {
@@ -41,28 +22,10 @@ serve(
       if (completedRounds && completedRounds.length > 0) {
         const roundNumbers = completedRounds.map((r: { round_number: number }) => r.round_number)
 
+        // Get snapshots without auto-join
         const { data: snapshots, error: snapshotError } = await supabase
           .from('leaderboard_snapshots')
-          .select(
-            `
-            id,
-            round_number,
-            character_id,
-            user_id,
-            rank,
-            total_score,
-            characters:character_id (
-              id,
-              name,
-              current_prompt,
-              user_id
-            ),
-            profiles:user_id (
-              display_name,
-              avatar_url
-            )
-          `
-          )
+          .select('id, round_number, character_id, user_id, rank, total_score')
           .in('round_number', roundNumbers)
 
         if (!snapshotError && snapshots && snapshots.length > 0) {
@@ -71,34 +34,74 @@ serve(
             string,
             {
               character_id: string
+              user_id: string
               total_score: number
-              character_name: string
-              display_name: string
-              avatar_url: string | null
-              current_prompt: string | null
             }
           >()
 
-          for (const snapshot of snapshots as unknown as LeaderboardSnapshot[]) {
+          for (const snapshot of snapshots) {
             const existing = characterScoreMap.get(snapshot.character_id)
             if (existing) {
               existing.total_score += snapshot.total_score
             } else {
               characterScoreMap.set(snapshot.character_id, {
                 character_id: snapshot.character_id,
+                user_id: snapshot.user_id,
                 total_score: snapshot.total_score,
-                character_name: snapshot.characters?.name || 'Unknown',
-                display_name: snapshot.profiles?.display_name || 'Unknown',
-                avatar_url: snapshot.profiles?.avatar_url || null,
-                current_prompt: snapshot.characters?.current_prompt || null,
               })
             }
           }
 
-          // Sort by total aggregated score
-          const sorted = Array.from(characterScoreMap.values()).sort(
-            (a, b) => b.total_score - a.total_score
+          // Get all unique character_ids and user_ids
+          const characterIds = Array.from(characterScoreMap.keys())
+          const userIds = Array.from(
+            new Set(Array.from(characterScoreMap.values()).map((c) => c.user_id))
           )
+
+          // Fetch characters separately
+          const { data: characters, error: charError } = await supabase
+            .from('characters')
+            .select('id, name, current_prompt, user_id')
+            .in('id', characterIds)
+            .eq('is_active', true)
+
+          if (charError) {
+            logger.logError(500, charError.message)
+            return errorResponse('DATABASE_ERROR', 500, charError.message)
+          }
+
+          // Fetch profiles separately
+          const { data: profiles, error: profileError } = await supabase
+            .from('profiles')
+            .select('id, display_name, avatar_url')
+            .in('id', userIds)
+
+          if (profileError) {
+            logger.logError(500, profileError.message)
+            return errorResponse('DATABASE_ERROR', 500, profileError.message)
+          }
+
+          // Build maps for quick lookup
+          const characterMap = new Map((characters || []).map((c: any) => [c.id, c]))
+          const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]))
+
+          // Combine data
+          const combined = Array.from(characterScoreMap.values()).map((score) => {
+            const character = characterMap.get(score.character_id)
+            const profile = profileMap.get(score.user_id)
+
+            return {
+              character_id: score.character_id,
+              total_score: score.total_score,
+              character_name: character?.name || 'Unknown',
+              display_name: profile?.display_name || 'Unknown',
+              avatar_url: profile?.avatar_url || null,
+              current_prompt: character?.current_prompt || null,
+            }
+          })
+
+          // Sort by total aggregated score
+          const sorted = combined.sort((a, b) => b.total_score - a.total_score)
 
           const total = sorted.length
           const paginated = sorted.slice(offset, offset + limit)
@@ -124,20 +127,10 @@ serve(
       }
 
       // Step 3: No snapshots available, show all characters with 0 score
-      const { data: allCharacters, error: charError } = await supabase
+      // Fetch characters and profiles separately
+      const { data: characters, error: charError } = await supabase
         .from('characters')
-        .select(
-          `
-          id,
-          name,
-          current_prompt,
-          user_id,
-          profiles:user_id (
-            display_name,
-            avatar_url
-          )
-        `
-        )
+        .select('id, name, current_prompt, user_id')
         .eq('is_active', true)
         .order('created_at', { ascending: true })
 
@@ -146,7 +139,7 @@ serve(
         return errorResponse('DATABASE_ERROR', 500, charError.message)
       }
 
-      if (!allCharacters || allCharacters.length === 0) {
+      if (!characters || characters.length === 0) {
         const responseData = {
           data: [],
           pagination: { total: 0, limit, offset },
@@ -155,18 +148,48 @@ serve(
         return successResponse(responseData)
       }
 
-      // Build leaderboard with 0 scores
-      const total = allCharacters.length
-      const paginated = allCharacters.slice(offset, offset + limit)
+      // Get all unique user_ids
+      const userIds = Array.from(new Set(characters.map((c: any) => c.user_id)))
 
-      const leaderboard = paginated.map((char: any, index: number) => ({
+      // Fetch profiles separately
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url')
+        .in('id', userIds)
+
+      if (profileError) {
+        logger.logError(500, profileError.message)
+        return errorResponse('DATABASE_ERROR', 500, profileError.message)
+      }
+
+      // Build profile map
+      const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]))
+
+      // Combine data
+      const combined = characters.map((char: any) => {
+        const profile = profileMap.get(char.user_id)
+        return {
+          character_id: char.id,
+          character_name: char.name || 'Unknown',
+          display_name: profile?.display_name || 'Unknown',
+          avatar_url: profile?.avatar_url || null,
+          total_score: 0,
+          current_prompt: char.current_prompt || null,
+        }
+      })
+
+      // Apply pagination
+      const total = combined.length
+      const paginated = combined.slice(offset, offset + limit)
+
+      const leaderboard = paginated.map((entry, index) => ({
         rank: offset + index + 1,
-        character_id: char.id,
-        character_name: char.name || 'Unknown',
-        display_name: char.profiles?.display_name || 'Unknown',
-        avatar_url: char.profiles?.avatar_url || null,
-        total_score: 0,
-        current_prompt: char.current_prompt || null,
+        character_id: entry.character_id,
+        character_name: entry.character_name,
+        display_name: entry.display_name,
+        avatar_url: entry.avatar_url,
+        total_score: entry.total_score,
+        current_prompt: entry.current_prompt,
       }))
 
       const responseData = {
