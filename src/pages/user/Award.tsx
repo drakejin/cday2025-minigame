@@ -76,7 +76,7 @@ const AwardContainer = styled.div`
   ${css`
     animation: ${gradientAnimation} 15s ease infinite;
   `}
-  padding: 20px 15px;
+  padding: 20px 8px;
   overflow-x: hidden;
   position: relative;
 
@@ -459,8 +459,8 @@ const RankingList = styled.div`
   max-width: 1800px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 15px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
   position: relative;
   z-index: 1;
 
@@ -481,13 +481,14 @@ const RankingList = styled.div`
 const RankingItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 6px;
   background: rgba(255, 255, 255, 0.95);
-  padding: 15px 20px;
-  border-radius: 15px;
+  padding: 8px 6px;
+  border-radius: 10px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+  min-width: 0;
 
   @media (min-width: 768px) {
     gap: 25px;
@@ -520,11 +521,12 @@ const RankingItem = styled.div`
 `
 
 const RankNumber = styled.div`
-  font-size: 28px;
+  font-size: 16px;
   font-weight: 900;
   color: #7f8c8d;
-  min-width: 40px;
+  min-width: 24px;
   text-align: center;
+  flex-shrink: 0;
 
   @media (min-width: 768px) {
     font-size: 40px;
@@ -544,14 +546,16 @@ const RankNumber = styled.div`
 
 const RankAvatar = styled(Avatar)`
   &&& {
-    width: 60px;
-    height: 60px;
-    border: 3px solid #e0e0e0;
+    width: 36px;
+    height: 36px;
+    border: 2px solid #e0e0e0;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    flex-shrink: 0;
 
     @media (min-width: 768px) {
       width: 80px;
       height: 80px;
+      border: 3px solid #e0e0e0;
     }
 
     @media (min-width: 1024px) {
@@ -574,13 +578,14 @@ const RankInfo = styled.div`
 
 const RankName = styled(Title)`
   &&& {
-    font-size: 16px;
-    margin: 0 0 4px 0;
+    font-size: 12px;
+    margin: 0 0 2px 0;
     color: #2c3e50;
     font-weight: 700;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 100%;
 
     @media (min-width: 768px) {
       font-size: 24px;
@@ -599,13 +604,14 @@ const RankName = styled(Title)`
 `
 
 const RankCharacter = styled(Text)`
-  font-size: 14px;
+  font-size: 10px;
   color: #7f8c8d;
   display: block;
   font-weight: 400;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
 
   @media (min-width: 768px) {
     font-size: 18px;
@@ -621,11 +627,12 @@ const RankCharacter = styled(Text)`
 `
 
 const RankScore = styled.div`
-  font-size: 20px;
+  font-size: 12px;
   font-weight: 800;
   color: #667eea;
   text-align: right;
-  min-width: 80px;
+  min-width: 28px;
+  flex-shrink: 0;
 
   @media (min-width: 768px) {
     font-size: 28px;
