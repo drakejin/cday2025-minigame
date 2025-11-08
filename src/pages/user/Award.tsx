@@ -874,8 +874,7 @@ export const Award: FC = () => {
     <MainLayout showBottomNav={!!user} withoutPadding={true}>
       <AwardContainer>
         <Header>
-          <MainTitle level={1}>Champions</MainTitle>
-          <Subtitle>Hall of Fame</Subtitle>
+          <MainTitle level={1}>Prompt Challenge</MainTitle>
         </Header>
 
         {topThree.length > 0 && (
