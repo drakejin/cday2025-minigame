@@ -20,16 +20,17 @@ jobs:
 
       - name: Warmup Edge Functions
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           echo "Warming up Edge Functions..."
 
-          # Supabase CLI로 warmup 함수 호출
-          response=$(supabase functions invoke warmup \
-            --project-ref $SUPABASE_PROJECT_REF \
-            --method POST \
-            --body '{}')
+          # curl로 warmup 함수 호출 (apikey 포함)
+          response=$(curl -s -X POST \
+            "${SUPABASE_URL}/functions/v1/warmup" \
+            -H "Content-Type: application/json" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -d '{}')
 
           echo "Response: $response"
 
