@@ -24,7 +24,7 @@ export const profileService = {
     // Add timeout to prevent infinite loading (10 seconds)
     const invokePromise = supabase.functions.invoke('get-my-profile', {})
     const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('get-my-profile timeout after 10s')), 10000)
+      setTimeout(() => reject(new Error('get-my-profile timeout after 10s')), 500)
     )
 
     try {
