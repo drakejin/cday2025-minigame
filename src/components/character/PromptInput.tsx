@@ -22,26 +22,55 @@ export const PromptInput: FC<{
   } = usePromptSubmit()
 
   const handleSubmit = async () => {
-    // Validate prompt
-    if (!prompt.trim()) {
+    console.log('[handleSubmit] Called')
+    console.log('[handleSubmit] prompt:', prompt)
+    console.log('[handleSubmit] trialData:', trialData)
+    console.log('[handleSubmit] currentRound:', currentRound)
+
+    const finalPrompt = prompt.trim() || '성장하라'
+    console.log('[handleSubmit] finalPrompt:', finalPrompt)
+
+    if (!currentRound?.trial_no) {
+      console.log('[handleSubmit] FAIL: no trial_no')
       return
     }
 
-    // Validate trial data
-    const trials = Object.keys(trialData).map(Number).sort()
-    if (trials.length === 0) {
-      return
-    }
+    // Validate all trials up to current trial_no
+    for (let i = 1; i <= currentRound.trial_no; i++) {
+      const trial = trialData[i]
+      console.log(`[handleSubmit] Checking trial ${i}:`, trial)
 
-    // Validate base stats are all selected for trial 1
-    if (trialData[1]?.baseStats) {
-      const stats = trialData[1].baseStats
-      if (!stats.str || !stats.dex || !stats.con || !stats.int) {
+      if (!trial) {
+        console.log(`[handleSubmit] FAIL: no trial ${i}`)
         return
+      }
+
+      // Trial 1: validate base stats
+      if (i === 1) {
+        if (
+          !trial.baseStats?.str ||
+          !trial.baseStats?.dex ||
+          !trial.baseStats?.con ||
+          !trial.baseStats?.int
+        ) {
+          console.log('[handleSubmit] FAIL: trial 1 base stats', trial.baseStats)
+          return
+        }
+      }
+
+      // Trial 2+: validate bonus stats
+      if (i >= 2) {
+        if (!trial.bonusStats?.[0] || !trial.bonusStats?.[1]) {
+          console.log(`[handleSubmit] FAIL: trial ${i} bonus stats`, trial.bonusStats)
+          return
+        }
       }
     }
 
-    const success = await submitPrompt(prompt.trim(), trialData)
+    console.log('[handleSubmit] Validation passed, submitting...')
+    const success = await submitPrompt(finalPrompt, trialData)
+    console.log('[handleSubmit] Result:', success)
+
     if (success && onSubmitSuccess) {
       onSubmitSuccess()
     }
