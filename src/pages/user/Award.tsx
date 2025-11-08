@@ -371,11 +371,14 @@ const WinnerInfo = styled.div`
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(10px);
   min-width: 280px;
+  max-width: 400px;
+  width: 100%;
 
   @media (min-width: 768px) {
     padding: 30px 40px;
     border-radius: 25px;
     min-width: 320px;
+    max-width: 450px;
     box-shadow: 0 15px 45px rgba(0, 0, 0, 0.3);
   }
 
@@ -383,6 +386,7 @@ const WinnerInfo = styled.div`
     padding: 40px 50px;
     border-radius: 30px;
     min-width: 350px;
+    max-width: 500px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   }
 `
@@ -393,6 +397,10 @@ const WinnerName = styled(Title)`
     margin: 0 0 8px 0;
     color: #2c3e50;
     font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 
     @media (min-width: 768px) {
       font-size: 32px;
@@ -415,6 +423,10 @@ const CharacterName = styled(Text)`
   display: block;
   margin-bottom: 10px;
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 
   @media (min-width: 768px) {
     font-size: 24px;
@@ -481,7 +493,7 @@ const Score = styled.div`
 `
 
 const RankingList = styled.div`
-  max-width: 1800px;
+  max-width: 100%;
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -491,6 +503,7 @@ const RankingList = styled.div`
 
   @media (min-width: 768px) {
     gap: 25px;
+    max-width: 1400px;
   }
 
   @media (min-width: 1024px) {
@@ -500,6 +513,7 @@ const RankingList = styled.div`
 
   @media (min-width: 1920px) {
     gap: 40px;
+    max-width: 1800px;
   }
 `
 
@@ -514,12 +528,15 @@ const RankingItem = styled.div`
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
   min-width: 0;
+  width: 100%;
+  max-width: 100%;
 
   @media (min-width: 768px) {
     gap: 25px;
     padding: 25px 35px;
     border-radius: 20px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    max-width: 700px;
   }
 
   @media (min-width: 1024px) {
@@ -532,6 +549,7 @@ const RankingItem = styled.div`
     padding: 35px 45px;
     border-radius: 25px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    max-width: 900px;
   }
 
   &:hover {
@@ -740,7 +758,7 @@ export const Award: FC = () => {
   useEffect(() => {
     const reloadInterval = setInterval(() => {
       window.location.reload()
-    }, 120000) // 2 minutes = 120000ms
+    }, 60 * 1000) // 1 minute = 60000ms
 
     return () => clearInterval(reloadInterval)
   }, [])
@@ -806,10 +824,8 @@ export const Award: FC = () => {
                   </WinnerAvatar>
                   <WinnerInfo>
                     <WinnerName level={2}>{entry.display_name}</WinnerName>
-                    {entry.current_skill && (
-                      <CurrentPrompt>"{entry.current_skill}"</CurrentPrompt>
-                    )}
                     <CharacterName>{entry.character_name}</CharacterName>
+                    {entry.current_skill && <CurrentPrompt>"{entry.current_skill}"</CurrentPrompt>}
                     {entry.current_prompt && (
                       <CurrentPrompt>"{entry.current_prompt}"</CurrentPrompt>
                     )}
