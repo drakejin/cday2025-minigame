@@ -96,6 +96,8 @@ CREATE TABLE public.character_plans (
   
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
+  game_round integer,
+  trial_no integer
   
   CONSTRAINT character_plans_character_id_fkey 
     FOREIGN KEY (character_id) REFERENCES public.characters(id)
