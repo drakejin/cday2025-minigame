@@ -878,7 +878,6 @@ export const Award: FC = () => {
         />
         <Header>
           <MainTitle level={1}>Champions</MainTitle>
-          <Subtitle>Hall of Fame</Subtitle>
         </Header>
 
         {topThree.length > 0 && (
