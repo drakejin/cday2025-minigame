@@ -23,9 +23,13 @@ export const profileService = {
 
     // Add timeout to prevent infinite loading (10 seconds)
     const invokePromise = supabase.functions.invoke('get-my-profile', {})
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('get-my-profile timeout after 10s')), 10000)
+    )
+
     try {
       console.log('Invoking get-my-profile...')
-      const { data, error } = await invokePromise
+      const { data, error } = await Promise.race([invokePromise, timeoutPromise])
 
       console.log('get-my-profile response:', { hasData: !!data, hasError: !!error })
 
