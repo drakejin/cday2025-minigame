@@ -65,13 +65,13 @@ serve(
           rank: 1,
           total_participants: 1,
           percentile: 100,
-          character: { weighted_total: 0 },
+          character: { total_score: 0 },
         })
         return successResponse({
           rank: 1,
           total_participants: 1,
           percentile: 100,
-          character: { weighted_total: 0 },
+          character: { total_score: 0 },
         })
       }
 
@@ -103,10 +103,10 @@ serve(
         .sort((a, b) => b.total_score - a.total_score)
 
       // Find my character's score
-      const myWeighted = scoreMap.get(character_id) || 0
+      const myScore = scoreMap.get(character_id) || 0
 
       // Count characters with higher scores
-      const higherCount = allScores.filter((s) => s.total_score > myWeighted).length
+      const higherCount = allScores.filter((s) => s.total_score > myScore).length
       const totalParticipants = characters.length
       const rank = higherCount + 1
       const percentile = totalParticipants
@@ -117,7 +117,7 @@ serve(
         rank,
         total_participants: totalParticipants,
         percentile: Math.round(percentile * 10) / 10,
-        character: { weighted_total: myWeighted },
+        character: { total_score: myScore },
       }
 
       logger.logSuccess(200, responseData)

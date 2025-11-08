@@ -203,12 +203,12 @@ CREATE TABLE public.leaderboard_snapshots (
   rank integer NOT NULL,
   total_score integer NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
-  
-  CONSTRAINT leaderboard_snapshots_round_number_fkey 
+
+  CONSTRAINT leaderboard_snapshots_round_number_fkey
     FOREIGN KEY (round_number) REFERENCES public.game_rounds(round_number),
-  CONSTRAINT leaderboard_snapshots_character_id_fkey 
+  CONSTRAINT leaderboard_snapshots_character_id_fkey
     FOREIGN KEY (character_id) REFERENCES public.characters(id),
-  CONSTRAINT leaderboard_snapshots_user_id_fkey 
+  CONSTRAINT leaderboard_snapshots_user_id_fkey
     FOREIGN KEY (user_id) REFERENCES public.profiles(id)
 );
 ```

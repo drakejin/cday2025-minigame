@@ -33,7 +33,6 @@ const EDGE_FUNCTIONS = [
   'get-my-profile',
   'get-my-rank',
   'get-my-round-history',
-  'get-my-trials',
   'get-round-trials',
   'submit-prompt',
   'update-character-name',

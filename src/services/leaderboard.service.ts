@@ -18,7 +18,7 @@ export const leaderboardService = {
         character_name: string
         display_name: string
         avatar_url: string | null
-        weighted_total: number
+        total_score: number
         current_prompt: string | null
       }>
       pagination: { total: number; limit: number; offset: number }
@@ -30,7 +30,7 @@ export const leaderboardService = {
       character_name: item.character_name,
       display_name: item.display_name,
       avatar_url: item.avatar_url,
-      total_score: item.weighted_total ?? 0,
+      total_score: item.total_score ?? 0,
       strength: 0,
       charm: 0,
       creativity: 0,

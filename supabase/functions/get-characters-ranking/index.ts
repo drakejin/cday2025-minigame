@@ -165,7 +165,7 @@ serve(
         character_name: char.name || 'Unknown',
         display_name: char.profiles?.display_name || 'Unknown',
         avatar_url: char.profiles?.avatar_url || null,
-        weighted_total: 0,
+        total_score: 0,
         current_prompt: char.current_prompt || null,
       }))
 
