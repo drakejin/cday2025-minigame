@@ -269,7 +269,11 @@ export const RoundTimer: FC = memo(() => {
                 }}
               >
                 <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.85)' }}>
-                  {nextRound.trial_text}
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html: nextRound.trial_text.replace(/\n/g, '<br />'),
+                    }}
+                  />
                 </Text>
               </div>
             )}
@@ -413,7 +417,11 @@ export const RoundTimer: FC = memo(() => {
                   시련 내용
                 </Text>
                 <Text style={{ fontSize: 15, color: '#fff', fontWeight: 500 }}>
-                  {currentRound.trial_text}
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html: currentRound.trial_text.replace(/\n/g, '<br />'),
+                    }}
+                  />
                 </Text>
               </div>
             )}
