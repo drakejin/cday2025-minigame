@@ -62,6 +62,7 @@ const TrialInput: FC<{
                   value={baseStats[key]}
                   onChange={(val) => setBaseStats({ ...baseStats, [key]: val })}
                   allowClear
+                  disabled={availableBaseValues.length === 0 && !baseStats[key]}
                   options={[...availableBaseValues.map((v) => ({ value: v, label: v }))]}
                 />
               </Col>
@@ -80,6 +81,7 @@ const TrialInput: FC<{
                 placeholder="첫 번째 +1"
                 value={bonusStats[0]}
                 onChange={(val) => setBonusStats([val, bonusStats[1]])}
+                disabled={availableBonusStats.length === 0 && !bonusStats[0]}
                 options={[
                   ...(bonusStats[0]
                     ? [
@@ -102,6 +104,7 @@ const TrialInput: FC<{
                 placeholder="두 번째 +1"
                 value={bonusStats[1]}
                 onChange={(val) => setBonusStats([bonusStats[0], val])}
+                disabled={availableBonusStats.length === 0 && !bonusStats[1]}
                 options={[
                   ...(bonusStats[1]
                     ? [
