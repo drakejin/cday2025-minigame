@@ -1,7 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { verifyAdmin } from '../_shared/adminAuth.ts'
 import { keysToCamelCase } from '../_shared/camelCase.ts'
 import { errorResponse, successResponse } from '../_shared/response.ts'
-import { verifyAdmin } from '../_shared/adminAuth.ts'
 import { withLogging } from '../_shared/withLogging.ts'
 
 serve(

@@ -1,6 +1,6 @@
-import type { FC } from 'react'
-import { Layout, Button, Space, Typography } from 'antd'
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
+import { Button, Layout, Space, Typography } from 'antd'
+import type { FC } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 
@@ -29,7 +29,7 @@ export const Header: FC = () => {
       role="banner"
     >
       <Title level={4} style={{ color: 'white', margin: 0 }} aria-label="사이트 로고">
-        Character Battle
+        Prompt Challenge
       </Title>
 
       {user && (

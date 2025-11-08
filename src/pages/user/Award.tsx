@@ -1,12 +1,13 @@
-import { CrownOutlined, StarOutlined, TrophyOutlined } from '@ant-design/icons'
-import { Avatar, Spin, Typography } from 'antd'
+import { CrownOutlined, InfoCircleOutlined, StarOutlined, TrophyOutlined } from '@ant-design/icons'
+import { Avatar, Button, Spin, Typography } from 'antd'
 import type { FC } from 'react'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import styled, { css, keyframes } from 'styled-components'
-import type { LeaderboardEntry } from '@/types'
-import { useLeaderboard } from '@/hooks/queries/useLeaderboardQuery'
+import { GameRuleModal } from '@/components/common/GameRuleModal'
 import { MainLayout } from '@/components/layout/MainLayout'
+import { useLeaderboard } from '@/hooks/queries/useLeaderboardQuery'
 import { useAuthStore } from '@/store/authStore'
+import type { LeaderboardEntry } from '@/types'
 
 const { Title, Text } = Typography
 
@@ -286,32 +287,6 @@ const MainTitle = styled(Title)`
       font-size: 120px;
       letter-spacing: 8px;
     }
-  }
-`
-
-const Subtitle = styled(Text)`
-  font-size: 18px;
-  color: rgba(255, 255, 255, 0.95);
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  display: block;
-  margin-top: 10px;
-  font-weight: 300;
-  letter-spacing: 2px;
-
-  @media (min-width: 768px) {
-    font-size: 28px;
-    margin-top: 15px;
-    letter-spacing: 3px;
-  }
-
-  @media (min-width: 1024px) {
-    font-size: 36px;
-    margin-top: 20px;
-    letter-spacing: 4px;
-  }
-
-  @media (min-width: 1920px) {
-    font-size: 48px;
   }
 `
 
@@ -837,6 +812,7 @@ export const Award: FC = () => {
   const { data: leaderboard, isLoading } = useLeaderboard(50, 0)
   const user = useAuthStore((state) => state.user)
   const [isMobile, setIsMobile] = useState(false)
+  const [showGameRuleModal, setShowGameRuleModal] = useState(false)
 
   // Detect mobile screen size
   useEffect(() => {
@@ -873,6 +849,24 @@ export const Award: FC = () => {
   return (
     <MainLayout showBottomNav={!!user} withoutPadding={true}>
       <AwardContainer>
+        <Button
+          type="text"
+          icon={<InfoCircleOutlined />}
+          onClick={() => setShowGameRuleModal(true)}
+          style={{
+            position: 'fixed',
+            top: 20,
+            right: 20,
+            zIndex: 1000,
+            color: 'white',
+            fontSize: 24,
+            width: 48,
+            height: 48,
+            borderRadius: '50%',
+            background: 'rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(10px)',
+          }}
+        />
         <Header>
           <MainTitle level={1}>Prompt Challenge</MainTitle>
         </Header>
@@ -920,6 +914,7 @@ export const Award: FC = () => {
           </RankingList>
         )}
       </AwardContainer>
+      <GameRuleModal open={showGameRuleModal} onClose={() => setShowGameRuleModal(false)} />
     </MainLayout>
   )
 }

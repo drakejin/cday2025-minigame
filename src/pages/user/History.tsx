@@ -1,5 +1,7 @@
-import type { FC } from 'react'
-import { List, Tag, Space, Typography } from 'antd'
+import { InfoCircleOutlined } from '@ant-design/icons'
+import { Button, List, Space, Tag, Typography } from 'antd'
+import { type FC, useState } from 'react'
+import { GameRuleModal } from '@/components/common/GameRuleModal'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { useMyRoundHistory } from '@/hooks/queries/usePromptQuery'
 import type { RoundHistory } from '@/types/game.types'
@@ -8,10 +10,21 @@ const { Text, Title } = Typography
 
 export const History: FC = () => {
   const { data: history = [] } = useMyRoundHistory(20, 0)
+  const [showGameRuleModal, setShowGameRuleModal] = useState(false)
 
   return (
     <MainLayout>
-      <Title level={2}>시련 히스토리</Title>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Title level={2} style={{ margin: 0 }}>
+          시련 히스토리
+        </Title>
+        <Button
+          type="text"
+          icon={<InfoCircleOutlined />}
+          onClick={() => setShowGameRuleModal(true)}
+          style={{ fontSize: 20 }}
+        />
+      </div>
       <List
         dataSource={history}
         grid={{ gutter: 16, column: 1 }}
@@ -97,6 +110,7 @@ export const History: FC = () => {
         )}
         locale={{ emptyText: '아직 진행된 시련가 없습니다' }}
       />
+      <GameRuleModal open={showGameRuleModal} onClose={() => setShowGameRuleModal(false)} />
     </MainLayout>
   )
 }

@@ -1,6 +1,6 @@
-import { supabase } from './supabase'
+import type { RoundHistory, SubmitPromptResponse } from '@/types/game.types'
 import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
-import type { SubmitPromptResponse, RoundHistory } from '@/types/game.types'
+import { supabase } from './supabase'
 
 export const promptService = {
   /**

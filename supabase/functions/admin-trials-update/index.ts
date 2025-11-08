@@ -1,8 +1,8 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { withLogging } from '../_shared/withLogging.ts'
-import { errorResponse, successResponse } from '../_shared/response.ts'
 import { verifyAdmin } from '../_shared/adminAuth.ts'
 import { createSupabaseClient } from '../_shared/db.ts'
+import { errorResponse, successResponse } from '../_shared/response.ts'
+import { withLogging } from '../_shared/withLogging.ts'
 
 serve(
   withLogging('admin-trials-update', async (req, logger) => {

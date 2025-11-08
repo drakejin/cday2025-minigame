@@ -1,9 +1,9 @@
-import { useEffect } from 'react'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useQueryClient } from '@tanstack/react-query'
 import { message } from 'antd'
-import { realtimeService } from '@/services/realtime.service'
+import { useEffect } from 'react'
 import { queryKeys } from '@/lib/queryKeys'
-import type { RealtimeChannel } from '@supabase/supabase-js'
+import { realtimeService } from '@/services/realtime.service'
 
 /**
  * Hook to subscribe to real-time game round updates

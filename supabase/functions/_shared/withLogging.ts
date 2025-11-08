@@ -3,8 +3,8 @@
  * Automatically logs request/response/duration for all functions
  */
 
-import { RequestLogger } from './logger.ts'
 import { handleCors } from './cors.ts'
+import { RequestLogger } from './logger.ts'
 import { errorResponse } from './response.ts'
 
 export type HandlerFunction = (req: Request, logger: RequestLogger) => Promise<Response>

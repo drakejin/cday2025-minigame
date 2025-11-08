@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { gameService } from '@/services/game.service'
 import { queryKeys } from '@/lib/queryKeys'
+import { gameService } from '@/services/game.service'
 
 /**
  * Get current active round and next scheduled round

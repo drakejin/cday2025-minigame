@@ -1,15 +1,16 @@
+import { InfoCircleOutlined, SendOutlined } from '@ant-design/icons'
+import { Alert, Button, Card, Input, message, Space, Typography } from 'antd'
 import { type FC, useState } from 'react'
-import { Button, Typography, Space, Card, Alert, Input, message } from 'antd'
-import { SendOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
-import { useAuthStore } from '@/store/authStore'
+import { GoogleLoginModal } from '@/components/auth/GoogleLoginModal'
+import { GameRuleModal } from '@/components/common/GameRuleModal'
+import { RoundTimer } from '@/components/game/RoundTimer'
+import { LeaderboardList } from '@/components/leaderboard/LeaderboardList'
+import { useCreateCharacter, useMyCharacter } from '@/hooks/queries/useCharacterQuery'
 import { useCurrentRound } from '@/hooks/queries/useGameQuery'
 import { useLeaderboard } from '@/hooks/queries/useLeaderboardQuery'
-import { useMyCharacter, useCreateCharacter } from '@/hooks/queries/useCharacterQuery'
 import { useSubmitPrompt } from '@/hooks/queries/usePromptQuery'
-import { LeaderboardList } from '@/components/leaderboard/LeaderboardList'
-import { GoogleLoginModal } from '@/components/auth/GoogleLoginModal'
-import { RoundTimer } from '@/components/game/RoundTimer'
+import { useAuthStore } from '@/store/authStore'
 
 const { Title, Text } = Typography
 const { TextArea } = Input
@@ -30,6 +31,7 @@ export const Home: FC = () => {
   const [prompt, setPrompt] = useState('')
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showGameRuleModal, setShowGameRuleModal] = useState(false)
 
   const handleSubmit = async () => {
     // Check if user is logged in
@@ -108,10 +110,21 @@ export const Home: FC = () => {
         style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}
       >
         {/* Title */}
-        <div style={{ textAlign: 'center', padding: '24px 0' }}>
-          <Title level={1} style={{ margin: 0, fontSize: '48px', fontWeight: 'bold' }}>
-            Character Battle
+        <div style={{ textAlign: 'center', padding: '18px 0', position: 'relative' }}>
+          <Title level={1} style={{ margin: 0, fontSize: '36px', fontWeight: 'bold' }}>
+            Prompt Challenge
           </Title>
+          <Button
+            type="text"
+            icon={<InfoCircleOutlined />}
+            onClick={() => setShowGameRuleModal(true)}
+            style={{
+              position: 'absolute',
+              top: 18,
+              right: 0,
+              fontSize: 20,
+            }}
+          />
         </div>
 
         {/* Round Timer */}
@@ -229,6 +242,9 @@ export const Home: FC = () => {
 
       {/* Google Login Modal */}
       <GoogleLoginModal open={showLoginModal} onCancel={() => setShowLoginModal(false)} />
+
+      {/* Game Rule Modal */}
+      <GameRuleModal open={showGameRuleModal} onClose={() => setShowGameRuleModal(false)} />
     </div>
   )
 }

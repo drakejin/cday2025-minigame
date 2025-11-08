@@ -1,6 +1,6 @@
-import { useEffect } from 'react'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import { queryKeys } from '@/lib/queryKeys'
 import { realtimeService } from '@/services/realtime.service'
 

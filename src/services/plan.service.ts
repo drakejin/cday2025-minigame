@@ -1,6 +1,6 @@
-import { supabase } from './supabase'
-import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
 import type { CharacterPlan } from '@/types'
+import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
+import { supabase } from './supabase'
 
 export const planService = {
   async getMyPlan(): Promise<{ character_id: string; plan: CharacterPlan | null }> {

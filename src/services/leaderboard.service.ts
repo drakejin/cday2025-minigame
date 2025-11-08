@@ -1,6 +1,6 @@
-import { supabase } from './supabase'
+import type { LeaderboardEntry, LeaderboardResponse } from '@/types'
 import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
-import type { LeaderboardResponse, LeaderboardEntry } from '@/types'
+import { supabase } from './supabase'
 
 export const leaderboardService = {
   /**

@@ -1,9 +1,9 @@
+import type { Session, User } from '@supabase/supabase-js'
 import { create } from 'zustand'
-import type { User, Session } from '@supabase/supabase-js'
+import { env } from '@/config/env'
 import { authService } from '@/services/auth.service'
 import { profileService } from '@/services/profile.service'
 import { supabase } from '@/services/supabase'
-import { env } from '@/config/env'
 import type { Profile } from '@/types/profile.types'
 
 interface AuthState {
@@ -97,7 +97,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       // Try getSession with timeout
       const sessionResult = await supabase.auth.getSession()
-  
+
       result = sessionResult
       console.log('[authStore] getSession succeeded')
     } catch (_timeoutError) {

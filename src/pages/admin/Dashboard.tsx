@@ -1,14 +1,14 @@
-import type { FC } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import {
   ClockCircleOutlined,
   FileTextOutlined,
   TrophyOutlined,
   UserOutlined,
 } from '@ant-design/icons'
+import { useQuery } from '@tanstack/react-query'
 import { Card, Col, Row, Space, Statistic, Typography } from 'antd'
-import { AdminLayout } from '@/components/layout/AdminLayout'
+import type { FC } from 'react'
 import { Loading } from '@/components/common/Loading'
+import { AdminLayout } from '@/components/layout/AdminLayout'
 import { adminService } from '@/services/admin.service'
 
 export const AdminDashboard: FC = () => {

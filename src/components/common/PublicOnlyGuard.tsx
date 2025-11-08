@@ -1,6 +1,6 @@
+import { Spin } from 'antd'
 import type { FC } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { Spin } from 'antd'
 import { useAuthStore } from '@/store/authStore'
 
 /**

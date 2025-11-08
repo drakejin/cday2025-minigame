@@ -1,6 +1,6 @@
-import { memo } from 'react'
+import { Divider, Space, Tag, Typography } from 'antd'
 import type { FC } from 'react'
-import { Space, Typography, Tag, Divider } from 'antd'
+import { memo } from 'react'
 import type { Character } from '@/types'
 
 const { Title, Text } = Typography

@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react'
+import { InfoCircleOutlined } from '@ant-design/icons'
+import { Button, Input, Space, Typography } from 'antd'
 import type { FC } from 'react'
-import { Space, Typography, Input } from 'antd'
-import { MainLayout } from '@/components/layout/MainLayout'
-import { RoundTimer } from '@/components/game/RoundTimer'
+import { useEffect, useState } from 'react'
 import { CharacterCreationForm } from '@/components/character/CharacterCreationForm'
-import { StatInput } from '@/components/character/StatInput'
 import { PromptInput } from '@/components/character/PromptInput'
-import { useMyCharacter } from '@/hooks/queries/useCharacterQuery'
+import { StatInput } from '@/components/character/StatInput'
+import { GameRuleModal } from '@/components/common/GameRuleModal'
 import { Loading } from '@/components/common/Loading'
+import { RoundTimer } from '@/components/game/RoundTimer'
+import { MainLayout } from '@/components/layout/MainLayout'
+import { useMyCharacter } from '@/hooks/queries/useCharacterQuery'
 import { useRealtimeRound } from '@/hooks/useRealtimeRound'
 import { supabase } from '@/services/supabase'
 
@@ -25,6 +27,7 @@ export const Dashboard: FC = () => {
   const [trialData, setTrialData] = useState<Record<number, TrialData>>({})
   const [prompt, setPrompt] = useState('')
   const [isLoadingPlan, setIsLoadingPlan] = useState(true)
+  const [showGameRuleModal, setShowGameRuleModal] = useState(false)
 
   // Subscribe to real-time updates
   useRealtimeRound()
@@ -106,8 +109,18 @@ export const Dashboard: FC = () => {
 
   return (
     <MainLayout>
-      <Title level={2}>게임</Title>
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Title level={2} style={{ margin: 0 }}>
+          게임
+        </Title>
+        <Button
+          type="text"
+          icon={<InfoCircleOutlined />}
+          onClick={() => setShowGameRuleModal(true)}
+          style={{ fontSize: 20 }}
+        />
+      </div>
+      <Space direction="vertical" size="large" style={{ width: '100%', marginTop: 16 }}>
         <RoundTimer />
         {character ? (
           <>
@@ -172,6 +185,7 @@ export const Dashboard: FC = () => {
           <CharacterCreationForm />
         )}
       </Space>
+      <GameRuleModal open={showGameRuleModal} onClose={() => setShowGameRuleModal(false)} />
     </MainLayout>
   )
 }

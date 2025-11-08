@@ -1,7 +1,7 @@
-import type { FC } from 'react'
+import { HistoryOutlined, HomeOutlined, TrophyOutlined, UserOutlined } from '@ant-design/icons'
 import { Layout, Menu } from 'antd'
-import { HomeOutlined, TrophyOutlined, HistoryOutlined, UserOutlined } from '@ant-design/icons'
-import { useNavigate, useLocation } from 'react-router-dom'
+import type { FC } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 const { Footer } = Layout
 

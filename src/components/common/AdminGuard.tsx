@@ -1,7 +1,7 @@
+import { LockOutlined } from '@ant-design/icons'
+import { Alert, Card, Space, Typography } from 'antd'
 import type { FC } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
-import { Alert, Card, Space, Typography } from 'antd'
-import { LockOutlined } from '@ant-design/icons'
 import { useAuthStore } from '@/store/authStore'
 import { Loading } from './Loading'
 

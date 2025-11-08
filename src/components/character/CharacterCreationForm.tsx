@@ -1,6 +1,6 @@
-import { type FC, useState } from 'react'
-import { Alert, Button, Card, Input, Space, Typography, message } from 'antd'
 import { UserAddOutlined } from '@ant-design/icons'
+import { Alert, Button, Card, Input, message, Space, Typography } from 'antd'
+import { type FC, useState } from 'react'
 import { useCreateCharacter } from '@/hooks/queries/useCharacterQuery'
 
 const { Title, Text } = Typography

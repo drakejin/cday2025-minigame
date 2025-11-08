@@ -1,5 +1,5 @@
+import { Button, Result } from 'antd'
 import { Component, type ReactNode } from 'react'
-import { Result, Button } from 'antd'
 
 interface Props {
   children: ReactNode

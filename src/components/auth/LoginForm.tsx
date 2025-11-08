@@ -1,6 +1,6 @@
-import type { FC } from 'react'
-import { Button, Space, Divider, message } from 'antd'
 import { GoogleOutlined } from '@ant-design/icons'
+import { Button, Divider, message, Space } from 'antd'
+import type { FC } from 'react'
 import { useAuthStore } from '@/store/authStore'
 
 export const LoginForm: FC = () => {

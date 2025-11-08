@@ -1,6 +1,6 @@
-import { supabase } from './supabase'
-import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
 import type { Character } from '@/types/character.types'
+import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
+import { supabase } from './supabase'
 
 export interface CharacterWithSubmission extends Character {
   last_submission_round?: number

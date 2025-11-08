@@ -1,5 +1,5 @@
-import { supabase } from './supabase'
 import type { RealtimeChannel } from '@supabase/supabase-js'
+import { supabase } from './supabase'
 
 export const realtimeService = {
   /**

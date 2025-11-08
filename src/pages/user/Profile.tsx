@@ -1,6 +1,7 @@
-import type { FC } from 'react'
-import { Avatar, Space, Typography } from 'antd'
-import { UserOutlined, MailOutlined, CalendarOutlined } from '@ant-design/icons'
+import { CalendarOutlined, InfoCircleOutlined, MailOutlined, UserOutlined } from '@ant-design/icons'
+import { Avatar, Button, Space, Typography } from 'antd'
+import { type FC, useState } from 'react'
+import { GameRuleModal } from '@/components/common/GameRuleModal'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { useAuthStore } from '@/store/authStore'
 
@@ -8,10 +9,21 @@ const { Title, Text } = Typography
 
 export const Profile: FC = () => {
   const user = useAuthStore((state) => state.user)
+  const [showGameRuleModal, setShowGameRuleModal] = useState(false)
 
   return (
     <MainLayout>
-      <Title level={2}>프로필</Title>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Title level={2} style={{ margin: 0 }}>
+          프로필
+        </Title>
+        <Button
+          type="text"
+          icon={<InfoCircleOutlined />}
+          onClick={() => setShowGameRuleModal(true)}
+          style={{ fontSize: 20 }}
+        />
+      </div>
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         {/* User Profile */}
         <div
@@ -106,6 +118,7 @@ export const Profile: FC = () => {
           </Space>
         </div>
       </Space>
+      <GameRuleModal open={showGameRuleModal} onClose={() => setShowGameRuleModal(false)} />
     </MainLayout>
   )
 }

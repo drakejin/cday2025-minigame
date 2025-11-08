@@ -1,6 +1,6 @@
+import { BulbOutlined, FireOutlined, HeartOutlined, TrophyOutlined } from '@ant-design/icons'
+import { Button, Flex, List, Space, Tag, Typography } from 'antd'
 import type { FC } from 'react'
-import { List, Tag, Space, Typography, Flex, Button } from 'antd'
-import { TrophyOutlined, FireOutlined, HeartOutlined, BulbOutlined } from '@ant-design/icons'
 import type { LeaderboardEntry } from '@/types'
 import { getRankColor } from '@/utils'
 

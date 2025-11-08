@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/queryKeys'
 import { characterService } from '@/services/character.service'
 import { useAuthStore } from '@/store/authStore'
-import { queryKeys } from '@/lib/queryKeys'
 
 export const useMyCharacter = () => {
   const user = useAuthStore((state) => state.user)

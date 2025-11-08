@@ -1,6 +1,6 @@
+import { EditOutlined, SendOutlined } from '@ant-design/icons'
+import { Alert, Button, Space, Tag, Typography } from 'antd'
 import type { FC } from 'react'
-import { Button, Space, Typography, Alert, Tag } from 'antd'
-import { SendOutlined, EditOutlined } from '@ant-design/icons'
 import { usePromptSubmit } from '@/hooks/usePromptSubmit'
 import type { TrialData } from '@/pages/user/Dashboard'
 

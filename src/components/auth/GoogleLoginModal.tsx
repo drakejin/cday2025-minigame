@@ -1,6 +1,6 @@
-import type { FC } from 'react'
-import { Modal, Button, Space, Typography, message } from 'antd'
 import { GoogleOutlined } from '@ant-design/icons'
+import { Button, Modal, message, Space, Typography } from 'antd'
+import type { FC } from 'react'
 import { useAuthStore } from '@/store/authStore'
 
 const { Title, Paragraph } = Typography

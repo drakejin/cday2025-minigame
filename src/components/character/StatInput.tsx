@@ -1,12 +1,12 @@
-import type { FC } from 'react'
-import { Card, Typography, Space, Select, Input, Row, Col, Divider, Button } from 'antd'
 import {
-  ThunderboltOutlined,
-  RocketOutlined,
-  HeartOutlined,
   BulbOutlined,
   ClearOutlined,
+  HeartOutlined,
+  RocketOutlined,
+  ThunderboltOutlined,
 } from '@ant-design/icons'
+import { Button, Card, Col, Divider, Input, Row, Select, Space, Typography } from 'antd'
+import type { FC } from 'react'
 import { useCurrentRound } from '@/hooks/queries/useGameQuery'
 import type { TrialData } from '@/pages/user/Dashboard'
 

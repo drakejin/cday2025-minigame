@@ -1,6 +1,6 @@
-import { supabase } from './supabase'
-import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
 import type { CurrentRound } from '@/types/game.types'
+import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
+import { supabase } from './supabase'
 
 interface GetCurrentRoundResponse {
   current_round: CurrentRound | null

@@ -1,7 +1,7 @@
-import { memo, useState, useEffect } from 'react'
-import type { FC } from 'react'
-import { Space, Tag, Typography, Divider, Progress } from 'antd'
 import { ClockCircleOutlined } from '@ant-design/icons'
+import { Divider, Progress, Space, Tag, Typography } from 'antd'
+import type { FC } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { useRoundTimer } from '@/hooks/useRoundTimer'
 
 const { Text, Title } = Typography

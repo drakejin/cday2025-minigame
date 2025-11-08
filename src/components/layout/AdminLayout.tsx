@@ -1,6 +1,3 @@
-import { useState } from 'react'
-import type { FC, ReactNode } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
 import {
   AppstoreOutlined,
   AuditOutlined,
@@ -14,8 +11,11 @@ import {
   TrophyOutlined,
   UserOutlined,
 } from '@ant-design/icons'
-import { Avatar, Button, Dropdown, Layout, Menu, Space, Tag, Typography } from 'antd'
 import type { MenuProps } from 'antd'
+import { Avatar, Button, Dropdown, Layout, Menu, Space, Tag, Typography } from 'antd'
+import type { FC, ReactNode } from 'react'
+import { useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 
 const { Header, Sider, Content } = Layout

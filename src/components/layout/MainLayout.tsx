@@ -1,5 +1,5 @@
-import type { FC, ReactNode } from 'react'
 import { Layout } from 'antd'
+import type { FC, ReactNode } from 'react'
 import { BottomNavigation } from './BottomNavigation'
 
 const { Content } = Layout

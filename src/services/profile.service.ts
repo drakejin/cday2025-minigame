@@ -1,6 +1,6 @@
-import { supabase } from './supabase'
-import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
 import type { Profile } from '@/types/profile.types'
+import { handleEdgeFunctionResponse } from '@/utils/edgeFunction'
+import { supabase } from './supabase'
 
 let profileCache: { profile: Profile; timestamp: number } | null = null
 const CACHE_DURATION = 5000 // 5 seconds

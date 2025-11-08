@@ -1,6 +1,6 @@
-import { memo } from 'react'
-import type { FC } from 'react'
 import { List, Space, Tag, Typography } from 'antd'
+import type { FC } from 'react'
+import { memo } from 'react'
 import type { LeaderboardEntry } from '@/types'
 import { getRankColor } from '@/utils'
 
