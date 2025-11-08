@@ -806,6 +806,9 @@ export const Award: FC = () => {
                   </WinnerAvatar>
                   <WinnerInfo>
                     <WinnerName level={2}>{entry.display_name}</WinnerName>
+                    {entry.current_skill && (
+                      <CurrentPrompt>"{entry.current_skill}"</CurrentPrompt>
+                    )}
                     <CharacterName>{entry.character_name}</CharacterName>
                     {entry.current_prompt && (
                       <CurrentPrompt>"{entry.current_prompt}"</CurrentPrompt>
@@ -830,6 +833,7 @@ export const Award: FC = () => {
                   <RankName level={3}>{entry.display_name}</RankName>
                   <RankCharacter>{entry.character_name}</RankCharacter>
                   {entry.current_prompt && <RankPrompt>"{entry.current_prompt}"</RankPrompt>}
+                  {entry.current_skill && <RankPrompt>"{entry.current_skill}"</RankPrompt>}
                 </RankInfo>
                 <RankScore>{entry.total_score.toLocaleString()}</RankScore>
               </RankingItem>

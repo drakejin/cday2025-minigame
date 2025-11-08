@@ -11,25 +11,26 @@ serve(
       const limit = parseInt(url.searchParams.get('limit') || '100', 10)
       const offset = parseInt(url.searchParams.get('offset') || '0', 10)
 
-      // Step 1: Get all completed rounds
+      // Step 1: Get the latest completed round
       const { data: completedRounds } = await supabase
         .from('game_rounds')
         .select('round_number')
         .eq('status', 'completed')
-        .order('round_number', { ascending: true })
+        .order('round_number', { ascending: false })
+        .limit(1)
 
-      // Step 2: If we have completed rounds, try to get all snapshots
+      // Step 2: If we have a completed round, get snapshots from that round only
       if (completedRounds && completedRounds.length > 0) {
-        const roundNumbers = completedRounds.map((r: { round_number: number }) => r.round_number)
+        const latestRoundNumber = completedRounds[0].round_number
 
-        // Get snapshots without auto-join
+        // Get snapshots from the latest round only
         const { data: snapshots, error: snapshotError } = await supabase
           .from('leaderboard_snapshots')
           .select('id, round_number, character_id, user_id, rank, total_score')
-          .in('round_number', roundNumbers)
+          .eq('round_number', latestRoundNumber)
 
         if (!snapshotError && snapshots && snapshots.length > 0) {
-          // Aggregate total scores across all rounds per character
+          // Build character score map (no aggregation needed - one snapshot per character)
           const characterScoreMap = new Map<
             string,
             {
@@ -40,16 +41,11 @@ serve(
           >()
 
           for (const snapshot of snapshots) {
-            const existing = characterScoreMap.get(snapshot.character_id)
-            if (existing) {
-              existing.total_score += snapshot.total_score
-            } else {
-              characterScoreMap.set(snapshot.character_id, {
-                character_id: snapshot.character_id,
-                user_id: snapshot.user_id,
-                total_score: snapshot.total_score,
-              })
-            }
+            characterScoreMap.set(snapshot.character_id, {
+              character_id: snapshot.character_id,
+              user_id: snapshot.user_id,
+              total_score: snapshot.total_score,
+            })
           }
 
           // Get all unique character_ids and user_ids
@@ -57,9 +53,6 @@ serve(
           const userIds = Array.from(
             new Set(Array.from(characterScoreMap.values()).map((c) => c.user_id))
           )
-
-          // Get latest round number
-          const latestRoundNumber = Math.max(...roundNumbers)
 
           // Fetch characters separately
           const { data: characters, error: charError } = await supabase
@@ -84,10 +77,10 @@ serve(
             return errorResponse('DATABASE_ERROR', 500, profileError.message)
           }
 
-          // Fetch latest round prompts
+          // Fetch latest round prompts and skills
           const { data: prompts, error: promptError } = await supabase
             .from('prompt_history')
-            .select('character_id, prompt')
+            .select('character_id, prompt, skill')
             .in('character_id', characterIds)
             .eq('round_number', latestRoundNumber)
             .eq('is_deleted', false)
@@ -101,12 +94,14 @@ serve(
           const characterMap = new Map((characters || []).map((c: any) => [c.id, c]))
           const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]))
           const promptMap = new Map((prompts || []).map((p: any) => [p.character_id, p.prompt]))
+          const skillMap = new Map((prompts || []).map((p: any) => [p.character_id, p.skill]))
 
           // Combine data
           const combined = Array.from(characterScoreMap.values()).map((score) => {
             const character = characterMap.get(score.character_id)
             const profile = profileMap.get(score.user_id)
             const latestPrompt = promptMap.get(score.character_id)
+            const latestSkill = skillMap.get(score.character_id)
 
             return {
               character_id: score.character_id,
@@ -115,6 +110,7 @@ serve(
               display_name: profile?.display_name || 'Unknown',
               avatar_url: profile?.avatar_url || null,
               current_prompt: latestPrompt || character?.current_prompt || null,
+              current_skill: latestSkill || null,
             }
           })
 
@@ -132,6 +128,7 @@ serve(
             avatar_url: entry.avatar_url,
             total_score: entry.total_score,
             current_prompt: entry.current_prompt,
+            current_skill: entry.current_skill,
           }))
 
           const responseData = {
@@ -181,10 +178,10 @@ serve(
         return errorResponse('DATABASE_ERROR', 500, profileError.message)
       }
 
-      // Fetch latest prompts from prompt_history
+      // Fetch latest prompts and skills from prompt_history
       const { data: latestPrompts } = await supabase
         .from('prompt_history')
-        .select('character_id, prompt, round_number')
+        .select('character_id, prompt, skill, round_number')
         .in('character_id', characterIds)
         .eq('is_deleted', false)
         .order('round_number', { ascending: false })
@@ -192,12 +189,16 @@ serve(
       // Build maps
       const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]))
 
-      // Get the latest prompt for each character
+      // Get the latest prompt and skill for each character
       const promptMap = new Map<string, string>()
+      const skillMap = new Map<string, string>()
       if (latestPrompts) {
         for (const p of latestPrompts) {
           if (!promptMap.has(p.character_id)) {
             promptMap.set(p.character_id, p.prompt)
+          }
+          if (!skillMap.has(p.character_id)) {
+            skillMap.set(p.character_id, p.skill)
           }
         }
       }
@@ -206,6 +207,7 @@ serve(
       const combined = characters.map((char: any) => {
         const profile = profileMap.get(char.user_id)
         const latestPrompt = promptMap.get(char.id)
+        const latestSkill = skillMap.get(char.id)
 
         return {
           character_id: char.id,
@@ -214,6 +216,7 @@ serve(
           avatar_url: profile?.avatar_url || null,
           total_score: 0,
           current_prompt: latestPrompt || char.current_prompt || null,
+          current_skill: latestSkill || null,
         }
       })
 
@@ -229,6 +232,7 @@ serve(
         avatar_url: entry.avatar_url,
         total_score: entry.total_score,
         current_prompt: entry.current_prompt,
+        current_skill: entry.current_skill,
       }))
 
       const responseData = {

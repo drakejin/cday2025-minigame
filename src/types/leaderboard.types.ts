@@ -9,6 +9,7 @@ export interface LeaderboardEntry {
   charm: number
   creativity: number
   current_prompt: string
+  current_skill: string
 }
 
 export interface LeaderboardResponse {

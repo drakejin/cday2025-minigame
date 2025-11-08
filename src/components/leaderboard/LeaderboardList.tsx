@@ -87,6 +87,20 @@ export const LeaderboardList: FC<LeaderboardListProps> = ({
                   </div>
                 )}
 
+                {/* Current Skill */}
+                {item.current_skill && (
+                  <div
+                    style={{
+                      padding: '8px 12px',
+                      background: '#f5f5f5',
+                      borderRadius: 4,
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    <Text style={{ fontSize: 13 }}>"{item.current_skill}"</Text>
+                  </div>
+                )}
+
                 {/* Stats */}
                 <Space size="small" wrap style={{ width: '100%', justifyContent: 'space-between' }}>
                   <Space size="small" wrap>

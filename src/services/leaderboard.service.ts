@@ -20,6 +20,7 @@ export const leaderboardService = {
         avatar_url: string | null
         total_score: number
         current_prompt: string | null
+        current_skill: string | null
       }>
       pagination: { total: number; limit: number; offset: number }
     }>(data, error, 'Failed to get leaderboard')
@@ -35,6 +36,7 @@ export const leaderboardService = {
       charm: 0,
       creativity: 0,
       current_prompt: item.current_prompt || '',
+      current_skill: item.current_skill || '',
     }))
 
     return {
