@@ -826,6 +826,15 @@ export const Award: FC = () => {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
+  // Auto reload page every 2 minutes
+  useEffect(() => {
+    const reloadInterval = setInterval(() => {
+      window.location.reload()
+    }, 120000) // 2 minutes = 120000ms
+
+    return () => clearInterval(reloadInterval)
+  }, [])
+
   // Use mock data if loading or no data
   const displayData = leaderboard?.data || MOCK_DATA
 
